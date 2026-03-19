@@ -20,7 +20,6 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|confirmed|min:6',
-            'role' => 'string|nullable',
         ]);
 
         if ($validator->fails()) {
@@ -35,7 +34,6 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'role' => $request->role ?? 'user',
             'password' => Hash::make($request->password),
         ]);
 
@@ -101,7 +99,7 @@ class AuthController extends Controller
         $request->user()->tokens()->delete();
 
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'Logged out successfully'
         ]);
     }

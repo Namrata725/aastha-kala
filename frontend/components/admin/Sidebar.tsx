@@ -1,5 +1,5 @@
 "use client";
-
+import { useEffect } from "react";
 import {
   Home,
   Settings,
@@ -40,18 +40,24 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
 
   const handleLogout = async () => {
     try {
+      const token = localStorage.getItem("token");
+
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/logout`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${Cookies.get("token")}`,
+          Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
       });
-      Cookies.remove("token");
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
       toast.success("Logged out successfully");
       router.push("/login");
     } catch (error) {
-      Cookies.remove("token");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
       router.push("/login");
     }
   };
