@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    /**
+     * Register a new user and return token
+     */
     public function register(Request $request)
     {
         // Validate input
@@ -39,20 +42,22 @@ class AuthController extends Controller
         // Create token
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // Return response with token at top level
         return response()->json([
             'success' => true,
             'message' => 'User registered successfully',
-            'data' => [
-                'user' => $user,
-                'access_token' => $token,
-                'token_type' => 'Bearer'
-            ]
+            'token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user,
         ], 201);
     }
 
+    /**
+     * Login user and return token
+     */
     public function login(Request $request)
     {
-        // Validate input
+        
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string',
@@ -78,17 +83,19 @@ class AuthController extends Controller
         // Create token
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // Return response with token at top level
         return response()->json([
             'success' => true,
             'message' => 'Logged in successfully',
-            'data' => [
-                'user' => $user,
-                'access_token' => $token,
-                'token_type' => 'Bearer'
-            ]
+            'token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user,
         ], 200);
     }
 
+    /**
+     * Logout user (delete all tokens)
+     */
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();

@@ -29,7 +29,8 @@ export default function LoginPage() {
 
       toast.success("Logged in successfully!");
 
-      localStorage.setItem("token", data.access_token);
+      // Update here to match your new backend response
+      localStorage.setItem("token", data.token); // was data.access_token
       localStorage.setItem("user", JSON.stringify(data.user));
 
       router.push("/admin");

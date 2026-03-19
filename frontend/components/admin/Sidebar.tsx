@@ -40,7 +40,7 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/logout`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${Cookies.get("token")}`,
