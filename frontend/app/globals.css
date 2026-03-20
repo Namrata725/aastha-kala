@@ -34,5 +34,19 @@ body {
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
+
+  @keyframes infinite-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.animate-infinite-bounce {
+  animation: infinite-bounce 1.2s ease-in-out infinite;
+}
 }
 

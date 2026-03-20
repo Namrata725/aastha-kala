@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\InstructorController;
 
 
 // Public Routes
@@ -28,6 +29,14 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         Route::put('/', [SettingController::class, 'update']);
     });
 
+    // Instructor Management
+    Route::prefix('instructors')->group(function () {
+        Route::get('/', [InstructorController::class, 'index']);
+        Route::post('/', [InstructorController::class, 'store']);
+        Route::get('/{id}', [InstructorController::class, 'show']);
+        Route::put('/{id}', [InstructorController::class, 'update']);
+        Route::delete('/{id}', [InstructorController::class, 'destroy']);
+    });
     
 });
 
