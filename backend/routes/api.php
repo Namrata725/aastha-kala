@@ -15,6 +15,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 // Public Settings (read-only)
 Route::get('/settings', [SettingController::class, 'show']);
+Route::get('/instructors', [InstructorController::class, 'index']);
 
 // Protected Routes (Admin)
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
