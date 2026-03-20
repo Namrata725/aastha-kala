@@ -18,10 +18,10 @@ const Navbar: React.FC = () => {
 
   return (
     <nav className="w-full bg-blue-700 text-white ">
-      <div className="px-6 py-6 flex items-center justify-between max-w-7xl mx-auto">
+      <div className="px-6 py-2 flex items-center justify-between max-w-7xl mx-auto">
         {/* Logo */}
       <div className="flex items-center">
-        <img src="/logo.jpg" alt="Logo" className="h-10 w-auto" />
+        <img src="/logo.jpg" alt="Logo" className="h-16 w-auto" />
       </div>
 
       {/* Links */}
