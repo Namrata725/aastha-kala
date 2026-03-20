@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\InstructorController;
+use App\Http\Controllers\Api\GalleryCategoryController;
+
 
 
 // Public Routes
@@ -38,6 +40,15 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         Route::put('/{id}', [InstructorController::class, 'update']);
         Route::delete('/{id}', [InstructorController::class, 'destroy']);
     });
+
+    //gallery-categories
+    Route::prefix('gallery-categories')->group(function () {
+        Route::get('/', [GalleryCategoryController::class, 'index']);
+        Route::get('/{id}', [GalleryCategoryController::class, 'show']);
+        Route::post('/', [GalleryCategoryController::class, 'store']);
+        Route::put('/{id}', [GalleryCategoryController::class, 'update']);
+        Route::delete('/{id}', [GalleryCategoryController::class, 'destroy']);
+});
     
 });
 
