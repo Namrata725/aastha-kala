@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Table from "@/components/layout/Table";
 import DeleteConfirmationModal from "@/components/layout/DeleteConfirmationModal";
-import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import InstructorModal from "@/components/admin/InstructorModal";
 import InstructorViewModal from "@/components/admin/InstructorViewModal";
@@ -45,7 +45,6 @@ const Page = () => {
     { key: "image", label: "Image" },
     { key: "name", label: "Name" },
     { key: "title", label: "Title" },
-    // { key: "about", label: "About" },
     { key: "email", label: "Email" },
     { key: "phone", label: "Phone" },
   ];
@@ -111,14 +110,15 @@ const Page = () => {
     setViewModalOpen(true);
   };
 
-  const handleEdit = (row: Instructor) => {
+  const handleEdit = (row: any) => {
     const original = instructors.find((i) => i.id === row.id);
     setEditingInstructor(original || null);
     setFormModalOpen(true);
   };
 
-  const handleDeleteClick = (row: Instructor) => {
-    setSelectedInstructor(row);
+  const handleDeleteClick = (row: any) => {
+    const original = instructors.find((i) => i.id === row.id);
+    setSelectedInstructor(original || null);
     setDeleteModalOpen(true);
   };
 
@@ -157,11 +157,7 @@ const Page = () => {
     }
   };
 
-  const actions = [
-    { icon: Eye, onClick: handleView, color: "#60a5fa" },
-    { icon: Pencil, onClick: handleEdit, color: "#facc15" },
-    { icon: Trash2, onClick: handleDeleteClick, color: "#f87171" },
-  ];
+  const actions: ("view" | "edit" | "delete")[] = ["view", "edit", "delete"];
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -175,9 +171,9 @@ const Page = () => {
             setEditingInstructor(null);
             setFormModalOpen(true);
           }}
-          className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center"
+          className="px-6 py-2 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center cursor-pointer"
         >
-          <Plus />
+          <Plus className="h-4 w-4" />
           Add Instructor
         </button>
       </div>
@@ -188,6 +184,9 @@ const Page = () => {
           data={formattedData}
           loading={loading}
           actions={actions}
+          onView={handleView}
+          onEdit={handleEdit}
+          onDelete={handleDeleteClick}
         />
       </div>
 
@@ -200,6 +199,7 @@ const Page = () => {
         instructor={editingInstructor}
         onSuccess={fetchInstructors}
       />
+
       <InstructorViewModal
         isOpen={viewModalOpen}
         onClose={() => {

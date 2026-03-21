@@ -1,6 +1,6 @@
 "use client";
 
-import { Mailbox } from "lucide-react";
+import { Mailbox, Eye, Pencil, Trash2 } from "lucide-react";
 import React from "react";
 
 interface Column {
@@ -8,31 +8,30 @@ interface Column {
   label: string;
 }
 
-interface Action {
-  icon: React.ElementType; // Lucide icon
-  onClick: (row: any) => void;
-  color?: string;
-}
+type ActionType = "view" | "edit" | "delete";
 
 interface Props {
   columns: Column[];
   data: any[];
-  actions?: Action[];
+  actions?: ActionType[];
+  onView?: (row: any) => void;
+  onEdit?: (row: any) => void;
+  onDelete?: (row: any) => void;
   loading?: boolean;
 }
 
 const SkeletonRow = ({ columns }: { columns: Column[] }) => {
   return (
-    <tr className="border-t border-white/10">
-      {columns.map((col, idx) => (
+    <tr className="border-t border-primary/20">
+      {columns.map((_, idx) => (
         <td key={idx} className="px-4 py-3">
           <div className="h-4 w-full bg-white/10 rounded animate-pulse" />
         </td>
       ))}
       <td className="px-4 py-3">
         <div className="flex gap-2">
-          <div className="h-8 w-8 bg-white/10 rounded animate-pulse" />
-          <div className="h-8 w-8 bg-white/10 rounded animate-pulse" />
+          <div className="h-9 w-9 bg-white/10 rounded-lg animate-pulse" />
+          <div className="h-9 w-9 bg-white/10 rounded-lg animate-pulse" />
         </div>
       </td>
     </tr>
@@ -41,29 +40,53 @@ const SkeletonRow = ({ columns }: { columns: Column[] }) => {
 
 const EmptyState = () => {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-white/60 animate-fadeIn">
-      <div className="text-4xl mb-3 animate-bounce">
-        <Mailbox size={80} />
-      </div>
+    <div className="flex flex-col items-center justify-center py-12 text-black/60 animate-fadeIn">
+      <Mailbox size={70} className="mb-3 opacity-70" />
       <p className="text-sm">No data found</p>
     </div>
   );
 };
 
-const Table: React.FC<Props> = ({ columns, data, actions, loading }) => {
+const Table: React.FC<Props> = ({
+  columns,
+  data,
+  actions,
+  onView,
+  onEdit,
+  onDelete,
+  loading,
+}) => {
+  // Map actions to icons + handlers
+  const actionMap: Record<
+    ActionType,
+    {
+      icon: React.ElementType;
+      handler?: (row: any) => void;
+      color: string;
+    }
+  > = {
+    view: {
+      icon: Eye,
+      handler: onView,
+      color: "#3b82f6",
+    },
+    edit: {
+      icon: Pencil,
+      handler: onEdit,
+      color: "#f59e0b",
+    },
+    delete: {
+      icon: Trash2,
+      handler: onDelete,
+      color: "#ef4444",
+    },
+  };
+
   return (
     <div className="w-full">
-      {/* Outer gradient border */}
-      <div
-        className="relative max-w-7xl mx-auto rounded-2xl overflow-hidden"
-        style={{
-          background:
-            "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2))",
-          backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        <div className="rounded-xl backdrop-blur-md bg-primary/10 border border-primary/10 ">
+      {/* Gradient Border Wrapper */}
+      <div className="p-[1px] rounded-2xl bg-gradient-to-r from-primary/30 to-secondary/30">
+        <div className="rounded-2xl bg-primary/10 backdrop-blur-xl border border-primary/20 overflow-hidden">
           <table className="w-full border-collapse">
             {/* HEADER */}
             <thead className="bg-gradient-to-r from-primary to-secondary">
@@ -78,7 +101,7 @@ const Table: React.FC<Props> = ({ columns, data, actions, loading }) => {
                 ))}
 
                 {actions && actions.length > 0 && (
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-white/90">
+                  <th className="px-4 py-3 text-sm font-semibold text-white/90">
                     Actions
                   </th>
                 )}
@@ -101,33 +124,48 @@ const Table: React.FC<Props> = ({ columns, data, actions, loading }) => {
                 data.map((row, rowIndex) => (
                   <tr
                     key={rowIndex}
-                    className="border-t border-primary/10 hover:bg-primary/5 transition"
+                    className="border-t border-primary/20 hover:bg-primary/5 transition duration-200"
                   >
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        className="px-4 py-3 text-lg text-white/80"
+                        className="px-4 py-3 text-sm text-black/80"
                       >
                         {row[col.key]}
                       </td>
                     ))}
 
+                    {/* ACTIONS */}
                     {actions && actions.length > 0 && (
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          {actions.map((action, idx) => {
+                        <div className="flex items-center gap-2 ">
+                          {actions.map((actionKey) => {
+                            const action = actionMap[actionKey];
+                            if (!action) return null;
+
                             const Icon = action.icon;
+
                             return (
-                              <button
-                                key={idx}
-                                onClick={() => action.onClick(row)}
-                                className="p-[5px] rounded-lg bg-black/25 hover:bg-white/10 transition border border-white/65 cursor-pointer"
+                              <div
+                                key={actionKey}
+                                className="p-[1px] rounded-lg bg-gradient-to-r from-primary/30 to-secondary/30"
                               >
-                                <Icon
-                                  className="w-5 h-5"
-                                  style={{ color: action.color || "white" }}
-                                />
-                              </button>
+                                <button
+                                  onClick={() => action.handler?.(row)}
+                                  className="flex items-center justify-center w-7 h-7 rounded-lg 
+                                  bg-primary/10 backdrop-blur-md border border-primary/20
+                                  hover:bg-primary/20 hover:scale-105 active:scale-95
+                                  hover:shadow-[0_0_10px_rgba(255,255,255,0.15)]
+                                  transition duration-200 cursor-pointer"
+                                >
+                                  <Icon
+                                    className="w-4 h-4"
+                                    style={{
+                                      color: action.color,
+                                    }}
+                                  />
+                                </button>
+                              </div>
                             );
                           })}
                         </div>
@@ -143,4 +181,5 @@ const Table: React.FC<Props> = ({ columns, data, actions, loading }) => {
     </div>
   );
 };
+
 export default Table;

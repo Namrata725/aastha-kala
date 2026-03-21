@@ -164,7 +164,7 @@ const InstructorModal: React.FC<Props> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg">
       {/* Modal Container */}
       <div
-        className="w-[95vw] max-w-5xl rounded-2xl p-8"
+        className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-2xl p-8"
         style={{
           background:
             "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2))",

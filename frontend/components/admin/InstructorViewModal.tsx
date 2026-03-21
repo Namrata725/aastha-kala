@@ -47,13 +47,14 @@ const InstructorViewModal: React.FC<Props> = ({
 
     return null;
   };
+
   const imageUrl = getImageUrl(instructor.image);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg overflow-y-auto hide-scrollbar py-6">
       {/* Modal */}
       <div
-        className="w-[95vw] max-w-4xl rounded-2xl p-8"
+        className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-2xl p-8"
         style={{
           background:
             "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2))",
@@ -65,8 +66,8 @@ const InstructorViewModal: React.FC<Props> = ({
         <div className="flex justify-between items-center mb-6 pb-4 border-b border-primary/30">
           <h2 className="text-lg font-bold text-primary">Instructor Details</h2>
 
-          <button onClick={onClose}>
-            <X className="text-white/70 hover:text-white" />
+          <button onClick={onClose} className="p-1">
+            <X className="text-white/90 hover:text-white" />
           </button>
         </div>
 

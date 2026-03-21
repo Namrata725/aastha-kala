@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\InstructorController;
 use App\Http\Controllers\Api\GalleryCategoryController;
+use App\Http\Controllers\Api\GalleryController;
 
 
 
@@ -48,7 +49,15 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         Route::post('/', [GalleryCategoryController::class, 'store']);
         Route::put('/{id}', [GalleryCategoryController::class, 'update']);
         Route::delete('/{id}', [GalleryCategoryController::class, 'destroy']);
-});
+    });
+        // Gallery Management
+    Route::prefix('galleries')->group(function () {
+        Route::get('/', [GalleryController::class, 'index']);
+        Route::get('/{id}', [GalleryController::class, 'show']);
+        Route::post('/', [GalleryController::class, 'store']);
+        Route::put('/{id}', [GalleryController::class, 'update']);
+        Route::delete('/{id}', [GalleryController::class, 'destroy']);
+    });
     
 });
 
