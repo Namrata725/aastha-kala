@@ -17,6 +17,7 @@ interface Gallery {
   position?: string;
   video?: string;
   category_id?: string;
+  description?: string;
   images?: File[] | string[];
 }
 
@@ -43,6 +44,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
     position: "",
     video: "",
     category_id: "",
+    description: "",
     images: [],
   });
 
@@ -57,6 +59,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
         position: editData.position || "",
         video: editData.video || "",
         category_id: editData.category?.id?.toString() || "",
+        description: editData.description || "",
         images: [],
       });
 
@@ -102,7 +105,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
       formData.append("type", form.type);
       formData.append("position", form.position || "");
       formData.append("category_id", form.category_id || "");
-
+      formData.append("description", form.description || "");
       if (form.type === "video") {
         formData.append("video", form.video || "");
       }
@@ -211,6 +214,13 @@ const GalleryAddEditModal: React.FC<Props> = ({
               ]}
             />
           </div>
+
+          <InputField
+            label="Description"
+            type="textarea"
+            value={form.description}
+            onChange={(e) => handleChange("description", e.target.value)}
+          />
 
           {form.type === "video" && (
             <InputField

@@ -16,11 +16,18 @@ use App\Http\Controllers\Api\GalleryController;
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 
-// Public Settings (read-only)
+/// Public Settings
 Route::get('/settings', [SettingController::class, 'show']);
 Route::get('/instructors', [InstructorController::class, 'index']);
 
+// Galleries
 Route::get('/galleries/position/{position}', [GalleryController::class, 'getByPosition']);
+
+// Gallery Categories 
+Route::get('/gallery-categories', [GalleryCategoryController::class, 'index']);
+Route::get('/gallery-categories/{id}', [GalleryCategoryController::class, 'show']);
+
+Route::get('/galleries', [GalleryController::class, 'index']);
 
 // Protected Routes (Admin)
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
