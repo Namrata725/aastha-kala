@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use App\Models\GalleryCategory;
 
 class Gallery extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'title',
         'type',
@@ -22,10 +23,9 @@ class Gallery extends Model
     protected $casts = [
         'images' => 'array',
     ];
-    
+
     public function category()
     {
-        return $this->belongsTo(GalleryCategory::class);
+        return $this->belongsTo(GalleryCategory::class, 'category_id');
     }
-
 }

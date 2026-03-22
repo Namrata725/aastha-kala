@@ -6,12 +6,14 @@ import DeleteConfirmationModal from "@/components/layout/DeleteConfirmationModal
 import { Plus, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import GalleryAddEditModal from "@/components/admin/GalleryAddEditModal";
+import GalleryViewModal from "@/components/admin/GalleryViewModal";
 
 interface Gallery {
   id: number;
   title: string;
   type: string;
-  position?: number;
+  position?: string;
   video?: string;
   images?: string[];
   category?: {
@@ -28,6 +30,15 @@ const Page = () => {
   const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editData, setEditData] = useState<any>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [viewData, setViewData] = useState<Gallery | null>(null);
+
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
   const columns = [
     { key: "sn", label: "SN" },
     { key: "preview", label: "Preview" },
@@ -41,15 +52,14 @@ const Page = () => {
     try {
       setLoading(true);
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/galleries`,
-        {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${BASE_URL}/admin/galleries`, {
+        headers: {
+          Accept: "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
         },
-      );
+      });
 
       const result = await res.json();
 
@@ -57,8 +67,7 @@ const Page = () => {
         throw new Error(result.message || "Failed to fetch galleries");
       }
 
-      const list = result.data?.data || result.data || [];
-      setGalleries(list);
+      setGalleries(result || []);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -66,22 +75,86 @@ const Page = () => {
     }
   };
 
+  const handleViewClick = (row: any) => {
+    const original = galleries.find((g) => g.id === row.id);
+    setViewData(original || null);
+    setViewModalOpen(true);
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${BASE_URL}/admin/gallery-categories`, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
+
+      const data = await res.json();
+      setCategories(data || []);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
   useEffect(() => {
     fetchGalleries();
+    fetchCategories();
   }, []);
+
+  const getYouTubeId = (url: string) => {
+    try {
+      const parsed = new URL(url);
+
+      if (parsed.hostname.includes("youtu.be")) {
+        return parsed.pathname.slice(1);
+      }
+
+      if (parsed.searchParams.get("v")) {
+        return parsed.searchParams.get("v");
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  };
 
   const formattedData = galleries.map((item, index) => ({
     ...item,
-
     sn: index + 1,
-
     category: item.category?.name || "N/A",
 
     preview:
       item.type === "video" && item.video ? (
-        <video src={item.video} className="w-16 h-10 object-cover rounded" />
+        (() => {
+          const videoId = getYouTubeId(item.video);
+
+          return videoId ? (
+            <img
+              src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+              className="w-16 h-10 object-cover rounded"
+              alt="video thumbnail"
+            />
+          ) : (
+            <span className="text-white/50 text-xs">Invalid Video</span>
+          );
+        })()
       ) : item.images && item.images.length > 0 ? (
-        <img src={item.images[0]} className="w-10 h-10 object-cover rounded" />
+        <div className="relative w-10 h-10">
+          <img
+            src={item.images[0]}
+            className="w-10 h-10 object-cover rounded"
+            alt="preview"
+          />
+
+          {item.images.length > 1 && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-white text-xs font-semibold rounded">
+              +{item.images.length - 1}
+            </div>
+          )}
+        </div>
       ) : (
         <span className="text-white/50 text-xs">N/A</span>
       ),
@@ -97,13 +170,17 @@ const Page = () => {
     if (!selectedGallery) return;
 
     setDeleting(true);
+
     try {
+      const token = localStorage.getItem("token");
+
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/galleries/${selectedGallery.id}`,
+        `${BASE_URL}/admin/galleries/${selectedGallery.id}`,
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Accept: "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
           },
         },
       );
@@ -126,21 +203,37 @@ const Page = () => {
     }
   };
 
+  const handleEditClick = (row: any) => {
+    const original = galleries.find((g) => g.id === row.id);
+    setEditData(original);
+    setModalOpen(true);
+  };
+
+  const handleAddClick = () => {
+    setEditData(null);
+    setModalOpen(true);
+  };
+
   const actions: ("view" | "edit" | "delete")[] = ["view", "edit", "delete"];
 
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex justify-between p-4">
         <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-          Our Instructors
+          Gallery
         </span>
+
         <div className="flex gap-2">
           <Link href="/admin/gallery/category">
             <button className="px-6 py-2 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center">
               <Tag className="h-4 w-4" /> Categories
             </button>
           </Link>
-          <button className="px-6 py-2 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center">
+
+          <button
+            onClick={handleAddClick}
+            className="px-6 py-2 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center"
+          >
             <Plus className="h-4 w-4" /> Add Gallery
           </button>
         </div>
@@ -153,8 +246,19 @@ const Page = () => {
           loading={loading}
           actions={actions}
           onDelete={handleDeleteClick}
+          onView={handleViewClick}
+          onEdit={handleEditClick}
         />
       </div>
+
+      <GalleryAddEditModal
+        key={editData ? editData.id : "new"}
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSuccess={fetchGalleries}
+        editData={editData}
+        categories={categories}
+      />
 
       <DeleteConfirmationModal
         isOpen={deleteModalOpen}
@@ -165,6 +269,12 @@ const Page = () => {
         description={`Are you sure you want to delete "${
           selectedGallery?.title || ""
         }"?`}
+      />
+
+      <GalleryViewModal
+        isOpen={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+        data={viewData || undefined}
       />
     </div>
   );

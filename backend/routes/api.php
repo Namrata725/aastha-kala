@@ -20,6 +20,8 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::get('/settings', [SettingController::class, 'show']);
 Route::get('/instructors', [InstructorController::class, 'index']);
 
+Route::get('/galleries/position/{position}', [GalleryController::class, 'getByPosition']);
+
 // Protected Routes (Admin)
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 

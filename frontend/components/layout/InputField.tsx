@@ -2,6 +2,11 @@
 
 import React from "react";
 
+interface Option {
+  label: string;
+  value: string;
+}
+
 interface Props {
   label: string;
   icon?: any;
@@ -9,6 +14,7 @@ interface Props {
   onChange?: (e: any) => void;
   textarea?: boolean;
   type?: string;
+  options?: Option[]; // 👈 added
   imagePreview?: string | null;
 }
 
@@ -19,9 +25,12 @@ const InputField: React.FC<Props> = ({
   onChange,
   textarea = false,
   type = "text",
+  options = [], // 👈 added
   imagePreview,
 }) => {
   const inputId = label.replace(/\s+/g, "_").toLowerCase();
+
+  const isSelect = type === "select";
 
   return (
     <div className="w-full">
@@ -43,8 +52,28 @@ const InputField: React.FC<Props> = ({
               className="w-full bg-transparent outline-none text-white placeholder:text-white/40 resize-none"
               placeholder={`Enter ${label}`}
             />
+          ) : isSelect ? (
+            // DROPDOWN
+            <select
+              value={value}
+              onChange={onChange}
+              className="w-full bg-transparent outline-none text-white placeholder:text-white/40"
+            >
+              <option value="" className="bg-gray-900 text-white/60">
+                Select {label}
+              </option>
+              {options.map((opt, idx) => (
+                <option
+                  key={idx}
+                  value={opt.value}
+                  className="bg-gray-900 text-white"
+                >
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           ) : (
-            // normal input
+            // NORMAL INPUT
             <div className="flex items-center gap-2">
               {Icon && <Icon className="w-4 h-4 text-white/60 flex-shrink-0" />}
 

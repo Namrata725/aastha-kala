@@ -3,122 +3,184 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Gallery;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class GalleryController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Get all galleries
      */
     public function index()
     {
-        return response()->json(
-            Gallery::with('category')->orderBy('position')->get()
-        );
+        $galleries = Gallery::with('category')->latest()->get();
+
+        $galleries->transform(function ($gallery) {
+            if (!empty($gallery->images)) {
+                $gallery->images = array_map(function ($image) {
+                    return asset('storage/' . $image);
+                }, $gallery->images);
+            }
+            return $gallery;
+        });
+
+        return response()->json($galleries);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store gallery
      */
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'type' => 'required|in:video,images',
-            'category_id' => 'required|exists:gallery_categories,id',
-            'description' => 'required|string',
-            'position' => 'required|integer',
-            'video' => 'nullable|mimes:mp4,mov,avi',
-            'images.*' => 'nullable|image|mimes:jpg,jpeg,png'
+            'title' => 'nullable|string|max:255',
+            'type' => 'nullable|in:video,images',
+            'category_id' => 'nullable|exists:gallery_categories,id',
+            'description' => 'nullable|string',
+            'position' => 'nullable|string',
+            'video' => 'nullable|url',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ], [
+            'type.in' => 'The selected type must be either video or images.',
+            'category_id.exists' => 'The selected category does not exist.',
+            'video.url' => 'The video must be a valid URL.',
+            'images.array' => 'Images must be an array.',
+            'images.*.image' => 'Each file must be an image.',
+            'images.*.mimes' => 'Images must be jpeg, png, jpg, gif, or webp.',
+            'images.*.max' => 'Each image must not exceed 5MB.',
         ]);
 
-        // Upload video
-        $videoPath = $request->hasFile('video') ? $request->file('video')->store('videos','public') : null;
-
-        // Upload images array
         $imagePaths = [];
+
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $img) {
-                $imagePaths[] = $img->store('images','public');
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('gallery', 'public');
+                $imagePaths[] = $path;
             }
         }
 
-        // Create gallery
         $gallery = Gallery::create([
             'title' => $request->title,
             'type' => $request->type,
             'category_id' => $request->category_id,
             'description' => $request->description,
             'position' => $request->position,
-            'video' => $videoPath,
-            'images' => $imagePaths
+            'video' => $request->video,
+            'images' => $imagePaths,
         ]);
 
-        return response()->json($gallery->load('category'), 201);
+        return response()->json($gallery, 201);
     }
 
     /**
-     * Display the specified resource.
+     * Show single gallery
      */
     public function show($id)
     {
         $gallery = Gallery::with('category')->findOrFail($id);
+
+        if (!empty($gallery->images)) {
+            $gallery->images = array_map(function ($image) {
+                return asset('storage/' . $image);
+            }, $gallery->images);
+        }
+
         return response()->json($gallery);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update gallery
      */
     public function update(Request $request, $id)
     {
         $gallery = Gallery::findOrFail($id);
 
         $request->validate([
-            'title' => 'required|string|max:255',
-            'type' => 'required|in:video,images',
-            'category_id' => 'required|exists:gallery_categories,id',
-            'description' => 'required|string',
-            'position' => 'required|integer',
-            'video' => 'nullable|mimes:mp4,mov,avi',
-            'images.*' => 'nullable|image|mimes:jpg,jpeg,png'
+            'title' => 'nullable|string|max:255',
+            'type' => 'nullable|in:video,images',
+            'category_id' => 'nullable|exists:gallery_categories,id',
+            'description' => 'nullable|string',
+            'position' => 'nullable|string',
+            'video' => 'nullable|url',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
-        // Upload video if provided
-        if ($request->hasFile('video')) {
-            $gallery->video = $request->file('video')->store('videos','public');
-        }
+        $imagePaths = $gallery->images ?? [];
 
-        // Upload images array if provided (replace)
+        // If new images uploaded → replace old ones
         if ($request->hasFile('images')) {
-            $imagePaths = [];
-            foreach ($request->file('images') as $img) {
-                $imagePaths[] = $img->store('images','public');
+
+            // Delete old images
+            if (!empty($gallery->images)) {
+                foreach ($gallery->images as $oldImage) {
+                    Storage::disk('public')->delete($oldImage);
+                }
             }
-            $gallery->images = $imagePaths;
+
+            $imagePaths = [];
+
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('gallery', 'public');
+                $imagePaths[] = $path;
+            }
         }
 
-        // Update other fields
-        $gallery->title = $request->title;
-        $gallery->type = $request->type;
-        $gallery->category_id = $request->category_id;
-        $gallery->description = $request->description;
-        $gallery->position = $request->position;
-        $gallery->save();
+        $gallery->update([
+            'title' => $request->title,
+            'type' => $request->type,
+            'category_id' => $request->category_id,
+            'description' => $request->description,
+            'position' => $request->position,
+            'video' => $request->video,
+            'images' => $imagePaths,
+        ]);
 
-        return response()->json($gallery->load('category'));
+        return response()->json($gallery);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Delete gallery
      */
     public function destroy($id)
     {
         $gallery = Gallery::findOrFail($id);
+
+        // Delete images from storage
+        if (!empty($gallery->images)) {
+            foreach ($gallery->images as $image) {
+                Storage::disk('public')->delete($image);
+            }
+        }
+
         $gallery->delete();
 
         return response()->json([
             'message' => 'Gallery deleted successfully'
         ]);
     }
+
+    /**
+ * Get galleries by position
+ */
+public function getByPosition($position)
+{
+    $galleries = Gallery::with('category')
+        ->where('position', $position)
+        ->latest()
+        ->get();
+
+    $galleries->transform(function ($gallery) {
+        if (!empty($gallery->images)) {
+            $gallery->images = array_map(function ($image) {
+                return asset('storage/' . $image);
+            }, $gallery->images);
+        }
+        return $gallery;
+    });
+
+    return response()->json($galleries);
+}
 }

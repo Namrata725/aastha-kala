@@ -287,15 +287,7 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <div
-      className="relative p-6 max-w-7xl mx-auto rounded-2xl overflow-hidden"
-      style={{
-        background:
-          "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2))",
-        backdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.1)",
-      }}
-    >
+    <div className="relative p-6 max-w-7xl mx-auto rounded-2xl overflow-hidden bg-primary/10 border border-primary/20 backdrop-blur-lg">
       <div className="relative z-10">
         {/* Tabs */}
 

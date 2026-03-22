@@ -17,7 +17,7 @@ return new class extends Migration
             $table->enum('type',['video','images'])->nullable();
             $table->foreignId('category_id')->nullable()->constrained('gallery_categories')->nullOnDelete();
             $table->text('description')->nullable();
-            $table->integer('position')->nullable();
+            $table->string('position')->nullable();
             $table->string('video')->nullable();
             $table->json('images')->nullable();
             $table->timestamps();
