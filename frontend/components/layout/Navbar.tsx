@@ -45,9 +45,11 @@ const Navbar: React.FC = () => {
 
       {/* Contact Button */}
       <div>
-        <button className="border border-white rounded-full px-5 py-1.5 hover:bg-white hover:text-blue-700 transition">
-          Contact
-        </button>
+        <Link href="/contact">
+          <button className="border border-white rounded-full px-5 py-1.5 hover:bg-white hover:text-blue-700 transition font-medium">
+            Contact
+          </button>
+        </Link>
       </div>
       </div>
     </nav>
