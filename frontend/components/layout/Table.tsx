@@ -42,7 +42,7 @@ const EmptyState = () => {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-black/60 animate-fadeIn">
       <Mailbox size={70} className="mb-3 opacity-70" />
-      <p className="text-sm">No data found</p>
+      <p className="text-sm">No contacts yet</p>
     </div>
   );
 };

@@ -8,8 +8,7 @@ use App\Http\Controllers\Api\InstructorController;
 use App\Http\Controllers\Api\GalleryCategoryController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\TestimonialController;
-
-
+use App\Http\Controllers\Api\MessageController;
 
 // Public Routes
 
@@ -20,6 +19,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 /// Public Settings
 Route::get('/settings', [SettingController::class, 'show']);
 Route::get('/instructors', [InstructorController::class, 'index']);
+Route::post('/messages', [MessageController::class, 'store']);
 
 // Galleries
 Route::get('/galleries/position/{position}', [GalleryController::class, 'getByPosition']);
@@ -75,6 +75,12 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         Route::post('/', [TestimonialController::class, 'store']);
         Route::put('/{id}', [TestimonialController::class, 'update']);
         Route::delete('/{id}', [TestimonialController::class, 'destroy']);
+    });
+
+    // Message Management
+    Route::prefix('messages')->group(function () {
+        Route::get('/', [MessageController::class, 'index']);
+        Route::delete('/{id}', [MessageController::class, 'destroy']);
     });
     
 });
