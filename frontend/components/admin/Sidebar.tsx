@@ -10,6 +10,7 @@ import {
   Flag,
   Image,
   LogOut,
+  Mic,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -28,6 +29,7 @@ const menuItems = [
   { name: "Booking", icon: Calendar, href: "/admin/booking" },
   { name: "Event", icon: Flag, href: "/admin/event" },
   { name: "Gallery", icon: Image, href: "/admin/gallery" },
+  { name: "Testimonials", icon: Mic, href: "/admin/testimonials" },
   { name: "Contact Us", icon: Mail, href: "/admin/contact" },
   { name: "Settings", icon: Settings, href: "/admin/settings" },
 ];

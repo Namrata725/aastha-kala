@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\InstructorController;
 use App\Http\Controllers\Api\GalleryCategoryController;
 use App\Http\Controllers\Api\GalleryController;
+use App\Http\Controllers\Api\TestimonialController;
 
 
 
@@ -66,6 +67,14 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         Route::post('/', [GalleryController::class, 'store']);
         Route::put('/{id}', [GalleryController::class, 'update']);
         Route::delete('/{id}', [GalleryController::class, 'destroy']);
+    });
+
+    Route::prefix('testimonials')->group(function () {
+        Route::get('/', [TestimonialController::class, 'index']);
+        Route::get('/{id}', [TestimonialController::class, 'show']);
+        Route::post('/', [TestimonialController::class, 'store']);
+        Route::put('/{id}', [TestimonialController::class, 'update']);
+        Route::delete('/{id}', [TestimonialController::class, 'destroy']);
     });
     
 });

@@ -90,69 +90,81 @@ class InstructorController extends Controller
     }
 
     // PUT/PATCH /api/instructors/{id}
-    public function update(Request $request, $id)
-    {
-        $instructor = Instructor::find($id);
+public function update(Request $request, $id)
+{
+    $instructor = Instructor::find($id);
 
-        if (!$instructor) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Instructor not found'
-            ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'title' => 'required|string|max:255',
-            'about' => 'required|string',
-            'facebook_url' => 'nullable|url',
-            'instagram_url' => 'nullable|url',
-            'email' => 'required|email|unique:instructors,email,' . $id,
-            'phone' => 'required|string|max:20',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation errors',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $data = $request->only([
-            'name',
-            'title',
-            'about',
-            'facebook_url',
-            'instagram_url',
-            'email',
-            'phone'
-        ]);
-
-        $data['about'] = is_string($data['about']) ? $data['about'] : null;
-        $data['facebook_url'] = is_string($data['facebook_url']) ? $data['facebook_url'] : null;
-        $data['instagram_url'] = is_string($data['instagram_url']) ? $data['instagram_url'] : null;
-
-        if ($request->hasFile('image')) {
-            if ($instructor->image) {
-                $oldPath = str_replace(asset('storage/'), '', $instructor->image);
-                Storage::disk('public')->delete($oldPath);
-            }
-
-            $path = $request->file('image')->store('instructors', 'public');
-            $data['image'] = asset('storage/' . $path);
-        }
-
-        $instructor->update($data);
-
+    if (!$instructor) {
         return response()->json([
-            'success' => true,
-            'message' => 'Instructor updated successfully',
-            'data' => $instructor
-        ]);
+            'success' => false,
+            'message' => 'Instructor not found'
+        ], 404);
     }
 
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255',
+        'title' => 'required|string|max:255',
+        'about' => 'required|string',
+        'facebook_url' => 'nullable|url',
+        'instagram_url' => 'nullable|url',
+        'email' => 'required|email|unique:instructors,email,' . $id,
+        'phone' => 'required|string|max:20',
+        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'remove_image' => 'nullable|in:1',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation errors',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    $data = $request->only([
+        'name',
+        'title',
+        'about',
+        'facebook_url',
+        'instagram_url',
+        'email',
+        'phone'
+    ]);
+
+    $data['about'] = is_string($data['about']) ? $data['about'] : null;
+    $data['facebook_url'] = is_string($data['facebook_url']) ? $data['facebook_url'] : null;
+    $data['instagram_url'] = is_string($data['instagram_url']) ? $data['instagram_url'] : null;
+
+    
+    if ($request->has('remove_image') && $request->remove_image == '1') {
+        if ($instructor->image) {
+            $oldPath = str_replace(asset('storage/'), '', $instructor->image);
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $data['image'] = null;
+    }
+
+    
+    if ($request->hasFile('image')) {
+        
+        if ($instructor->image) {
+            $oldPath = str_replace(asset('storage/'), '', $instructor->image);
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $path = $request->file('image')->store('instructors', 'public');
+        $data['image'] = asset('storage/' . $path);
+    }
+
+    $instructor->update($data);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Instructor updated successfully',
+        'data' => $instructor
+    ]);
+}
     // DELETE /api/instructors/{id}
     public function destroy($id)
     {

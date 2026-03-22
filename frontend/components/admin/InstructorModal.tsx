@@ -55,6 +55,7 @@ const InstructorModal: React.FC<Props> = ({
 
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -68,6 +69,8 @@ const InstructorModal: React.FC<Props> = ({
 
         setPreview(imageUrl);
       }
+
+      setRemoveImage(false);
     } else {
       setForm({
         name: "",
@@ -78,8 +81,10 @@ const InstructorModal: React.FC<Props> = ({
         facebook_url: "",
         instagram_url: "",
       });
+
       setPreview(null);
       setImage(null);
+      setRemoveImage(false);
     }
   }, [instructor]);
 
@@ -98,6 +103,7 @@ const InstructorModal: React.FC<Props> = ({
 
     setImage(file);
     setPreview(URL.createObjectURL(file));
+    setRemoveImage(false); // reset remove flag if new image selected
   };
 
   const handleSubmit = async () => {
@@ -120,6 +126,10 @@ const InstructorModal: React.FC<Props> = ({
 
       if (image) {
         formData.append("image", image);
+      }
+
+      if (removeImage) {
+        formData.append("remove_image", "1");
       }
 
       if (isEdit) {
@@ -162,7 +172,6 @@ const InstructorModal: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg">
-      {/* Modal Container */}
       <div
         className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-2xl p-8"
         style={{
@@ -195,13 +204,31 @@ const InstructorModal: React.FC<Props> = ({
               )}
             </div>
 
+            {/* Upload */}
             <label className="absolute bottom-0 right-0 bg-gradient-to-r from-primary to-secondary p-2 rounded-full cursor-pointer">
               <input type="file" hidden onChange={handleImageChange} />
               <User className="w-4 h-4 text-white" />
             </label>
+
+            {/* Remove */}
+            {preview && (
+              <button
+                type="button"
+                onClick={() => {
+                  setPreview(null);
+                  setImage(null);
+                  setRemoveImage(true);
+                }}
+                className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-full"
+              >
+                Remove
+              </button>
+            )}
           </div>
 
-          <p className="text-xs text-white/50 mt-2">Upload profile image</p>
+          <p className="text-xs text-white/50 mt-2">
+            Upload or remove profile image
+          </p>
         </div>
 
         {/* Form */}

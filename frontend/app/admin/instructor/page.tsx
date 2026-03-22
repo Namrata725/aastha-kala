@@ -40,6 +40,15 @@ const Page = () => {
     null,
   );
 
+  const getInitials = (name: string) => {
+    if (!name) return "?";
+
+    const parts = name.trim().split(" ");
+    return parts.length > 1
+      ? parts[0].charAt(0) + parts[1].charAt(0)
+      : parts[0].charAt(0);
+  };
+
   const columns = [
     { key: "sn", label: "SN" },
     { key: "image", label: "Image" },
@@ -94,7 +103,9 @@ const Page = () => {
         className="w-10 h-10 rounded-full object-cover"
       />
     ) : (
-      <span className="text-white/50 text-xs">N/A</span>
+      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white text-xs font-semibold uppercase">
+        {getInitials(inst.name)}
+      </div>
     ),
 
     about: inst.about ? (

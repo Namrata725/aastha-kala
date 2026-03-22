@@ -37,6 +37,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
   categories,
 }) => {
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL;
 
   const [form, setForm] = useState<Gallery>({
     title: "",
@@ -50,6 +51,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
 
   const [loading, setLoading] = useState(false);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [removedImages, setRemovedImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (editData) {
@@ -66,6 +68,8 @@ const GalleryAddEditModal: React.FC<Props> = ({
       if (editData.images) {
         setPreviewImages(editData.images);
       }
+
+      setRemovedImages([]);
     } else {
       setForm({
         title: "",
@@ -76,6 +80,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
         images: [],
       });
       setPreviewImages([]);
+      setRemovedImages([]);
     }
   }, [editData, isOpen]);
 
@@ -94,6 +99,18 @@ const GalleryAddEditModal: React.FC<Props> = ({
     setPreviewImages(previews);
   };
 
+  const handleRemoveImage = (img: string) => {
+    setPreviewImages((prev) => prev.filter((i) => i !== img));
+
+    if (typeof img === "string") {
+      const relativePath = img.startsWith("http")
+        ? img.replace(`${IMAGE_BASE?.replace(/\/$/, "")}/`, "")
+        : img;
+
+      setRemovedImages((prev) => [...prev, relativePath]);
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -106,6 +123,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
       formData.append("position", form.position || "");
       formData.append("category_id", form.category_id || "");
       formData.append("description", form.description || "");
+
       if (form.type === "video") {
         formData.append("video", form.video || "");
       }
@@ -113,6 +131,13 @@ const GalleryAddEditModal: React.FC<Props> = ({
       if (form.type === "images" && form.images && form.images.length > 0) {
         form.images.forEach((file: any) => {
           formData.append("images[]", file);
+        });
+      }
+
+      //  removed images
+      if (editData && removedImages.length > 0) {
+        removedImages.forEach((img) => {
+          formData.append("removed_images[]", img);
         });
       }
 
@@ -248,11 +273,21 @@ const GalleryAddEditModal: React.FC<Props> = ({
               {previewImages.length > 0 && (
                 <div className="flex gap-2 mt-3 flex-wrap">
                   {previewImages.map((img, index) => (
-                    <img
-                      key={index}
-                      src={img}
-                      className="w-20 h-20 object-cover rounded"
-                    />
+                    <div key={index} className="relative">
+                      <img
+                        src={img}
+                        className="w-20 h-20 object-cover rounded"
+                      />
+
+                      {/* remove button */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(img)}
+                        className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 rounded-full"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}

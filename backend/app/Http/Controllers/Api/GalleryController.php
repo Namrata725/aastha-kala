@@ -93,53 +93,62 @@ class GalleryController extends Controller
     /**
      * Update gallery
      */
-    public function update(Request $request, $id)
-    {
-        $gallery = Gallery::findOrFail($id);
+public function update(Request $request, $id)
+{
+    $gallery = Gallery::findOrFail($id);
 
-        $request->validate([
-            'title' => 'nullable|string|max:255',
-            'type' => 'nullable|in:video,images',
-            'category_id' => 'nullable|exists:gallery_categories,id',
-            'description' => 'nullable|string',
-            'position' => 'nullable|string',
-            'video' => 'nullable|url',
-            'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-        ]);
+    $request->validate([
+        'title' => 'nullable|string|max:255',
+        'type' => 'nullable|in:video,images',
+        'category_id' => 'nullable|exists:gallery_categories,id',
+        'description' => 'nullable|string',
+        'position' => 'nullable|string',
+        'video' => 'nullable|url',
+        'images' => 'nullable|array',
+        'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        'removed_images' => 'nullable|array',
+    ]);
 
-        $imagePaths = $gallery->images ?? [];
+    $existingImages = $gallery->images ?? [];
 
-        // If new images uploaded → replace old ones
-        if ($request->hasFile('images')) {
+    // handle remove images
+    $removedImages = $request->input('removed_images', []);
 
-            // Delete old images
-            if (!empty($gallery->images)) {
-                foreach ($gallery->images as $oldImage) {
-                    Storage::disk('public')->delete($oldImage);
-                }
-            }
+    if (!empty($removedImages)) {
+        foreach ($removedImages as $removedImage) {
 
-            $imagePaths = [];
+            
+            Storage::disk('public')->delete($removedImage);
 
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('gallery', 'public');
-                $imagePaths[] = $path;
-            }
+            
+            $existingImages = array_filter($existingImages, function ($img) use ($removedImage) {
+                return $img !== $removedImage;
+            });
         }
-
-        $gallery->update([
-            'title' => $request->title,
-            'type' => $request->type,
-            'category_id' => $request->category_id,
-            'description' => $request->description,
-            'position' => $request->position,
-            'video' => $request->video,
-            'images' => $imagePaths,
-        ]);
-
-        return response()->json($gallery);
     }
+
+    
+    if ($request->hasFile('images')) {
+
+        foreach ($request->file('images') as $image) {
+            $path = $image->store('gallery', 'public');
+            $existingImages[] = $path;
+        }
+    }
+
+    
+    $gallery->update([
+        'title' => $request->title,
+        'type' => $request->type,
+        'category_id' => $request->category_id,
+        'description' => $request->description,
+        'position' => $request->position,
+        'video' => $request->video,
+        'images' => array_values($existingImages),
+    ]);
+
+    return response()->json($gallery);
+}
 
     /**
      * Delete gallery
