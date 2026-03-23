@@ -25,7 +25,10 @@ class Setting extends Model
         'awards',
         'number_of_instructors',
         'number_of_students',
-        'success_rate'
+        'success_rate',
+        'why_choose_heading',
+        'why_choose_content',
+        'mission_paragraph',
     ];
 
     protected $casts = [

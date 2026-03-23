@@ -1,6 +1,7 @@
 import ContactForm from "@/components/client/ContactForm";
 import Heading from "@/components/global/Heading";
 import { Mail, Phone, MapPin, Facebook, Instagram, Music2, Twitter } from "lucide-react";
+import { ensureAbsoluteUrl } from "@/utils/url";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -23,7 +24,7 @@ const fetchSettings = async () => {
 const getMapEmbedUrl = (url: string) => {
   if (!url) return "";
   if (url.includes("google.com/maps/embed")) return url;
-  
+
   // Extract place name or coordinates if it's a standard URL
   try {
     const urlObj = new URL(url);
@@ -34,7 +35,7 @@ const getMapEmbedUrl = (url: string) => {
   } catch (e) {
     // If parsing fails, fall back to simple search embed if it looks like a string
   }
-  
+
   return url;
 };
 
@@ -58,8 +59,8 @@ const ContactPage = async () => {
 
             <div className="space-y-8">
               <div className="flex items-start gap-4">
-                <div className="bg-blue-100 p-4 rounded-xl">
-                  <Phone className="w-6 h-6 text-blue-700" />
+                <div className="bg-gradient-to-r from-primary to-secondary p-[6px] rounded-full flex items-center justify-center">
+                  <Phone className="h-4 w-4 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">
@@ -72,8 +73,8 @@ const ContactPage = async () => {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="bg-blue-100 p-4 rounded-xl">
-                  <Mail className="w-6 h-6 text-blue-700" />
+                <div className="bg-gradient-to-r from-primary to-secondary p-[6px] rounded-full flex items-center justify-center">
+                  <Mail className="h-4 w-4 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">
@@ -86,8 +87,8 @@ const ContactPage = async () => {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="bg-blue-100 p-4 rounded-xl">
-                  <MapPin className="w-6 h-6 text-blue-700" />
+                <div className="bg-gradient-to-r from-primary to-secondary p-[6px] rounded-full flex items-center justify-center">
+                  <MapPin className="h-4 w-4 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">
@@ -134,7 +135,7 @@ const ContactPage = async () => {
             <div className="flex justify-center gap-6">
               {socialLinks.facebook && (
                 <a
-                  href={socialLinks.facebook}
+                  href={ensureAbsoluteUrl(socialLinks.facebook)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-blue-600 p-4 rounded-full text-white hover:bg-blue-700 transition transform hover:-translate-y-1 shadow-lg"
@@ -144,7 +145,7 @@ const ContactPage = async () => {
               )}
               {socialLinks.instagram && (
                 <a
-                  href={socialLinks.instagram}
+                  href={ensureAbsoluteUrl(socialLinks.instagram)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-pink-600 p-4 rounded-full text-white hover:bg-pink-700 transition transform hover:-translate-y-1 shadow-lg"
@@ -154,7 +155,7 @@ const ContactPage = async () => {
               )}
               {socialLinks.tiktok && (
                 <a
-                  href={socialLinks.tiktok}
+                  href={ensureAbsoluteUrl(socialLinks.tiktok)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-black p-4 rounded-full text-white hover:bg-gray-900 transition transform hover:-translate-y-1 shadow-lg"
@@ -164,7 +165,7 @@ const ContactPage = async () => {
               )}
               {socialLinks.x && (
                 <a
-                  href={socialLinks.x}
+                  href={ensureAbsoluteUrl(socialLinks.x)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-gray-800 p-4 rounded-full text-white hover:bg-black transition transform hover:-translate-y-1 shadow-lg"
