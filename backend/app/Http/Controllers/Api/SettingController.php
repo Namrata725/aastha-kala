@@ -63,8 +63,7 @@ class SettingController extends Controller
             $data = $request->only([
                 'company_name','email','phone','address','location_map',
                 'about_short','about','mission','years_of_experience',
-                'awards','number_of_instructors','number_of_students','success_rate',
-                'why_choose_heading','why_choose_content','mission_paragraph'
+                'awards','number_of_instructors','number_of_students','success_rate'
             ]);
 
             
@@ -159,8 +158,7 @@ class SettingController extends Controller
             $data = $request->only([
                 'company_name','email','phone','address','location_map',
                 'about_short','about','mission','years_of_experience',
-                'awards','number_of_instructors','number_of_students','success_rate',
-                'why_choose_heading','why_choose_content','mission_paragraph'
+                'awards','number_of_instructors','number_of_students','success_rate'
             ]);
 
             

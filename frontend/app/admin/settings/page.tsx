@@ -21,8 +21,6 @@ import {
   Type,
   AlignLeft,
   Mail,
-  Plus,
-  Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -36,8 +34,6 @@ interface Setting {
   email: string;
   about: string;
   about_short: string;
-  why_choose_heading: string;
-  mission_paragraph: string;
 }
 
 interface SocialLinks {
@@ -66,6 +62,8 @@ const tabs = [
   { id: "general", label: "General" },
   { id: "social", label: "Social Links" },
   { id: "stats", label: "Stats" },
+  { id: "whyus", label: "Why Us" },
+  { id: "mission", label: "Mission" },
 ];
 
 const Settings: React.FC = () => {
@@ -85,8 +83,6 @@ const Settings: React.FC = () => {
     email: "",
     about: "",
     about_short: "",
-    why_choose_heading: "",
-    mission_paragraph: "",
   });
 
   // SOCIAL
@@ -157,8 +153,6 @@ const Settings: React.FC = () => {
             email: s.email || "",
             about: s.about || "",
             about_short: s.about_short || "",
-            why_choose_heading: s.why_choose_heading || "",
-            mission_paragraph: s.mission_paragraph || "",
           });
 
           const soc = data.data.social_links;
@@ -230,8 +224,6 @@ const Settings: React.FC = () => {
     formData.append("email", setting.email);
     formData.append("about", setting.about);
     formData.append("about_short", setting.about_short);
-    formData.append("why_choose_heading", setting.why_choose_heading);
-    formData.append("mission_paragraph", setting.mission_paragraph);
 
     // STATS
     formData.append("years_of_experience", stats.experience);
@@ -494,85 +486,6 @@ const Settings: React.FC = () => {
                   setSetting({ ...setting, about: e.target.value })
                 }
               />
-              <InputField
-                label="Mission Paragraph"
-                textarea
-                icon={FileText}
-                value={setting.mission_paragraph}
-                onChange={(e) =>
-                  setSetting({ ...setting, mission_paragraph: e.target.value })
-                }
-              />
-
-              <div className="md:col-span-2 space-y-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-primary/10 pb-2 gap-4">
-                  <div className="flex-1">
-                    <InputField
-                      label="Why Choose Section Heading"
-                      icon={Type}
-                      value={setting.why_choose_heading}
-                      onChange={(e) =>
-                        setSetting({
-                          ...setting,
-                          why_choose_heading: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setWhyUsItems([...whyUsItems, { title: "", desc: "" }])
-                    }
-                    className="flex items-center justify-center gap-1 text-xs font-bold px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition h-fit self-end"
-                  >
-                    <Plus className="w-3 h-3" /> Add Item
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {whyUsItems.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="group relative p-4 rounded-xl border border-primary/10 bg-primary/5 hover:bg-primary/10 transition"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setWhyUsItems(whyUsItems.filter((_, i) => i !== idx))}
-                        className="absolute top-2 right-2 p-1.5 opacity-0 group-hover:opacity-100 text-red-500 hover:bg-red-50 rounded-lg transition"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-
-                      <div className="space-y-4">
-                        <InputField
-                          label={`Title #${idx + 1}`}
-                          icon={Type}
-                          value={item.title}
-                          onChange={(e) => {
-                            const updated = [...whyUsItems];
-                            updated[idx].title = e.target.value;
-                            setWhyUsItems(updated);
-                          }}
-                        />
-                        <InputField
-                          label={`Description #${idx + 1}`}
-                          textarea
-                          icon={AlignLeft}
-                          value={item.desc}
-                          onChange={(e) => {
-                            const updated = [...whyUsItems];
-                            updated[idx].desc = e.target.value;
-                            setWhyUsItems(updated);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              
             </div>
           )}
 
@@ -655,6 +568,101 @@ const Settings: React.FC = () => {
                   setStats({ ...stats, success_rate: e.target.value })
                 }
               />
+            </div>
+          )}
+
+          {/* WHY US */}
+          {activeTab === "whyus" && (
+            <div className="space-y-6">
+              {whyUsItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="space-y-2 border border-white/10 p-4 rounded-lg relative"
+                >
+                  <button
+                    type="button"
+                    className="absolute top-2 right-2 text-red-500"
+                    onClick={() => {
+                      const updated = whyUsItems.filter((_, i) => i !== idx);
+                      setWhyUsItems(updated);
+                    }}
+                  >
+                    Remove
+                  </button>
+                  <InputField
+                    label={`Title #${idx + 1}`}
+                    icon={Type}
+                    value={item.title}
+                    onChange={(e) => {
+                      const updated = [...whyUsItems];
+                      updated[idx].title = e.target.value;
+                      setWhyUsItems(updated);
+                    }}
+                  />
+                  <InputField
+                    label={`Description #${idx + 1}`}
+                    textarea
+                    icon={AlignLeft}
+                    value={item.desc}
+                    onChange={(e) => {
+                      const updated = [...whyUsItems];
+                      updated[idx].desc = e.target.value;
+                      setWhyUsItems(updated);
+                    }}
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg"
+                onClick={() =>
+                  setWhyUsItems([...whyUsItems, { title: "", desc: "" }])
+                }
+              >
+                Add Why Us Item
+              </button>
+            </div>
+          )}
+
+          {/* MISSION */}
+          {activeTab === "mission" && (
+            <div className="space-y-6">
+              {missionItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="space-y-2 border border-white/10 p-4 rounded-lg relative"
+                >
+                  <button
+                    type="button"
+                    className="absolute top-2 right-2 text-red-500"
+                    onClick={() => {
+                      const updated = missionItems.filter((_, i) => i !== idx);
+                      setMissionItems(updated);
+                    }}
+                  >
+                    Remove
+                  </button>
+                  <InputField
+                    label={`Misiion ${idx + 1}`}
+                    icon={Type}
+                    value={item.title}
+                    onChange={(e) => {
+                      const updated = [...missionItems];
+                      updated[idx].title = e.target.value;
+                      setMissionItems(updated);
+                    }}
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg"
+                onClick={() =>
+                  setMissionItems([...missionItems, { title: "", desc: "" }])
+                }
+              >
+                Add Mission Item
+              </button>
             </div>
           )}
         </div>

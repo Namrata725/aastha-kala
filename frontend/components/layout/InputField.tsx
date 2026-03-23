@@ -14,7 +14,7 @@ interface Props {
   onChange?: (e: any) => void;
   textarea?: boolean;
   type?: string;
-  options?: Option[]; // 👈 added
+  options?: Option[];   
   imagePreview?: string | null;
 }
 
@@ -36,9 +36,9 @@ const InputField: React.FC<Props> = ({
     <div className="w-full">
       {/* Label */}
       <label className="flex items-center text-sm mb-1 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent font-medium gap-2">
-        {Icon && <Icon className="w-4 h-4 text-primary" />}
-        {label}
-      </label>
+          {Icon && <Icon className="w-4 h-4 text-primary" />}
+          {label}
+        </label>
 
       {/* Container */}
       <div className="p-[1px] rounded-xl bg-linear-to-r from-primary/20 to-secondary/20">
