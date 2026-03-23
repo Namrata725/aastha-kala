@@ -58,3 +58,24 @@ body {
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+.swiper {
+  padding-bottom: 40px; /* space for dots */
+}
+
+.swiper-pagination {
+  position: relative !important;
+  margin-top: 16px;
+  text-align: center;
+  z-index: 10;
+}
+
+
+.custom-pagination .swiper-pagination-bullet {
+  background-color: #a855f7 !important; /* purple */
+  opacity: 0.4;
+}
+
+.custom-pagination .swiper-pagination-bullet-active {
+  background-color: #7e22ce !important; /* darker purple */
+  opacity: 1;
+}

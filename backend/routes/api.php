@@ -30,6 +30,8 @@ Route::get('/gallery-categories/{id}', [GalleryCategoryController::class, 'show'
 
 Route::get('/galleries', [GalleryController::class, 'index']);
 
+Route::get('/testimonials', [TestimonialController::class, 'index']);
+
 // Protected Routes (Admin)
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
