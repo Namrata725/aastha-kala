@@ -14,7 +14,7 @@ interface Props {
   onChange?: (e: any) => void;
   textarea?: boolean;
   type?: string;
-  options?: Option[]; // 👈 added
+  options?: Option[];
   imagePreview?: string | null;
 }
 
@@ -25,8 +25,7 @@ const InputField: React.FC<Props> = ({
   onChange,
   textarea = false,
   type = "text",
-  options = [], // 👈 added
-  imagePreview,
+  options = [],
 }) => {
   const inputId = label.replace(/\s+/g, "_").toLowerCase();
 
@@ -41,8 +40,8 @@ const InputField: React.FC<Props> = ({
       </label>
 
       {/* Container */}
-      <div className="p-[1px] rounded-xl bg-linear-to-r from-primary/20 to-secondary/20">
-        <div className="rounded-xl px-3 py-2 bg-primary/10 backdrop-blur-md border border-primary/10 shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition duration-300 focus-within:bg-primary/15 focus-within:border-primary/20">
+      <div className="p-1px rounded-xl bg-linear-to-r from-primary/20 to-secondary/20">
+        <div className="rounded-xl px-3 py-1 bg-primary/10 backdrop-blur-md border border-primary/10 shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition duration-300 focus-within:bg-primary/15 focus-within:border-primary/20">
           {/* TEXTAREA */}
           {textarea ? (
             <textarea
@@ -75,7 +74,7 @@ const InputField: React.FC<Props> = ({
           ) : (
             // NORMAL INPUT
             <div className="flex items-center gap-2">
-              {Icon && <Icon className="w-4 h-4 text-white/60 flex-shrink-0" />}
+              {Icon && <Icon className="w-4 h-4 text-white/60 shrink-0" />}
 
               <input
                 type={type}

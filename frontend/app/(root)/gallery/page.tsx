@@ -39,14 +39,14 @@ const fetchSettings = async (): Promise<Setting | null> => {
 
 const fetchGallery = async (): Promise<GalleryItem[]> => {
   try {
-    const res = await fetch(`${API_URL}/galleries`, {
+    const res = await fetch(`${API_URL}/galleries/position/gallery`, {
       cache: "no-store",
     });
 
     if (!res.ok) throw new Error("Failed to fetch gallery");
 
     const data = await res.json();
-    return data || []; // ✅ your API returns plain array
+    return data || [];
   } catch (error) {
     console.error(error);
     return [];
@@ -62,7 +62,7 @@ const fetchCategories = async (): Promise<Category[]> => {
     if (!res.ok) throw new Error("Failed to fetch categories");
 
     const data = await res.json();
-    return data || []; // ✅ plain array
+    return data || []; 
   } catch (error) {
     console.error(error);
     return [];

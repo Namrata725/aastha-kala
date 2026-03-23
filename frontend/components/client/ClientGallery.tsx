@@ -111,7 +111,7 @@ const ClientGallery = ({ gallery, categories }: Props) => {
               >
                 {/* Badge */}
                 {categoryName && (
-                  <span className="absolute top-2 left-2 z-10 p-[1px] rounded-full bg-gradient-to-r from-blue-500 to-purple-500">
+                  <span className="absolute top-2 left-2 z-10 p-1px rounded-full bg-linear-to-r from-blue-500 to-purple-500">
                     <span className="block bg-white text-sm px-3 py-1 rounded-full">
                       {categoryName}
                     </span>

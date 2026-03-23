@@ -310,12 +310,12 @@ const Settings: React.FC = () => {
                     className={`absolute inset-0 rounded-t-xl transition-all duration-300
             ${
               isActive
-                ? "bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30 shadow-md shadow-primary/10"
+                ? "bg-linear-to-r from-primary/20 to-secondary/20 border border-primary/30 shadow-md shadow-primary/10"
                 : "bg-transparent"
             }
             `}
                   />
-                  <span className="relative z-10 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  <span className="relative z-10 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
                     {tab.label}
                   </span>
                   <span className="absolute inset-0 rounded-t-xl opacity-0 hover:opacity-100 transition-all duration-300 bg-white/5" />
@@ -380,13 +380,13 @@ const Settings: React.FC = () => {
               />
               {/* LOGO */}
               <div>
-                <label className="flex items-center text-sm mb-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent font-medium gap-2">
+                <label className="flex items-center text-sm mb-1 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent font-medium gap-2">
                   {<Image className="w-4 h-4 text-primary" />}
                   Logo
                 </label>
 
                 <div
-                  className="w-full cursor-pointer rounded-lg border border-white/10 bg-gradient-to-r from-primary/20 to-secondary/20 transition flex flex-col items-center justify-center p-4 relative"
+                  className="w-full cursor-pointer rounded-lg border border-white/10 bg-linear-to-r from-primary/20 to-secondary/20 transition flex flex-col items-center justify-center p-4 relative"
                   onClick={() => document.getElementById("logoInput")?.click()}
                 >
                   {logoPreview ? (
@@ -429,13 +429,13 @@ const Settings: React.FC = () => {
               {/* BANNER */}
 
               <div>
-                <label className="flex items-center text-sm mb-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent font-medium gap-2">
+                <label className="flex items-center text-sm mb-1 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent font-medium gap-2">
                   <Image className="w-4 h-4 text-primary" />
                   Banner
                 </label>
 
                 <div
-                  className="w-full cursor-pointer rounded-lg border border-white/10 bg-gradient-to-r from-primary/20 to-secondary/20 transition flex flex-col items-center justify-center p-4 relative"
+                  className="w-full cursor-pointer rounded-lg border border-white/10 bg-linear-to-r from-primary/20 to-secondary/20 transition flex flex-col items-center justify-center p-4 relative"
                   onClick={() =>
                     document.getElementById("bannerInput")?.click()
                   }
@@ -614,7 +614,7 @@ const Settings: React.FC = () => {
               ))}
               <button
                 type="button"
-                className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg"
+                className="px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg"
                 onClick={() =>
                   setWhyUsItems([...whyUsItems, { title: "", desc: "" }])
                 }
@@ -656,7 +656,7 @@ const Settings: React.FC = () => {
               ))}
               <button
                 type="button"
-                className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg"
+                className="px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg"
                 onClick={() =>
                   setMissionItems([...missionItems, { title: "", desc: "" }])
                 }
@@ -671,7 +671,7 @@ const Settings: React.FC = () => {
         <div className="mt-6 flex justify-end">
           <button
             onClick={saveSettings}
-            className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg"
+            className="px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg"
           >
             Save Settings
           </button>

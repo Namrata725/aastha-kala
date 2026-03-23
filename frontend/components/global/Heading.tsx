@@ -21,7 +21,7 @@ const Heading = ({ title, image, subtitle }: HeadingProps) => {
         unoptimized
       />
 
-      <div className="font-poppins absolute inset-0 bg-linear-to-t from-white/100 via-white/20  to-white/50" />
+      <div className="font-poppins absolute inset-0 bg-linear-to-t from-white via-white/20  to-white/50" />
 
       <div className="w-full absolute inset-0 flex items-end justify-center z-10">
         <div className="w-full  px-10 py-10 text-center rounded-t-sm">

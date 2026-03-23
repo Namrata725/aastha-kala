@@ -25,7 +25,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }, [router]);
   if (!checked) return null;
   return (
-    <div className="flex min-h-screen overflow-hidden bg-gray-100 dark:bg-[var(--background)]">
+    <div className="flex min-h-screen overflow-hidden bg-gray-100 ">
       {/* Sidebar */}
       <Sidebar
         collapsed={collapsed}
@@ -33,7 +33,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       />
 
       {/* Main content */}
-      <main className="flex-1 p-6 overflow-auto transition-all duration-300">
+      <main
+        className={`flex-1 p-6 overflow-auto transition-all duration-300 ${
+          collapsed ? "ml-20" : "ml-64"
+        }`}
+      >
         <div className="relative overflow-hidden w-full h-full">
           <FloatingBlobs />
 

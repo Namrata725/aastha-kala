@@ -60,21 +60,21 @@ const Footer: React.FC = () => {
 
             <div className="space-y-4 text-sm text-gray-600">
               <div className="flex items-center space-x-3">
-                <div className="bg-gradient-to-r from-primary to-secondary p-[6px] rounded-full flex items-center justify-center">
+                <div className="bg-linear-to-r from-primary to-secondary p-1.5 rounded-full flex items-center justify-center">
                   <Phone className="h-4 w-4 text-white" />
                 </div>
                 <span>+977 9841305158</span>
               </div>
 
               <div className="flex items-center space-x-3">
-                <div className="bg-gradient-to-r from-primary to-secondary p-[6px] rounded-full flex items-center justify-center">
+                <div className="bg-linear-to-r from-primary to-secondary p-1.5 rounded-full flex items-center justify-center">
                   <Mail className="h-4 w-4 text-white" />
                 </div>
                 <span>aasthakalakendra@gmail.com</span>
               </div>
 
               <div className="flex items-center space-x-3">
-                <div className="bg-gradient-to-r from-primary to-secondary p-[6px] rounded-full flex items-center justify-center">
+                <div className="bg-linear-to-r from-primary to-secondary p-1.5 rounded-full flex items-center justify-center">
                   <MapPin className="h-4 w-4 text-white" />
                 </div>
                 <span>Narayangopal Chowk, Kathmandu, Nepal</span>

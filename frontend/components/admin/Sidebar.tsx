@@ -65,32 +65,32 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
   };
   return (
     <aside
-      className={`relative h-screen flex flex-col transition-all duration-300 ${
+      className={`fixed top-0 left-0 h-screen flex flex-col transition-all duration-300 ${
         collapsed ? "w-20" : "w-64"
       }`}
       style={{
         background:
-          "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2))",
+          "linear-linear(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2))",
         backdropFilter: "blur(20px)",
         borderRight: "1px solid rgba(255,255,255,0.1)",
       }}
     >
-      {/* Floating gradient blobs */}
+      {/* Floating linear blobs */}
       <div className="absolute top-10 left-5 w-40 h-40 bg-primary/30 rounded-full blur-3xl animate-float-slow" />
       <div className="absolute bottom-10 right-5 w-32 h-32 bg-secondary/30 rounded-full blur-2xl animate-float-medium" />
 
       {/* Sidebar content */}
-      <div className="flex flex-col h-full relative z-10">
+      <div className="flex flex-col h-screen relative z-10">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           {!collapsed && (
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary select-none">
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary select-none">
               Admin Panel
             </span>
           )}
           <button
             onClick={toggleCollapse}
-            className="p-1 rounded hover:bg-primary/20 transition"
+            className="p-1 rounded hover:bg-primary/20 transition text-primary"
           >
             {collapsed ? "→" : "←"}
           </button>
@@ -106,7 +106,7 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
                 <li key={item.name} className="relative group">
                   <Link
                     href={item.href}
-                    className={`flex items-center p-3 rounded-lg transition-all duration-200
+                    className={`flex items-center p-1 rounded-lg transition-all duration-200 text-sm
                       ${
                         isActive
                           ? "bg-white/10 backdrop-blur-md shadow-md"
@@ -124,8 +124,8 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
                       <span
                         className={`ml-2 font-bold bg-clip-text text-transparent ${
                           isActive
-                            ? "bg-gradient-to-r from-primary to-secondary"
-                            : "bg-gradient-to-r from-primary/70 to-secondary/70"
+                            ? "bg-linear-to-r from-primary to-secondary"
+                            : "bg-linear-to-r from-primary/70 to-secondary/70"
                         }`}
                       >
                         {item.name}

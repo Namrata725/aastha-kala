@@ -21,7 +21,7 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
   return (
     <div className="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-stretch hover:shadow-md transition">
       {/* Left Image */}
-      <div className="w-60 h-60 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100">
+      <div className="w-60 h-60 shrink-0 rounded-xl overflow-hidden bg-gray-100">
         {instructor.image ? (
           <img
             src={instructor.image}
@@ -80,7 +80,7 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Facebook className="p-[6px] w-8 h-8 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition" />
+              <Facebook className="p-1.5 w-8 h-8 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition" />
             </a>
           )}
 
@@ -90,7 +90,7 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Instagram className="p-[6px] w-8 h-8 rounded-full bg-pink-100 text-pink-500 hover:bg-pink-200 transition" />
+              <Instagram className="p-1.5 w-8 h-8 rounded-full bg-pink-100 text-pink-500 hover:bg-pink-200 transition" />
             </a>
           )}
         </div>

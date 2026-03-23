@@ -2,6 +2,7 @@
 
 import React from "react";
 import InstructorsCard from "../layout/InstructorsCard";
+import { Users } from "lucide-react";
 
 interface Instructor {
   id: number;
@@ -22,7 +23,11 @@ interface Props {
 const ClientInstructors = ({ instructors }: Props) => {
   if (!instructors || instructors.length === 0) {
     return (
-      <p className="text-center text-gray-500 py-10">No instructors found.</p>
+      <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+        <Users className="w-12 h-12 animate-bounce text-secondary" />
+        <p className="text-lg font-medium mt-3">No instructors found</p>
+        <p className="text-sm mt-2">Please check back later for updates</p>
+      </div>
     );
   }
 
