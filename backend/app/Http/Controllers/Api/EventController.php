@@ -202,6 +202,7 @@ class EventController extends Controller
         return $slug;
     }
 
+
     /**
      * Convert banner path to full URL
      */
