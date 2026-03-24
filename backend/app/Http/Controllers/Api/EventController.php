@@ -168,15 +168,17 @@ class EventController extends Controller
     /**
      * PUBLIC: GET by slug
      */
-    public function showBySlug(Event $event)
-    {
-        $event->banner = $this->getBannerUrl($event->banner);
+ public function showBySlug($slug)
+{
+    $event = Event::where('slug', $slug)->firstOrFail();
 
-        return response()->json([
-            'message' => 'Event fetched successfully',
-            'data' => $event
-        ]);
-    }
+    $event->banner = $this->getBannerUrl($event->banner);
+
+    return response()->json([
+        'message' => 'Event fetched successfully',
+        'data' => $event
+    ]);
+}
 
     /**
      * Generate unique slug

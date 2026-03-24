@@ -13,6 +13,8 @@ interface EventData {
   location: string;
   status: "draft" | "published";
   banner?: File | string | null;
+  contact_person_name?: string;
+  contact_person_phone?: string;
 }
 
 interface Props {
@@ -38,6 +40,8 @@ const EventAddEditModal: React.FC<Props> = ({
     location: "",
     status: "draft",
     banner: null,
+    contact_person_name: "",
+    contact_person_phone: "",
   });
 
   const [previewBanner, setPreviewBanner] = useState<string | null>(null);
@@ -53,6 +57,8 @@ const EventAddEditModal: React.FC<Props> = ({
           : "",
         location: event.location || "",
         status: event.status || "draft",
+        contact_person_name: event.contact_person_name || "",
+        contact_person_phone: event.contact_person_phone || "",
         banner: null,
       });
 
@@ -71,6 +77,8 @@ const EventAddEditModal: React.FC<Props> = ({
         location: "",
         status: "draft",
         banner: null,
+        contact_person_name: "",
+        contact_person_phone: "",
       });
       setPreviewBanner(null);
     }
@@ -93,7 +101,7 @@ const EventAddEditModal: React.FC<Props> = ({
     }
   };
 
-  // ✅ REMOVE BANNER
+  // REMOVE BANNER
   const handleRemoveBanner = () => {
     setForm((prev) => ({
       ...prev,
@@ -115,12 +123,16 @@ const EventAddEditModal: React.FC<Props> = ({
       formData.append("location", form.location);
       formData.append("status", form.status);
 
-      // ✅ banner upload
+      // ✅ contact fields
+      formData.append("contact_person_name", form.contact_person_name || "");
+      formData.append("contact_person_phone", form.contact_person_phone || "");
+
+      // banner upload
       if (form.banner instanceof File) {
         formData.append("banner", form.banner);
       }
 
-      // optional: remove existing banner (if needed in backend)
+      // optional: remove existing banner
       if (event && !previewBanner && !form.banner) {
         formData.append("remove_banner", "1");
       }
@@ -188,6 +200,25 @@ const EventAddEditModal: React.FC<Props> = ({
               label="Location"
               value={form.location}
               onChange={(e) => handleChange("location", e.target.value)}
+            />
+          </div>
+
+          {/* Contact fields (UI unchanged, just added new row) */}
+          <div className="grid grid-cols-2 gap-4">
+            <InputField
+              label="Contact Person Name"
+              value={form.contact_person_name}
+              onChange={(e) =>
+                handleChange("contact_person_name", e.target.value)
+              }
+            />
+
+            <InputField
+              label="Contact Person Phone"
+              value={form.contact_person_phone}
+              onChange={(e) =>
+                handleChange("contact_person_phone", e.target.value)
+              }
             />
           </div>
 

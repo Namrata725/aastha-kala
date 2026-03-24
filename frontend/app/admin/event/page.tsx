@@ -18,6 +18,8 @@ interface Event {
   status: "draft" | "published";
   banner?: string;
   created_at?: string;
+  contact_person_name?: string;
+  contact_person_phone?: string;
 }
 
 const Page = () => {
@@ -31,7 +33,7 @@ const Page = () => {
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
-  // ✅ View modal state
+  // View modal state
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [viewEvent, setViewEvent] = useState<Event | null>(null);
 
@@ -110,7 +112,7 @@ const Page = () => {
     event_date: new Date(event.event_date).toLocaleString(),
   }));
 
-  // ✅ View handler
+  // View handler
   const handleView = (row: any) => {
     const original = events.find((e) => e.id === row.id);
     setViewEvent(original || null);

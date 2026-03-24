@@ -1,5 +1,4 @@
 import ClientEvents from "@/components/client/ClientEvents";
-import ClientGallery from "@/components/client/ClientGallery";
 import Heading from "@/components/global/Heading";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -8,18 +7,15 @@ type Setting = {
   banner?: string;
 };
 
-type Category = {
-  id: number;
-  name: string;
-};
-
-type GalleryItem = {
+type EventItem = {
   id: number;
   title: string;
-  type: "images" | "video";
-  category_id: number;
-  images?: string[];
-  video?: string;
+  description: string;
+  slug: string;
+  banner?: string | null;
+  event_date: string;
+  location: string;
+  status: string;
 };
 
 const fetchSettings = async (): Promise<Setting | null> => {
@@ -38,7 +34,7 @@ const fetchSettings = async (): Promise<Setting | null> => {
   }
 };
 
-const fetchEvents = async (): Promise<GalleryItem[]> => {
+const fetchEvents = async (): Promise<EventItem[]> => {
   try {
     const res = await fetch(`${API_URL}/events`, {
       cache: "no-store",
@@ -46,15 +42,19 @@ const fetchEvents = async (): Promise<GalleryItem[]> => {
 
     if (!res.ok) throw new Error("Failed to fetch events");
 
-    const data = await res.json();
-    return data || [];
+    const json = await res.json();
+    const events = json?.data;
+
+    if (!Array.isArray(events)) return [];
+
+    return events.filter((event: EventItem) => event.status === "published");
   } catch (error) {
     console.error(error);
     return [];
   }
 };
 
-const EventsPage = async () => {
+export default async function EventsPage() {
   const settings = await fetchSettings();
   const events = await fetchEvents();
 
@@ -66,9 +66,7 @@ const EventsPage = async () => {
         subtitle="Moments and memories"
       />
 
-      <ClientEvents />
+      <ClientEvents events={events} />
     </section>
   );
-};
-
-export default EventsPage;
+}
