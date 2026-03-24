@@ -39,10 +39,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         }`}
       >
         <div className="relative overflow-hidden w-full h-full">
-          <FloatingBlobs />
+          {/* <FloatingBlobs /> */}
 
           {children}
-          <ToastProvider />
+          {/* <ToastProvider /> */}
         </div>
       </main>
     </div>
