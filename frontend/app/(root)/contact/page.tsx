@@ -1,6 +1,15 @@
 import ContactForm from "@/components/client/ContactForm";
 import Heading from "@/components/global/Heading";
-import { Mail, Phone, MapPin, Facebook, Instagram, Music2, Twitter, Youtube } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Facebook,
+  Instagram,
+  Music2,
+  Twitter,
+  Youtube,
+} from "lucide-react";
 import { ensureAbsoluteUrl } from "@/utils/url";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -28,7 +37,10 @@ const getMapEmbedUrl = (url: string) => {
   // Extract place name or coordinates if it's a standard URL
   try {
     const urlObj = new URL(url);
-    if (urlObj.hostname.includes("google.com") && urlObj.pathname.includes("/maps/place/")) {
+    if (
+      urlObj.hostname.includes("google.com") &&
+      urlObj.pathname.includes("/maps/place/")
+    ) {
       const placeName = urlObj.pathname.split("/maps/place/")[1].split("/")[0];
       return `https://www.google.com/maps?q=${placeName}&output=embed`;
     }
@@ -43,19 +55,21 @@ const ContactPage = async () => {
   const data = await fetchSettings();
   const settings = data?.setting;
   const socialLinks = data?.social_links;
-  
+
   const socials = [
     {
       id: "facebook",
       icon: <Facebook className="w-6 h-6" />,
       url: ensureAbsoluteUrl(socialLinks?.facebook),
-      className: "bg-[#1877F2] text-white border-transparent hover:shadow-[0_8px_20px_-8px_#1877F2]",
+      className:
+        "bg-[#1877F2] text-white border-transparent hover:shadow-[0_8px_20px_-8px_#1877F2]",
     },
     {
       id: "instagram",
       icon: <Instagram className="w-6 h-6" />,
       url: ensureAbsoluteUrl(socialLinks?.instagram),
-      className: "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white border-transparent hover:shadow-[0_8px_20px_-8px_#ee2a7b]",
+      className:
+        "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white border-transparent hover:shadow-[0_8px_20px_-8px_#ee2a7b]",
     },
     {
       id: "tiktok",
@@ -70,7 +84,8 @@ const ContactPage = async () => {
         </svg>
       ),
       url: ensureAbsoluteUrl(socialLinks?.tiktok),
-      className: "bg-black text-white border-transparent hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.5)]",
+      className:
+        "bg-black text-white border-transparent hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.5)]",
     },
     {
       id: "x",
@@ -85,13 +100,15 @@ const ContactPage = async () => {
         </svg>
       ),
       url: ensureAbsoluteUrl(socialLinks?.x),
-      className: "bg-[#0f1419] text-white border-transparent hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.5)]",
+      className:
+        "bg-[#0f1419] text-white border-transparent hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.5)]",
     },
     {
       id: "youtube",
       icon: <Youtube className="w-6 h-6" />,
       url: ensureAbsoluteUrl(socialLinks?.youtube),
-      className: "bg-[#FF0000] text-white border-transparent hover:shadow-[0_8px_20px_-8px_#FF0000]",
+      className:
+        "bg-[#FF0000] text-white border-transparent hover:shadow-[0_8px_20px_-8px_#FF0000]",
     },
   ].filter((social) => social.url);
 
@@ -107,7 +124,6 @@ const ContactPage = async () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Contact Information */}
           <div className="space-y-12">
-
             <div className="space-y-8">
               <div className="flex items-start gap-4">
                 <div className="bg-gradient-to-r from-primary to-secondary p-[6px] rounded-full flex items-center justify-center">
@@ -142,9 +158,7 @@ const ContactPage = async () => {
                   <MapPin className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Location
-                  </h3>
+                  <h3 className="text-xl font-bold text-gray-900">Location</h3>
                   <p className="text-gray-600 mt-1">
                     {settings?.address || "Narayangoal Chowk, Kathmandu, Nepal"}
                   </p>
@@ -170,7 +184,7 @@ const ContactPage = async () => {
 
           {/* Contact Form */}
           <div className="bg-gray-50 p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">
+            <h2 className="text-3xl  font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary  mb-8">
               Send us a Message
             </h2>
             <ContactForm />
@@ -180,7 +194,7 @@ const ContactPage = async () => {
         {/* Social Media Section */}
         {socials.length > 0 && (
           <div className="mt-16 text-center space-y-6">
-            <p className="text-blue-500 font-semibold tracking-wide uppercase text-lg">
+            <p className="text-primary font-semibold tracking-wide uppercase text-lg">
               Want to see more? Follow us on social media!
             </p>
             <div className="flex justify-center gap-6">

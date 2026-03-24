@@ -13,7 +13,7 @@ const ContactForm: React.FC = () => {
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -33,7 +33,7 @@ const ContactForm: React.FC = () => {
             Accept: "application/json",
           },
           body: JSON.stringify(formData),
-        }
+        },
       );
 
       const result = await response.json();
@@ -73,8 +73,8 @@ const ContactForm: React.FC = () => {
             required
             value={formData.full_name}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-            placeholder="John Doe"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+            placeholder="Enter your Name"
           />
         </div>
         <div>
@@ -91,8 +91,8 @@ const ContactForm: React.FC = () => {
             required
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-            placeholder="john@example.com"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+            placeholder="Enter your email Address"
           />
         </div>
       </div>
@@ -110,8 +110,8 @@ const ContactForm: React.FC = () => {
           name="phone_number"
           value={formData.phone_number}
           onChange={handleChange}
-          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-          placeholder="+91 1234567890"
+          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+          placeholder="Your Phone number"
         />
       </div>
 
@@ -129,7 +129,7 @@ const ContactForm: React.FC = () => {
           rows={5}
           value={formData.message}
           onChange={handleChange}
-          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
+          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition resize-none"
           placeholder="How can we help you?"
         ></textarea>
       </div>
@@ -137,7 +137,7 @@ const ContactForm: React.FC = () => {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-700 text-white font-bold py-4 rounded-lg hover:bg-blue-800 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-linear-to-r from-primary to-secondary text-white font-bold py-2.5 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? "Sending..." : "Send Message"}
       </button>
