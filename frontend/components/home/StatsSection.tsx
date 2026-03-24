@@ -37,12 +37,13 @@ const StatsSection: React.FC<StatsSectionProps> = ({ settings }) => {
           style={{
             background: "linear-gradient(135deg, #3a1fa8 0%, #6b35c8 100%)",
             borderRadius: "10px",
-            boxShadow: "0 20px 50px -12px rgba(58, 31, 168, 0.5), 0 10px 20px -5px rgba(107, 53, 200, 0.3)",
+            boxShadow:
+              "0 20px 50px -12px rgba(58, 31, 168, 0.5), 0 10px 20px -5px rgba(107, 53, 200, 0.3)",
           }}
         >
           {/* Subtle accent light inside */}
-          <div className="absolute top-0 left-0 w-full h-full bg-blue-800 from-white/10 to-transparent pointer-events-none" />
-          
+          <div className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-primary to-secondary  pointer-events-none" />
+
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-y-6 gap-x-4 items-center justify-items-center relative z-10">
             {stats.map((stat, index) => (
               <div
