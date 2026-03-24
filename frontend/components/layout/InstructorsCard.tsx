@@ -15,6 +15,12 @@ interface Instructor {
   image?: string;
 }
 
+const ensureAbsoluteUrl = (url?: string) => {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `https://${url}`;
+};
+
 const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -40,7 +46,7 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
         {/* Top Content */}
         <div>
           {/* Name */}
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-xl font-semibold text-gray-800">
             {instructor.name}
           </h3>
 
@@ -76,9 +82,11 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
         <div className="mt-auto flex gap-3 items-center pt-3">
           {instructor.facebook_url && (
             <a
-              href={instructor.facebook_url}
+              href={ensureAbsoluteUrl(instructor.facebook_url)}
               target="_blank"
               rel="noopener noreferrer"
+              className="p-1.5 rounded-full bg-[#1877F2] text-white hover:scale-110 hover:shadow-lg transition-all duration-300"
+              title="Facebook"
             >
               <Facebook className="p-1.5 w-8 h-8 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition" />
             </a>
@@ -86,9 +94,11 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
 
           {instructor.instagram_url && (
             <a
-              href={instructor.instagram_url}
+              href={ensureAbsoluteUrl(instructor.instagram_url)}
               target="_blank"
               rel="noopener noreferrer"
+              className="p-1.5 rounded-full bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white hover:scale-110 hover:shadow-lg transition-all duration-300"
+              title="Instagram"
             >
               <Instagram className="p-1.5 w-8 h-8 rounded-full bg-pink-100 text-pink-500 hover:bg-pink-200 transition" />
             </a>
