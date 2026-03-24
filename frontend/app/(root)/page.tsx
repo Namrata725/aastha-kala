@@ -1,13 +1,11 @@
-import HomeGallery from "@/components/home/HomeGallery";
-import HomeInstructor from "@/components/home/HomeInstructor";
+import React, { Suspense } from "react";
 import HeroSection from "@/components/home/HeroSection";
 import StatsSection from "@/components/home/StatsSection";
 import AboutHomeSection from "@/components/home/AboutHomeSection";
-import InstructorSection from "@/components/home/InstructorSection";
-import GalleryHomeSection from "@/components/home/GalleryHomeSection";
+import HomeInstructor from "@/components/home/HomeInstructor";
 import TestimonialSlider from "@/components/home/TestimonialSlider";
+import HomeGallery from "@/components/home/HomeGallery";
 import ContactHomeSection from "@/components/home/ContactHomeSection";
-import React from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -36,21 +34,44 @@ const fetchGalleriesByPosition = async (position: string) => {
   }
 };
 
+// Loading skeletons or basic fallbacks for selective streaming
+const SectionPlaceholder = () => <div className="min-h-[200px] animate-pulse bg-gray-50" />;
+
 const Page = async () => {
-  const data = await fetchSettings();
+  // Fetch key data in parallel
+  const [data, aboutHomeGallery] = await Promise.all([
+    fetchSettings(),
+    fetchGalleriesByPosition("about-home"),
+  ]);
+
   const settings = data?.setting;
   const socialLinks = data?.social_links;
-  const aboutHomeGallery = await fetchGalleriesByPosition("about-home");
 
   return (
     <div className="bg-white">
-      <HeroSection />
-      <StatsSection settings={settings} />
-      <AboutHomeSection settings={settings} gallery={aboutHomeGallery?.[0]} />
-      <HomeInstructor />
-      <TestimonialSlider />
-      <HomeGallery />
-      <ContactHomeSection settings={settings} />
+      <Suspense fallback={<SectionPlaceholder />}>
+        <HeroSection />
+      </Suspense>
+
+      {settings && <StatsSection settings={settings} />}
+
+      {settings && (
+        <AboutHomeSection settings={settings} gallery={aboutHomeGallery?.[0]} />
+      )}
+
+      <Suspense fallback={<SectionPlaceholder />}>
+        <HomeInstructor />
+      </Suspense>
+
+      <Suspense fallback={<SectionPlaceholder />}>
+        <TestimonialSlider />
+      </Suspense>
+
+      <Suspense fallback={<SectionPlaceholder />}>
+        <HomeGallery socialLinks={socialLinks} />
+      </Suspense>
+
+      {settings && <ContactHomeSection settings={settings} />}
     </div>
   );
 };

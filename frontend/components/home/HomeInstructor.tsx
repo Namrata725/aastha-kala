@@ -23,6 +23,8 @@ const fetchInstructors = async () => {
 const HomeInstructor = async () => {
   const instructors = await fetchInstructors();
 
+  if (instructors.length === 0) return null;
+
   const limitedInstructors = instructors.slice(0, 2);
 
   const hasMoreThanTwo = instructors.length > 2;

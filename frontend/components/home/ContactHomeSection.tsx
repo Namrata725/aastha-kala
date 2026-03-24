@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { Phone, Mail, MapPin } from "lucide-react";
 
@@ -8,6 +6,8 @@ interface ContactHomeSectionProps {
 }
 
 const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => {
+  if (!settings || (!settings.phone && !settings.email && !settings.address)) return null;
+
   const getEmbedUrl = (input: string) => {
     if (!input) return null;
 
@@ -56,8 +56,7 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
     return input;
   };
 
-  const mapUrl = getEmbedUrl(settings?.location_map) || 
-    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3531.3811463134333!2d85.33405377531778!3d27.73639897616654!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb1939318357f7%3A0xc47a8f15d01cad2a!2sNarayangoal%20Chowk%2C%20Kathmandu%2044600!5e0!3m2!1sen!2snp!4v1711200000000!5m2!1sen!2snp";
+  const mapUrl = getEmbedUrl(settings?.location_map);
 
   return (
     <section className="py-10 bg-[#EEF0F5]">
@@ -78,8 +77,8 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
           {/* Info Cards */}
           <div className="space-y-5">
             {/* Phone */}
-            <div className="flex items-center gap-5 bg-white p-5 rounded-2xl shadow-sm">
-              <div className="w-14 h-14 bg-[#F3EEFF] rounded-2xl flex items-center justify-center flex-shrink-0">
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center flex-shrink-0">
                 <Phone className="w-6 h-6 text-[#9B4DCA]" />
               </div>
               <div>
@@ -93,9 +92,9 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
             </div>
 
             {/* Email */}
-            <div className="flex items-center gap-5 bg-white p-5 rounded-2xl shadow-sm">
-              <div className="w-14 h-14 bg-[#9B4DCA] rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Mail className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Mail className="w-6 h-6 text-[#9B4DCA]" />
               </div>
               <div>
                 <h4 className="font-bold text-gray-800 text-base mb-0.5">
@@ -108,9 +107,9 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
             </div>
 
             {/* Location */}
-            <div className="flex items-center gap-5 bg-white p-5 rounded-2xl shadow-sm">
-              <div className="w-14 h-14 bg-[#9B4DCA] rounded-2xl flex items-center justify-center flex-shrink-0">
-                <MapPin className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center flex-shrink-0">
+                <MapPin className="w-6 h-6 text-[#9B4DCA]" />
               </div>
               <div>
                 <h4 className="font-bold text-gray-800 text-base mb-0.5">
@@ -124,20 +123,22 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
           </div>
 
           {/* Map */}
-          <div className="rounded-2xl border-2 border-[#9B4DCA] overflow-hidden shadow-lg">
-            <div className="w-full h-[340px]">
-              <iframe
-                src={mapUrl}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Aastha Kala Kendra Location"
-              ></iframe>
+          {mapUrl && (
+            <div className="rounded-2xl border-2 border-[#9B4DCA] overflow-hidden shadow-lg">
+              <div className="w-full h-[340px]">
+                <iframe
+                  src={mapUrl}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Aastha Kala Kendra Location"
+                ></iframe>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </section>

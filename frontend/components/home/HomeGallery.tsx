@@ -92,10 +92,11 @@ const formatUrl = (url?: string) =>
 
 /* -------------------- COMPONENT -------------------- */
 
-const HomeGallery = async () => {
+const HomeGallery = async ({ socialLinks }: { socialLinks: SocialLinks | null }) => {
   const gallery = await fetchGallery();
   const categories = await fetchCategories();
-  const socialLinks = await fetchSettings();
+
+  if (gallery.length === 0) return null;
 
   const limitedGallery = gallery.slice(0, 8);
 
