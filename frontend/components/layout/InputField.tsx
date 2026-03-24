@@ -45,7 +45,7 @@ const InputField: React.FC<Props> = ({
           {/* TEXTAREA */}
           {textarea ? (
             <textarea
-              value={value}
+              value={value ?? ""}
               onChange={onChange}
               rows={4}
               className="w-full bg-transparent outline-none text-white placeholder:text-white/40 resize-none"
@@ -54,7 +54,7 @@ const InputField: React.FC<Props> = ({
           ) : isSelect ? (
             // DROPDOWN
             <select
-              value={value}
+              value={value ?? ""}
               onChange={onChange}
               className="w-full bg-transparent outline-none text-white placeholder:text-white/40"
             >
@@ -78,7 +78,7 @@ const InputField: React.FC<Props> = ({
 
               <input
                 type={type}
-                value={value}
+                value={value ?? ""}
                 onChange={onChange}
                 className="w-full bg-transparent outline-none text-white placeholder:text-white/40"
                 placeholder={`Enter ${label}`}
