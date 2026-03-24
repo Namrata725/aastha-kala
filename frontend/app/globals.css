@@ -59,7 +59,7 @@ body {
   display: none;
 }
 .swiper {
-  padding-bottom: 40px; /* space for dots */
+  padding-bottom: 40px;
 }
 
 .swiper-pagination {
@@ -71,11 +71,11 @@ body {
 
 
 .custom-pagination .swiper-pagination-bullet {
-  background-color: #a855f7 !important; /* purple */
+  background-color: #a855f7 !important; 
   opacity: 0.4;
 }
 
 .custom-pagination .swiper-pagination-bullet-active {
-  background-color: #7e22ce !important; /* darker purple */
+  background-color: #7e22ce !important; 
   opacity: 1;
 }

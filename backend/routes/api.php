@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\GalleryCategoryController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\TestimonialController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\EventController;
 
 // Public Routes
 
@@ -78,6 +79,14 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         Route::put('/{id}', [TestimonialController::class, 'update']);
         Route::delete('/{id}', [TestimonialController::class, 'destroy']);
     });
+
+Route::prefix('events')->group(function () {
+    Route::get('/', [EventController::class, 'index']);          // list
+    Route::get('/{event}', [EventController::class, 'show']);    // show by ID
+    Route::post('/', [EventController::class, 'store']);         // create
+    Route::put('/{event}', [EventController::class, 'update']);  // update
+    Route::delete('/{event}', [EventController::class, 'destroy']); // delete
+});
 
     // Message Management
     Route::prefix('messages')->group(function () {

@@ -1,0 +1,214 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Event;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
+class EventController extends Controller
+{
+    /**
+     * GET /api/admin/events
+     */
+    public function index()
+    {
+        $events = Event::latest()->get()->map(function ($event) {
+            $event->banner = $this->getBannerUrl($event->banner);
+            return $event;
+        });
+
+        return response()->json([
+            'message' => 'Events fetched successfully',
+            'data' => $events
+        ]);
+    }
+
+    /**
+     * POST /api/admin/events
+     */
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'slug' => 'nullable|string|unique:events,slug',
+            'description' => 'nullable|string',
+            'banner' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'event_date' => 'required|date',
+            'location' => 'required|string|max:255',
+            'contact_person_name' => 'nullable|string|max:255',
+            'contact_person_phone' => 'nullable|string|max:20',
+            'status' => 'nullable|in:draft,published',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $data = $validator->validated();
+
+        // Generate slug
+        if (empty($data['slug'])) {
+            $data['slug'] = $this->generateUniqueSlug($data['title']);
+        }
+
+        // Upload banner
+        if ($request->hasFile('banner')) {
+            $path = $request->file('banner')->store('events', 'public');
+            $data['banner'] = $path;
+        }
+
+        $event = Event::create($data);
+
+        // Convert banner to full URL
+        $event->banner = $this->getBannerUrl($event->banner);
+
+        return response()->json([
+            'message' => 'Event created successfully',
+            'data' => $event
+        ], 201);
+    }
+
+    /**
+     * GET /api/admin/events/{event}
+     */
+    public function show(Event $event)
+    {
+        $event->banner = $this->getBannerUrl($event->banner);
+
+        return response()->json([
+            'message' => 'Event fetched successfully',
+            'data' => $event
+        ]);
+    }
+
+    /**
+     * PUT /api/admin/events/{event}
+     */
+    public function update(Request $request, Event $event)
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'sometimes|string|max:255',
+            'slug' => 'sometimes|string|unique:events,slug,' . $event->id,
+            'description' => 'nullable|string',
+            'banner' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'event_date' => 'sometimes|date',
+            'location' => 'sometimes|string|max:255',
+            'contact_person_name' => 'nullable|string|max:255',
+            'contact_person_phone' => 'nullable|string|max:20',
+            'status' => 'sometimes|in:draft,published',
+            'remove_banner' => 'sometimes|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $data = $validator->validated();
+
+        // Remove banner
+        if ($request->boolean('remove_banner')) {
+            if ($event->banner) {
+                Storage::disk('public')->delete($event->banner);
+            }
+            $data['banner'] = null;
+        }
+
+        // Upload new banner
+        if ($request->hasFile('banner')) {
+            if ($event->banner) {
+                Storage::disk('public')->delete($event->banner);
+            }
+
+            $path = $request->file('banner')->store('events', 'public');
+            $data['banner'] = $path;
+        }
+
+        // Regenerate slug if needed
+        if ($request->filled('title') && !$request->filled('slug')) {
+            $data['slug'] = $this->generateUniqueSlug($data['title'], $event->id);
+        }
+
+        $event->update($data);
+
+        // Convert banner to full URL
+        $event->banner = $this->getBannerUrl($event->banner);
+
+        return response()->json([
+            'message' => 'Event updated successfully',
+            'data' => $event
+        ]);
+    }
+
+    /**
+     * DELETE /api/admin/events/{event}
+     */
+    public function destroy(Event $event)
+    {
+        if ($event->banner) {
+            Storage::disk('public')->delete($event->banner);
+        }
+
+        $event->delete();
+
+        return response()->json([
+            'message' => 'Event deleted successfully'
+        ]);
+    }
+
+    /**
+     * PUBLIC: GET by slug
+     */
+    public function showBySlug(Event $event)
+    {
+        $event->banner = $this->getBannerUrl($event->banner);
+
+        return response()->json([
+            'message' => 'Event fetched successfully',
+            'data' => $event
+        ]);
+    }
+
+    /**
+     * Generate unique slug
+     */
+    private function generateUniqueSlug(string $title, $ignoreId = null): string
+    {
+        $baseSlug = Str::slug($title);
+        $slug = $baseSlug;
+        $i = 1;
+
+        while (
+            Event::where('slug', $slug)
+                ->when($ignoreId, function ($query) use ($ignoreId) {
+                    $query->where('id', '!=', $ignoreId);
+                })
+                ->exists()
+        ) {
+            $slug = $baseSlug . '-' . $i++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Convert banner path to full URL
+     */
+    private function getBannerUrl($path)
+    {
+        if (!$path) {
+            return null;
+        }
+
+        return asset('storage/' . $path);
+    }
+}
