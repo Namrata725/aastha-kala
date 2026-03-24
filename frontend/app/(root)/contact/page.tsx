@@ -69,7 +69,7 @@ const ContactPage = async () => {
       icon: <Instagram className="w-6 h-6" />,
       url: ensureAbsoluteUrl(socialLinks?.instagram),
       className:
-        "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white border-transparent hover:shadow-[0_8px_20px_-8px_#ee2a7b]",
+        "bg-linear-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white border-transparent hover:shadow-[0_8px_20px_-8px_#ee2a7b]",
     },
     {
       id: "tiktok",
@@ -126,7 +126,7 @@ const ContactPage = async () => {
           <div className="space-y-12">
             <div className="space-y-8">
               <div className="flex items-start gap-4">
-                <div className="bg-gradient-to-r from-primary to-secondary p-[6px] rounded-full flex items-center justify-center">
+                <div className="bg-linear-to-r from-primary to-secondary p-2.5 rounded-full flex items-center justify-center">
                   <Phone className="h-4 w-4 text-white" />
                 </div>
                 <div>
@@ -140,7 +140,7 @@ const ContactPage = async () => {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="bg-gradient-to-r from-primary to-secondary p-[6px] rounded-full flex items-center justify-center">
+                <div className="bg-linear-to-r from-primary to-secondary p-2.5 rounded-full flex items-center justify-center">
                   <Mail className="h-4 w-4 text-white" />
                 </div>
                 <div>
@@ -154,7 +154,7 @@ const ContactPage = async () => {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="bg-gradient-to-r from-primary to-secondary p-[6px] rounded-full flex items-center justify-center">
+                <div className="bg-linear-to-r from-primary to-secondary p-2.5 rounded-full flex items-center justify-center">
                   <MapPin className="h-4 w-4 text-white" />
                 </div>
                 <div>

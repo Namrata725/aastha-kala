@@ -59,8 +59,10 @@ const InstructorModal: React.FC<Props> = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     if (instructor) {
-      setForm(instructor);
+      setForm({ ...instructor });
 
       if (instructor.image) {
         const imageUrl = instructor.image.startsWith("http")
@@ -68,8 +70,11 @@ const InstructorModal: React.FC<Props> = ({
           : `${process.env.NEXT_PUBLIC_IMAGE_URL?.replace(/\/$/, "")}/${instructor.image}`;
 
         setPreview(imageUrl);
+      } else {
+        setPreview(null);
       }
 
+      setImage(null);
       setRemoveImage(false);
     } else {
       setForm({
@@ -86,7 +91,7 @@ const InstructorModal: React.FC<Props> = ({
       setImage(null);
       setRemoveImage(false);
     }
-  }, [instructor]);
+  }, [instructor, isOpen]);
 
   if (!isOpen) return null;
 
@@ -103,7 +108,7 @@ const InstructorModal: React.FC<Props> = ({
 
     setImage(file);
     setPreview(URL.createObjectURL(file));
-    setRemoveImage(false); // reset remove flag if new image selected
+    setRemoveImage(false);
   };
 
   const handleSubmit = async () => {
@@ -171,41 +176,41 @@ const InstructorModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg ">
       <div
-        className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-2xl p-8"
+        className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-2xl p-8 bg-white/50"
         style={{
-          background:
-            "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2))",
+          // background:
+          //   "linear-linear(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2))",
           backdropFilter: "blur(20px)",
           border: "1px solid rgba(255,255,255,0.1)",
         }}
       >
         {/* Header */}
-        <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-primary/50">
           <div className="flex items-center gap-2 font-semibold text-xl text-primary">
             {isEdit ? <Pencil /> : <UserPlus />}
             {isEdit ? "Edit Instructor" : "Add Instructor"}
           </div>
 
           <button onClick={onClose}>
-            <X className="text-white/70 hover:text-white" />
+            <X className="text-primary/70 hover:text-white cursor-pointer" />
           </button>
         </div>
 
         {/* Image Section */}
         <div className="flex flex-col items-center mb-8">
           <div className="relative">
-            <div className="w-32 h-32 rounded-full border border-white/20 overflow-hidden flex items-center justify-center bg-white/5">
+            <div className="w-32 h-32 rounded-full border border-primary/40 overflow-hidden flex items-center justify-center bg-white/5">
               {preview ? (
                 <img src={preview} className="w-full h-full object-cover" />
               ) : (
-                <User className="w-12 h-12 text-white/40" />
+                <User className="w-12 h-12 text-primary/60" />
               )}
             </div>
 
             {/* Upload */}
-            <label className="absolute bottom-0 right-0 bg-gradient-to-r from-primary to-secondary p-2 rounded-full cursor-pointer">
+            <label className="absolute bottom-0 right-0 bg-linear-to-r from-primary to-secondary p-2 rounded-full cursor-pointer">
               <input type="file" hidden onChange={handleImageChange} />
               <User className="w-4 h-4 text-white" />
             </label>
@@ -226,7 +231,7 @@ const InstructorModal: React.FC<Props> = ({
             )}
           </div>
 
-          <p className="text-xs text-white/50 mt-2">
+          <p className="text-xs text-primary/70 mt-2">
             Upload or remove profile image
           </p>
         </div>
@@ -290,7 +295,7 @@ const InstructorModal: React.FC<Props> = ({
         <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-white/10">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-lg text-white/80 bg-white/5 hover:bg-white/10"
+            className="px-5 py-2 rounded-lg text-primary/80 border bg-white/5 hover:bg-white/10 cursor-pointer"
           >
             Cancel
           </button>
@@ -298,7 +303,7 @@ const InstructorModal: React.FC<Props> = ({
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-5 py-2 rounded-lg text-white bg-gradient-to-r from-primary to-secondary"
+            className="px-5 py-2 rounded-lg text-white bg-linear-to-r from-primary to-secondary cursor-pointer"
           >
             {loading ? "Saving..." : isEdit ? "Update" : "Create"}
           </button>

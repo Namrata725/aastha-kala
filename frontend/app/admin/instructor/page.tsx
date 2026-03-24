@@ -103,7 +103,7 @@ const Page = () => {
         className="w-10 h-10 rounded-full object-cover"
       />
     ) : (
-      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white text-xs font-semibold uppercase">
+      <div className="w-10 h-10 rounded-full bg-linear-to-r from-primary to-secondary flex items-center justify-center text-white text-xs font-semibold uppercase">
         {getInitials(inst.name)}
       </div>
     ),
@@ -173,7 +173,7 @@ const Page = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex justify-between p-4">
-        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+        <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">
           Our Instructors
         </span>
 
@@ -182,7 +182,7 @@ const Page = () => {
             setEditingInstructor(null);
             setFormModalOpen(true);
           }}
-          className="px-6 py-2 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center cursor-pointer"
+          className="px-6 py-2 text-sm bg-linear-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           Add Instructor
@@ -212,6 +212,7 @@ const Page = () => {
       />
 
       <InstructorViewModal
+        key={editingInstructor?.id || "create"}
         isOpen={viewModalOpen}
         onClose={() => {
           setViewModalOpen(false);

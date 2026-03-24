@@ -33,6 +33,9 @@ Route::get('/galleries', [GalleryController::class, 'index']);
 
 Route::get('/testimonials', [TestimonialController::class, 'index']);
 
+Route::get('/events', [EventController::class, 'index']);          // list
+    Route::get('/events/{event}', [EventController::class, 'show']);    // show by slug
+
 // Protected Routes (Admin)
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 

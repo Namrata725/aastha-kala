@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { X, User, Mail, Phone, Facebook, Instagram } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { X, User } from "lucide-react";
 
 interface Instructor {
   id?: number;
@@ -26,57 +26,60 @@ const InstructorViewModal: React.FC<Props> = ({
   onClose,
   instructor,
 }) => {
+  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL;
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!instructor?.image) {
+      setPreviewImage(null);
+      return;
+    }
+
+    const img = instructor.image;
+
+    if (typeof img === "string") {
+      const url = img.startsWith("http") ? img : `${IMAGE_BASE}/${img}`;
+      setPreviewImage(url);
+    } else if (img?.url) {
+      setPreviewImage(img.url);
+    }
+  }, [instructor]);
+
   if (!isOpen || !instructor) return null;
 
-  const getImageUrl = (image: any) => {
-    if (!image) return null;
-
-    if (typeof image === "string") {
-      if (image.startsWith("http")) return image;
-
-      const base = process.env.NEXT_PUBLIC_IMAGE_URL?.replace(/\/$/, "");
-      if (!base) return null;
-
-      const cleanPath = image.startsWith("/") ? image.slice(1) : image;
-      return `${base}/${cleanPath}`;
-    }
-
-    if (typeof image === "object" && image.url) {
-      return image.url;
-    }
-
-    return null;
-  };
-
-  const imageUrl = getImageUrl(instructor.image);
+  const Field = ({
+    label,
+    children,
+  }: {
+    label: string;
+    children: React.ReactNode;
+  }) => (
+    <div className="p-px rounded-xl bg-linear-to-r from-primary/20 to-secondary/20">
+      <div className="rounded-xl px-4 py-3 bg-primary/10 backdrop-blur-md border border-primary/10 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+        <p className="text-sm text-primary font-semibold mb-1">{label}</p>
+        <div className="text-white/90">{children}</div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg overflow-y-auto hide-scrollbar py-6">
-      {/* Modal */}
-      <div
-        className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-2xl p-8"
-        style={{
-          background:
-            "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2))",
-          backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6 pb-4 border-b border-primary/30">
-          <h2 className="text-lg font-bold text-primary">Instructor Details</h2>
+    <div className="fixed inset-0 bg-white/5 backdrop-blur-lg flex items-center justify-center z-50 hide-scrollbar">
+      <div className=" border border-primary/20 backdrop-blur-md w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-xl p-6 relative space-y-4 bg-white/40">
+        {/* Close Button */}
+        <button onClick={onClose} className="absolute right-4 top-4 text-white">
+          <X />
+        </button>
 
-          <button onClick={onClose} className="p-1">
-            <X className="text-white/90 hover:text-white" />
-          </button>
-        </div>
+        <h2 className="text-xl font-bold mb-2 text-primary">
+          Instructor Details
+        </h2>
 
-        {/* Profile Section */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-28 h-28 rounded-full border border-primary/20 overflow-hidden bg-primary/5 flex items-center justify-center">
-            {imageUrl ? (
+        {/* Profile */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-28 h-28 rounded-full overflow-hidden border border-primary/20 bg-primary/5 flex items-center justify-center">
+            {previewImage ? (
               <img
-                src={imageUrl}
+                src={previewImage}
                 alt={instructor.name}
                 className="w-full h-full object-cover"
               />
@@ -85,66 +88,35 @@ const InstructorViewModal: React.FC<Props> = ({
             )}
           </div>
 
-          <h3 className="mt-3 text-xl font-semibold text-primary">
+          <h3 className="text-lg font-semibold text-primary">
             {instructor.name}
           </h3>
 
           {instructor.title && (
-            <p className=" text-secondary/60">{instructor.title}</p>
+            <p className="text-secondary/70">{instructor.title}</p>
           )}
         </div>
 
-        {/* Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
-          {/* Email */}
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
-            <Mail className="w-4 h-4 text-primary" />
-            <span className="text-primary/80">{instructor.email || "N/A"}</span>
-          </div>
-
-          {/* Phone */}
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
-            <Phone className="w-4 h-4 text-primary" />
-            <span className="text-primary/80">{instructor.phone || "N/A"}</span>
-          </div>
-
-          {/* Facebook */}
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
-            <Facebook className="w-4 h-4 text-primary" />
-            <span className="text-primary/80 break-all">
-              {instructor.facebook_url || "N/A"}
-            </span>
-          </div>
-
-          {/* Instagram */}
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
-            <Instagram className="w-4 h-4 text-primary" />
-            <span className="text-primary/80 break-all">
-              {instructor.instagram_url || "N/A"}
-            </span>
-          </div>
+        {/* Contact Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label="Email">{instructor.email || "—"}</Field>
+          <Field label="Phone">{instructor.phone || "—"}</Field>
+          <Field label="Facebook">
+            <span className="break-all">{instructor.facebook_url || "—"}</span>
+          </Field>
+          <Field label="Instagram">
+            <span className="break-all">{instructor.instagram_url || "—"}</span>
+          </Field>
         </div>
 
-        {/* About Section */}
-        <div className="mt-6">
-          <h4 className="text-sm font-semibold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
-            About
-          </h4>
-
-          <div className="p-4 rounded-lg bg-primary/5 border border-white/10 text-primary/80 text-sm leading-relaxed">
-            {instructor.about || "No description available."}
+        {/* About */}
+        <Field label="About">
+          <div className="max-h-40 overflow-y-auto hide-scrollbar pr-2">
+            <p className="whitespace-pre-wrap">
+              {instructor.about || "No description available."}
+            </p>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end mt-8 pt-4 border-t border-white/10">
-          <button
-            onClick={onClose}
-            className="px-5 py-2 rounded-lg text-white bg-gradient-to-r from-primary to-secondary"
-          >
-            Close
-          </button>
-        </div>
+        </Field>
       </div>
     </div>
   );
