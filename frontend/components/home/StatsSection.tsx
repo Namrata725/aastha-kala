@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 
 interface StatsSectionProps {
@@ -7,28 +5,17 @@ interface StatsSectionProps {
 }
 
 const StatsSection: React.FC<StatsSectionProps> = ({ settings }) => {
+  if (!settings) return null;
+
   const stats = [
-    {
-      label: "Years Experience",
-      value: settings?.years_of_experience || "25+",
-    },
-    {
-      label: "Awards & Recognization",
-      value: settings?.awards || "50+",
-    },
-    {
-      label: "Expert Instructors",
-      value: settings?.number_of_instructors || "10+",
-    },
-    {
-      label: "Students Trained",
-      value: settings?.number_of_students || "1000+",
-    },
-    {
-      label: "Success Rate",
-      value: settings?.success_rate || "95%",
-    },
-  ];
+    { label: "Years Experience", value: settings?.years_of_experience },
+    { label: "Awards & Recognization", value: settings?.awards },
+    { label: "Expert Instructors", value: settings?.number_of_instructors },
+    { label: "Students Trained", value: settings?.number_of_students },
+    { label: "Success Rate", value: settings?.success_rate },
+  ].filter(stat => stat.value); // Only show stats with values
+
+  if (stats.length === 0) return null;
   return (
     <section className="relative w-full h-0 z-20">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-6xl px-4 sm:px-6 md:px-8">
@@ -44,7 +31,7 @@ const StatsSection: React.FC<StatsSectionProps> = ({ settings }) => {
           {/* Subtle accent light inside */}
           <div className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-primary to-secondary  pointer-events-none" />
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-y-6 gap-x-4 items-center justify-items-center relative z-10">
+          <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-${stats.length >= 5 ? 5 : stats.length} gap-y-6 gap-x-4 items-center justify-items-center relative z-10`}>
             {stats.map((stat, index) => (
               <div
                 key={index}
