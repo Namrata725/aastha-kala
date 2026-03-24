@@ -53,12 +53,12 @@ class EventController extends Controller
 
         $data = $validator->validated();
 
-        // Generate slug
+        
         if (empty($data['slug'])) {
             $data['slug'] = $this->generateUniqueSlug($data['title']);
         }
 
-        // Upload banner
+        
         if ($request->hasFile('banner')) {
             $path = $request->file('banner')->store('events', 'public');
             $data['banner'] = $path;
@@ -66,7 +66,7 @@ class EventController extends Controller
 
         $event = Event::create($data);
 
-        // Convert banner to full URL
+        
         $event->banner = $this->getBannerUrl($event->banner);
 
         return response()->json([
@@ -115,7 +115,7 @@ class EventController extends Controller
 
         $data = $validator->validated();
 
-        // Remove banner
+        
         if ($request->boolean('remove_banner')) {
             if ($event->banner) {
                 Storage::disk('public')->delete($event->banner);
@@ -123,7 +123,7 @@ class EventController extends Controller
             $data['banner'] = null;
         }
 
-        // Upload new banner
+        
         if ($request->hasFile('banner')) {
             if ($event->banner) {
                 Storage::disk('public')->delete($event->banner);
@@ -133,14 +133,14 @@ class EventController extends Controller
             $data['banner'] = $path;
         }
 
-        // Regenerate slug if needed
+        
         if ($request->filled('title') && !$request->filled('slug')) {
             $data['slug'] = $this->generateUniqueSlug($data['title'], $event->id);
         }
 
         $event->update($data);
 
-        // Convert banner to full URL
+        
         $event->banner = $this->getBannerUrl($event->banner);
 
         return response()->json([
