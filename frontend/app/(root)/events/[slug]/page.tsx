@@ -17,7 +17,7 @@ type EventItem = {
 };
 
 const getImageUrl = (path?: string | null) => {
-  if (!path) return "/banner.png";
+  if (!path) return null;
   if (path.startsWith("http")) return path;
   return `${IMAGE_URL}${path}`;
 };
@@ -61,18 +61,20 @@ export default async function EventPage({
   return (
     <div>
       {/* Banner */}
-      <div className="overflow-hidden shadow-md">
-        <img
-          src={getImageUrl(event.banner)}
-          alt={event.title}
-          className="w-full h-85 md:h-90 2xl:h-120 object-cover"
-        />
-      </div>
+      {event.banner && (
+        <div className="overflow-hidden shadow-md">
+          <img
+            src={getImageUrl(event.banner)}
+            alt={event.title}
+            className="w-full h-85 md:h-90 2xl:h-120 object-cover"
+          />
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 mt-10">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
-          <div className="lg:w-[70%] space-y-8">
+          <div className="lg:w-[100%] space-y-8">
             <h1 className="text-3xl md:text-4xl font-bold text-primary">
               {event.title}
             </h1>
@@ -88,45 +90,17 @@ export default async function EventPage({
                 <span>{event.location}</span>
               </div>
             </div>
-
-            <div className="text-secondary leading-relaxed whitespace-pre-line">
-              {event.description}
-            </div>
-          </div>
-
-          {/* Right Column */}
-          <div className="lg:w-[30%] space-y-6">
-            {/* Contact */}
-            <div className="p-4 border rounded-xl bg-white shadow-sm">
-              <h3 className="text-lg font-semibold text-primary mb-4">
-                Contact Information
-              </h3>
-
-              <div className="flex items-center gap-3 text-secondary">
-                <User className="w-5 h-5" />
-                <span>{event.contact_person_name || "N/A"}</span>
-              </div>
-
-              <div className="flex items-center gap-3 text-secondary mt-2">
-                <Phone className="w-5 h-5" />
-                <span>{event.contact_person_phone || "N/A"}</span>
-              </div>
-            </div>
-
-            {/* Blogs */}
-            <div className="p-4 border rounded-xl bg-white shadow-sm">
-              <h3 className="text-lg font-semibold text-primary mb-4">
-                Recent Blogs
-              </h3>
-
-              <ul className="space-y-3 text-secondary">
-                {recentBlogs.map((blog, index) => (
-                  <li key={index} className="hover:text-primary cursor-pointer">
-                    {blog}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <div
+              className="text-secondary leading-relaxed text-justify 
+                [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:text-primary
+                [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mb-3 [&_h2]:text-primary
+                [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mb-2 [&_h3]:text-primary
+                [&_p]:mb-4
+                [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4
+                [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4
+                [&_strong]:font-bold [&_em]:italic [&_a]:text-primary [&_a]:underline"
+              dangerouslySetInnerHTML={{ __html: event.description || "" }}
+            />
           </div>
         </div>
       </div>

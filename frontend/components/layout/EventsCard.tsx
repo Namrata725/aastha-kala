@@ -11,13 +11,17 @@ type EventItem = {
   status: string;
 };
 
+const stripHtml = (html: string) => {
+  return html.replace(/<[^>]*>?/gm, "");
+};
+
 const EventCard = ({ event }: { event: EventItem }) => {
   return (
-    <div className="group relative rounded-2xl shadow-md overflow-hidden bg-white">
+    <div className="group relative rounded-2xl shadow-md overflow-hidden bg-white hover:shadow-2xl transition duration-500 ease-in-out">
       {/* Image */}
       <div className="relative h-64 overflow-hidden">
         <img
-          src={event.banner || "/banner.png"}
+          src={event.banner || "/logo.jpg"}
           alt={event.title}
           className="w-full h-full object-cover"
         />
@@ -35,7 +39,7 @@ const EventCard = ({ event }: { event: EventItem }) => {
           "
         >
           <p className="text-sm text-gray-600 line-clamp-5">
-            {event.description}
+            {stripHtml(event.description || "")}
           </p>
         </div>
       </div>
@@ -46,7 +50,7 @@ const EventCard = ({ event }: { event: EventItem }) => {
         <div className="mt-3">
           <Link
             href={`/events/${event.slug}`}
-            className="block text-center bg-teal-700 text-white py-2 rounded-lg hover:bg-teal-800"
+            className="block text-center bg-primary text-white py-2 rounded-lg hover:bg-secondary"
           >
             View Details
           </Link>

@@ -67,9 +67,9 @@ const EventViewModal: React.FC<Props> = ({ isOpen, onClose, event }) => {
         <Field label="Location">{event.location}</Field>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="Contact Person Name">
+          {/* <Field label="Contact Person Name">
             {event.contact_person_name || "—"}
-          </Field>
+          </Field> */}
 
           <Field label="Contact Person Phone">
             {event.contact_person_phone || "—"}

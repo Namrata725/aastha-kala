@@ -62,7 +62,7 @@ export default async function EventsPage() {
     <section>
       <Heading
         title="Events"
-        image={settings?.banner || "/banner.png"}
+        image={settings?.banner || "/logo.jpg"}
         subtitle="Moments and memories"
       />
 

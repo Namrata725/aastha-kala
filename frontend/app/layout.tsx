@@ -5,6 +5,7 @@ import ToastProvider from "@/components/layout/ToastProvider";
 import FloatingBlobs from "@/components/layout/FloadtingBlobs";
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
+import "@mantine/tiptap/styles.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

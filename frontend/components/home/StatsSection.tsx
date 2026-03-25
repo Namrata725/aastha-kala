@@ -18,9 +18,9 @@ const StatsSection: React.FC<StatsSectionProps> = ({ settings }) => {
   if (stats.length === 0) return null;
   return (
     <section className="relative w-full h-0 z-20">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-6xl px-4 sm:px-6 md:px-8">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-6xl px-2 sm:px-6 md:px-8">
         <div
-          className="w-full py-6 md:py-8 px-6 md:px-10 relative overflow-hidden"
+          className="w-full py-6 md:py-8 px-2 sm:px-6 md:px-10 relative overflow-hidden"
           style={{
             background: "linear-gradient(135deg, #3a1fa8 0%, #6b35c8 100%)",
             borderRadius: "10px",
@@ -31,24 +31,22 @@ const StatsSection: React.FC<StatsSectionProps> = ({ settings }) => {
           {/* Subtle accent light inside */}
           <div className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-primary to-secondary  pointer-events-none" />
 
-          <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-${stats.length >= 5 ? 5 : stats.length} gap-y-6 gap-x-4 items-center justify-items-center relative z-10`}>
+          <div className="flex flex-row items-start justify-between relative z-10 gap-1 md:gap-4">
             {stats.map((stat, index) => (
               <div
                 key={index}
-                className="flex flex-col items-center text-center text-white gap-1 md:gap-2"
+                className="flex-1 flex flex-col items-center text-center text-white gap-1 md:gap-2"
               >
-                {/* Large bold value */}
                 <span
                   className="font-extrabold leading-none"
-                  style={{ fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)" }}
+                  style={{ fontSize: "clamp(1.25rem, 3.5vw, 2.5rem)" }}
                 >
                   {stat.value}
                 </span>
-                {/* Label underneath */}
                 <p
                   className="font-medium leading-tight"
                   style={{
-                    fontSize: "clamp(0.6rem, 1vw, 0.75rem)",
+                    fontSize: "clamp(0.55rem, 1vw, 0.75rem)",
                     letterSpacing: "0.02em",
                     opacity: 0.85,
                     maxWidth: "100px",
