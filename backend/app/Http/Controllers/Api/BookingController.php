@@ -89,6 +89,7 @@ class BookingController extends Controller
             ], 404);
         }
 
+        
         $validator = Validator::make($request->all(), [
             'program_id' => 'nullable|exists:programs,id',
             'schedule_id' => 'nullable|exists:program_schedules,id',
