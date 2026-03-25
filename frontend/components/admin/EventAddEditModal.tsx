@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import InputField from "@/components/layout/InputField";
-import { X } from "lucide-react";
+import EditorComponent from "@/components/layout/EditorComponent";
+import { X, AlignLeft } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface EventData {
@@ -205,21 +206,21 @@ const EventAddEditModal: React.FC<Props> = ({
 
           {/* Contact fields (UI unchanged, just added new row) */}
           <div className="grid grid-cols-2 gap-4">
-            <InputField
+            {/* <InputField
               label="Contact Person Name"
               value={form.contact_person_name}
               onChange={(e) =>
                 handleChange("contact_person_name", e.target.value)
               }
-            />
+            /> */}
 
-            <InputField
+            {/* <InputField
               label="Contact Person Phone"
               value={form.contact_person_phone}
               onChange={(e) =>
                 handleChange("contact_person_phone", e.target.value)
               }
-            />
+            /> */}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -242,11 +243,11 @@ const EventAddEditModal: React.FC<Props> = ({
             />
           </div>
 
-          <InputField
+          <EditorComponent
             label="Description"
-            type="textarea"
-            value={form.description}
-            onChange={(e) => handleChange("description", e.target.value)}
+            icon={AlignLeft}
+            value={form.description || ""}
+            onChange={(val) => handleChange("description", val)}
           />
 
           {/* Banner Upload */}
