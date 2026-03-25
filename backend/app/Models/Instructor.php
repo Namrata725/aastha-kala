@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Instructor extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'title',
@@ -16,4 +19,9 @@ class Instructor extends Model
         'phone',
         'image',
     ];
+
+    public function programs()
+    {
+        return $this->belongsToMany(Program::class)->withTimestamps();
+    }
 }
