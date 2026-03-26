@@ -54,8 +54,14 @@ const EventViewModal: React.FC<Props> = ({ isOpen, onClose, event }) => {
   );
 
   return (
-    <div className="fixed inset-0 bg-white/5 backdrop-blur-lg flex items-center justify-center z-50 hide-scrollbar">
-      <div className="bg-white/40 border border-primary/20 backdrop-blur-md w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-xl p-6 relative space-y-4">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 bg-white/5 backdrop-blur-lg flex items-center justify-center z-50 hide-scrollbar cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white/40 border border-primary/20 backdrop-blur-md w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-xl p-6 relative space-y-4 cursor-default"
+      >
         <button onClick={onClose} className="absolute right-4 top-4 text-white">
           <X />
         </button>

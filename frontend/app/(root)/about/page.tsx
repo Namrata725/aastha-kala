@@ -31,7 +31,7 @@ const fetchGalleryByPosition = async (position: string) => {
 const defaultWhyUs = [
   {
     title: "Expert Guidance",
-    desc: "Our skilled teachers provide personal guidance, helping students grow with strong fundamentals and artistic confidence.",
+    desc: "Our skilled teachers provide perso l guidance, helping students grow with strong fundamentals and artistic confidence.",
   },
   {
     title: "Balanced & Holistic Learning",
@@ -60,7 +60,7 @@ function WhyCard({ title, desc }: { title: string; desc: string }) {
         </h2>
       </div>
       <div className="p-6 flex-1 flex items-center justify-center text-center">
-        <p className="text-gray-500 text-lg leading-relaxed font-poppins">{desc}</p>
+        <p className="text-black text-lg leading-relaxed font-poppins text-justify">{desc}</p>
       </div>
     </div>
   );
@@ -99,7 +99,7 @@ const AboutPage = async () => {
             <h2 className="text-xl text-purple-600 font-medium mb-6 font-poppins">
               Dance & Music School
             </h2>
-            <div className="space-y-4 text-gray-600 text-lg leading-7 text-justify font-poppins">
+            <div className="space-y-4 text-black text-lg leading-7 text-justify font-poppins">
               <p>
                 {settings?.about ||
                   "Aastha Kala Kendra is a premier institution dedicated to the preservation and promotion of traditional dance and music forms. Since its inception, we have been a cradle for artistic excellence, nurturing talent and fostering a deep appreciation for the arts."}
@@ -139,7 +139,7 @@ const AboutPage = async () => {
           </h2>
 
           {/* Always 3 per row, wraps automatically as cards increase */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-black">
             {cards.map((item, idx) => (
               <WhyCard key={idx} title={item.title} desc={item.desc} />
             ))}
@@ -153,11 +153,24 @@ const AboutPage = async () => {
           <h2 className="text-2xl md:text-3xl font-bold text-blue-700 mb-10 font-poppins">
             Our Mission
           </h2>
-          <div className="relative px-8">
-            <p className="font-poppins text-lg text-gray-600 leading-8">
-              {settings?.mission_paragraph ||
-                "To empower students through dance and music, helping them grow not only as performers but as confident individuals who respect art, culture, and creativity."}
-            </p>
+          <div className="relative px-8 space-y-4">
+            {settings?.mission &&
+            Array.isArray(settings.mission) &&
+            settings.mission.length > 0 ? (
+              settings.mission.map((item: any, idx: number) => (
+                <p
+                  key={idx}
+                  className="font-poppins text-lg text-black leading-8"
+                >
+                  {item.title}
+                </p>
+              ))
+            ) : (
+              <p className="font-poppins text-lg text-black leading-8">
+                {settings?.mission_paragraph ||
+                  "To empower students through dance and music, helping them grow not only as performers but as confident individuals who respect art, culture, and creativity."}
+              </p>
+            )}
           </div>
         </div>
       </section>

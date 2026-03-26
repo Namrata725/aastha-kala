@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-    Schema::create('program_schedules', function (Blueprint $table) {
+        Schema::create('instructor_availabilities', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('program_id')->constrained()->onDelete('cascade');
-            $table->foreignId('instructor_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('instructor_id')->constrained()->onDelete('cascade');
             $table->enum('day_of_week', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
             $table->time('start_time');
             $table->time('end_time');
-            $table->integer('max_capacity')->nullable();
+            $table->boolean('is_available')->default(true);
             $table->timestamps();
         });
     }
@@ -28,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('program_schedules');
+        Schema::dropIfExists('instructor_availabilities');
     }
 };

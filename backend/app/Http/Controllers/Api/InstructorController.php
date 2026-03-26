@@ -13,7 +13,7 @@ class InstructorController extends Controller
     // GET /api/instructors
     public function index()
     {
-        $instructors = Instructor::paginate(10);
+        $instructors = Instructor::with(['availabilities', 'programs'])->paginate(10);
 
         return response()->json([
             'success' => true,
@@ -33,6 +33,12 @@ class InstructorController extends Controller
             'email' => 'required|email|unique:instructors,email',
             'phone' => 'required|string|max:20',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'availabilities' => 'nullable|array',
+            'availabilities.*.day_of_week' => 'required|string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+            'availabilities.*.start_time' => 'required|date_format:H:i',
+            'availabilities.*.end_time' => 'required|date_format:H:i|after:availabilities.*.start_time',
+            'program_ids' => 'nullable|array',
+            'program_ids.*' => 'exists:programs,id',
         ]);
 
         if ($validator->fails()) {
@@ -64,6 +70,21 @@ class InstructorController extends Controller
 
         $instructor = Instructor::create($data);
 
+        if ($request->has('availabilities')) {
+            foreach ($request->availabilities as $avail) {
+                $instructor->availabilities()->create([
+                    'day_of_week' => $avail['day_of_week'],
+                    'start_time' => $avail['start_time'],
+                    'end_time' => $avail['end_time'],
+                    'is_available' => true
+                ]);
+            }
+        }
+
+        if ($request->has('program_ids')) {
+            $instructor->programs()->sync($request->program_ids);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Instructor created successfully',
@@ -74,7 +95,7 @@ class InstructorController extends Controller
     // GET /api/instructors/{id}
     public function show($id)
     {
-        $instructor = Instructor::find($id);
+        $instructor = Instructor::with(['availabilities', 'programs'])->find($id);
 
         if (!$instructor) {
             return response()->json([
@@ -111,6 +132,12 @@ public function update(Request $request, $id)
         'phone' => 'required|string|max:20',
         'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         'remove_image' => 'nullable|in:1',
+        'availabilities' => 'nullable|array',
+        'availabilities.*.day_of_week' => 'required|string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+        'availabilities.*.start_time' => 'required|date_format:H:i',
+        'availabilities.*.end_time' => 'required|date_format:H:i|after:availabilities.*.start_time',
+        'program_ids' => 'nullable|array',
+        'program_ids.*' => 'exists:programs,id',
     ]);
 
     if ($validator->fails()) {
@@ -159,6 +186,24 @@ public function update(Request $request, $id)
 
     $instructor->update($data);
 
+    if ($request->has('availabilities')) {
+        $instructor->availabilities()->delete();
+        foreach ($request->availabilities as $avail) {
+            $instructor->availabilities()->create([
+                'day_of_week' => $avail['day_of_week'],
+                'start_time' => $avail['start_time'],
+                'end_time' => $avail['end_time'],
+                'is_available' => true
+            ]);
+        }
+    }
+
+    if ($request->has('program_ids')) {
+        $instructor->programs()->sync($request->program_ids);
+    }
+
+    $instructor->load(['availabilities', 'programs']);
+
     return response()->json([
         'success' => true,
         'message' => 'Instructor updated successfully',
@@ -189,5 +234,112 @@ public function update(Request $request, $id)
             'success' => true,
             'message' => 'Instructor deleted successfully'
         ]);
+    }
+
+    // GET /api/admin/instructors/{id}/schedule
+    public function fullSchedule($id)
+    {
+        $instructor = Instructor::with(['availabilities', 'fixed_classes.program'])->find($id);
+
+        if (!$instructor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Instructor not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'instructor' => [
+                    'id' => $instructor->id,
+                    'name' => $instructor->name,
+                    'title' => $instructor->title,
+                    'image' => $instructor->image,
+                ],
+                'availabilities' => $instructor->availabilities,
+                'classes' => $instructor->fixed_classes->map(function($class) {
+                    return [
+                        'day_of_week' => $class->day_of_week,
+                        'start_time' => $class->start_time instanceof \DateTimeInterface ? $class->start_time->format('H:i') : substr($class->start_time, 0, 5),
+                        'end_time' => $class->end_time instanceof \DateTimeInterface ? $class->end_time->format('H:i') : substr($class->end_time, 0, 5),
+                        'program_title' => $class->program ? $class->program->title : 'Unknown',
+                        'max_capacity' => $class->max_capacity,
+                    ];
+                }),
+            ]
+        ]);
+    }
+    // GET /api/admin/instructors-schedules
+    public function allSchedules()
+    {
+        $instructors = Instructor::with(['availabilities', 'fixed_classes.program'])->get();
+
+        $data = $instructors->map(function($instructor) {
+            return [
+                'instructor' => [
+                    'id' => $instructor->id,
+                    'name' => $instructor->name,
+                    'title' => $instructor->title,
+                    'image' => $instructor->image,
+                ],
+                'availabilities' => $instructor->availabilities,
+                'classes' => $instructor->fixed_classes->map(function($class) {
+                    return [
+                        'day_of_week' => $class->day_of_week,
+                        'start_time' => $class->start_time instanceof \DateTimeInterface ? $class->start_time->format('H:i') : substr($class->start_time, 0, 5),
+                        'end_time' => $class->end_time instanceof \DateTimeInterface ? $class->end_time->format('H:i') : substr($class->end_time, 0, 5),
+                        'program_title' => $class->program ? $class->program->title : 'Unknown',
+                        'max_capacity' => $class->max_capacity,
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
+    }
+    // GET /api/admin/instructors/{id}/check-conflict
+    public function checkConflict(Request $request, $id)
+    {
+        $instructor = Instructor::find($id);
+        if (!$instructor) return response()->json(['success'=>false, 'message'=>'Instructor not found'], 404);
+
+        $dayOfWeek = $request->day_of_week;
+        $startTime = $request->start_time;
+        $endTime = $request->end_time;
+        $excludeProgramId = $request->exclude_program_id;
+
+        // 1. Availability check
+        $isAvailableWork = \App\Models\InstructorAvailability::where('instructor_id', $id)
+            ->where('day_of_week', $dayOfWeek)
+            ->where('is_available', true)
+            ->whereRaw('TIME(start_time) <= TIME(?)', [$startTime])
+            ->whereRaw('TIME(end_time) >= TIME(?)', [$endTime])
+            ->exists();
+
+        if (!$isAvailableWork) {
+            return response()->json(['conflict' => true, 'message' => 'The teacher is not available at this time slot based on their defined hours.']);
+        }
+
+        // 2. Schedule clash check
+        $isTeaching = \App\Models\ProgramSchedule::where('instructor_id', $id)
+            ->where('day_of_week', $dayOfWeek)
+            ->where(function ($q) use ($startTime, $endTime) {
+                $q->whereRaw('TIME(start_time) < TIME(?)', [$endTime])
+                  ->whereRaw('TIME(end_time) > TIME(?)', [$startTime]);
+            });
+
+        if ($excludeProgramId) {
+            $isTeaching = $isTeaching->where('program_id', '!=', $excludeProgramId);
+        }
+
+        if ($isTeaching->exists()) {
+             return response()->json(['conflict' => true, 'message' => 'The teacher is already teaching another program at this time.']);
+        }
+
+        return response()->json(['conflict' => false]);
     }
 }

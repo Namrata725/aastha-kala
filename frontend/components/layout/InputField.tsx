@@ -16,6 +16,7 @@ interface Props {
   type?: string;
   options?: Option[];
   imagePreview?: string | null;
+  required?: boolean;
 }
 
 const InputField: React.FC<Props> = ({
@@ -26,6 +27,7 @@ const InputField: React.FC<Props> = ({
   textarea = false,
   type = "text",
   options = [],
+  required = false,
 }) => {
   const inputId = label.replace(/\s+/g, "_").toLowerCase();
 
@@ -37,6 +39,7 @@ const InputField: React.FC<Props> = ({
       <label className="flex items-center text-sm mb-1 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent font-medium gap-2">
           {Icon && <Icon className="w-4 h-4 text-primary" />}
           {label}
+          {required && <span className="text-red-500 ml-0.5">*</span>}
         </label>
 
       {/* Container */}

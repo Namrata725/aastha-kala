@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import GalleryAddEditModal from "@/components/admin/GalleryAddEditModal";
 import GalleryViewModal from "@/components/admin/GalleryViewModal";
+import { Pagination } from "@/components/global/Pagination";
 
 interface Gallery {
   id: number;
@@ -25,6 +26,13 @@ interface Gallery {
 const Page = () => {
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null);
@@ -67,7 +75,16 @@ const Page = () => {
         throw new Error(result.message || "Failed to fetch galleries");
       }
 
-      setGalleries(result || []);
+      setGalleries(result.data?.data || result.data || []);
+      
+      if (result.data?.last_page) {
+        setPagination({
+          currentPage: result.data.current_page,
+          totalPages: result.data.last_page,
+          totalItems: result.data.total,
+          itemsPerPage: result.data.per_page,
+        });
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -248,6 +265,39 @@ const Page = () => {
           onDelete={handleDeleteClick}
           onView={handleViewClick}
           onEdit={handleEditClick}
+          emptyMessage="No gallery items found"
+        />
+
+        <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={(page) => {
+                const fetchWithPage = async (p: number) => {
+                    setLoading(true);
+                    try {
+                        const token = localStorage.getItem("token");
+                        const res = await fetch(`${BASE_URL}/admin/galleries?page=${p}`, {
+                            headers: {
+                                Accept: "application/json",
+                                Authorization: token ? `Bearer ${token}` : "",
+                            },
+                        });
+                        const result = await res.json();
+                        setGalleries(result.data?.data || []);
+                        setPagination({
+                            currentPage: result.data.current_page,
+                            totalPages: result.data.last_page,
+                            totalItems: result.data.total,
+                            itemsPerPage: result.data.per_page,
+                        });
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                fetchWithPage(page);
+            }}
         />
       </div>
 

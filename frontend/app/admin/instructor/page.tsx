@@ -7,6 +7,9 @@ import { Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import InstructorModal from "@/components/admin/InstructorModal";
 import InstructorViewModal from "@/components/admin/InstructorViewModal";
+import InstructorAvailabilityModal from "@/components/admin/InstructorAvailabilityModal";
+import { Clock } from "lucide-react";
+import { Pagination } from "@/components/global/Pagination";
 
 interface Instructor {
   id: number;
@@ -39,6 +42,16 @@ const Page = () => {
   const [viewingInstructor, setViewingInstructor] = useState<Instructor | null>(
     null,
   );
+
+  const [availabilityModalOpen, setAvailabilityModalOpen] = useState(false);
+  const [availabilityInstructor, setAvailabilityInstructor] = useState<Instructor | null>(null);
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
 
   const getInitials = (name: string) => {
     if (!name) return "?";
@@ -80,6 +93,15 @@ const Page = () => {
 
       const list = result.data?.data || result.data || [];
       setInstructors(list);
+
+      if (result.data?.last_page) {
+        setPagination({
+          currentPage: result.data.current_page,
+          totalPages: result.data.last_page,
+          totalItems: result.data.total,
+          itemsPerPage: result.data.per_page,
+        });
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -131,6 +153,12 @@ const Page = () => {
     const original = instructors.find((i) => i.id === row.id);
     setSelectedInstructor(original || null);
     setDeleteModalOpen(true);
+  };
+
+  const handleAvailability = (row: any) => {
+    const original = instructors.find((i) => i.id === row.id);
+    setAvailabilityInstructor(original || null);
+    setAvailabilityModalOpen(true);
   };
 
   const confirmDelete = async () => {
@@ -198,6 +226,46 @@ const Page = () => {
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
+          customActions={[
+            {
+              icon: <Clock className="h-4 w-4" />,
+              label: "Availability",
+              onClick: handleAvailability,
+              color: "text-secondary",
+            },
+          ]}
+          emptyMessage="No instructors found"
+        />
+
+        <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={(page) => {
+                const fetchWithPage = async (p: number) => {
+                    setLoading(true);
+                    try {
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructors?page=${p}`, {
+                            headers: {
+                                Accept: "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                            },
+                        });
+                        const result = await res.json();
+                        setInstructors(result.data?.data || []);
+                        setPagination({
+                            currentPage: result.data.current_page,
+                            totalPages: result.data.last_page,
+                            totalItems: result.data.total,
+                            itemsPerPage: result.data.per_page,
+                        });
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                fetchWithPage(page);
+            }}
         />
       </div>
 
@@ -230,6 +298,12 @@ const Page = () => {
         description={`Are you sure you want to delete "${
           selectedInstructor?.name || ""
         }"? This action cannot be undone.`}
+      />
+
+      <InstructorAvailabilityModal
+        isOpen={availabilityModalOpen}
+        onClose={() => setAvailabilityModalOpen(false)}
+        instructor={availabilityInstructor}
       />
     </div>
   );

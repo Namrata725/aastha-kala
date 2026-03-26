@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { X, User } from "lucide-react";
+import { to12h } from "@/lib/timeFormat";
 
 interface Instructor {
   id?: number;
@@ -63,8 +64,14 @@ const InstructorViewModal: React.FC<Props> = ({
   );
 
   return (
-    <div className="fixed inset-0 bg-white/5 backdrop-blur-lg flex items-center justify-center z-50 hide-scrollbar">
-      <div className=" border border-primary/20 backdrop-blur-md w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-xl p-6 relative space-y-4 bg-white/40">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 bg-white/5 backdrop-blur-lg flex items-center justify-center z-50 hide-scrollbar cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className=" border border-primary/20 backdrop-blur-md w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-xl p-6 relative space-y-4 bg-white/40 cursor-default"
+      >
         {/* Close Button */}
         <button onClick={onClose} className="absolute right-4 top-4 text-white">
           <X />
@@ -117,6 +124,42 @@ const InstructorViewModal: React.FC<Props> = ({
             </p>
           </div>
         </Field>
+
+        {/* Availability Schedule */}
+        {(instructor as any).availabilities?.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold text-primary mb-3 italic">Free Hours / Availability</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {(instructor as any).availabilities.map((avail: any, i: number) => (
+                <div key={i} className="flex items-center justify-between bg-white/40 border border-primary/20 rounded-xl px-4 py-3 shadow-sm hover:border-primary/40 transition">
+                  <span className="text-xs font-black text-primary uppercase tracking-widest italic">Daily</span>
+                  <span className="text-xs font-bold text-secondary italic">
+                    {to12h(avail.start_time)} – {to12h(avail.end_time)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {(instructor as any).availabilities?.length === 0 && (
+          <div className="text-center py-6 border-2 border-dashed border-primary/10 rounded-xl bg-white/20">
+            <p className="text-xs text-primary/30 font-black uppercase tracking-widest italic">No availability slots defined</p>
+          </div>
+        )}
+
+        {/* Programs Section */}
+        {(instructor as any).programs?.length > 0 && (
+          <div className="pt-4 border-t border-primary/10">
+            <p className="text-sm font-semibold text-primary mb-3 italic">Programs Taught</p>
+            <div className="flex flex-wrap gap-2">
+              {(instructor as any).programs.map((program: any, i: number) => (
+                <span key={i} className="px-3 py-1.5 bg-secondary/10 text-secondary border border-secondary/20 rounded-lg text-[10px] font-black uppercase tracking-widest italic shadow-sm hover:scale-105 transition-transform duration-200">
+                  {program.title}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

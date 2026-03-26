@@ -17,7 +17,14 @@ interface Props {
   onView?: (row: any) => void;
   onEdit?: (row: any) => void;
   onDelete?: (row: any) => void;
+  customActions?: {
+    icon: React.ReactNode;
+    label: string;
+    onClick: (row: any) => void;
+    color?: string;
+  }[];
   loading?: boolean;
+  emptyMessage?: string;
 }
 
 const SkeletonRow = ({ columns }: { columns: Column[] }) => {
@@ -38,11 +45,11 @@ const SkeletonRow = ({ columns }: { columns: Column[] }) => {
   );
 };
 
-const EmptyState = () => {
+const EmptyState = ({ message }: { message: string }) => {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-black/60 animate-fadeIn">
       <Mailbox size={70} className="mb-3 opacity-70" />
-      <p className="text-sm">No contacts yet</p>
+      <p className="text-sm">{message}</p>
     </div>
   );
 };
@@ -54,7 +61,9 @@ const Table: React.FC<Props> = ({
   onView,
   onEdit,
   onDelete,
+  customActions,
   loading,
+  emptyMessage = "No data found",
 }) => {
   // Map actions to icons + handlers
   const actionMap: Record<
@@ -117,7 +126,7 @@ const Table: React.FC<Props> = ({
               ) : data.length === 0 ? (
                 <tr>
                   <td colSpan={columns.length + (actions ? 1 : 0)}>
-                    <EmptyState />
+                    <EmptyState message={emptyMessage} />
                   </td>
                 </tr>
               ) : (
@@ -136,10 +145,10 @@ const Table: React.FC<Props> = ({
                     ))}
 
                     {/* ACTIONS */}
-                    {actions && actions.length > 0 && (
+                    {( (actions && actions.length > 0) || (customActions && customActions.length > 0) ) && (
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2 ">
-                          {actions.map((actionKey) => {
+                          {actions?.map((actionKey) => {
                             const action = actionMap[actionKey];
                             if (!action) return null;
 
@@ -168,6 +177,27 @@ const Table: React.FC<Props> = ({
                               </div>
                             );
                           })}
+
+                          {customActions?.map((action, idx) => (
+                             <div
+                               key={`custom-${idx}`}
+                               className="p-[1px] rounded-lg bg-gradient-to-r from-primary/30 to-secondary/30"
+                             >
+                               <button
+                                 onClick={() => action.onClick(row)}
+                                 title={action.label}
+                                 className="flex items-center justify-center w-7 h-7 rounded-lg 
+                                 bg-primary/10 backdrop-blur-md border border-primary/20
+                                 hover:bg-primary/20 hover:scale-105 active:scale-95
+                                 hover:shadow-[0_0_10px_rgba(255,255,255,0.15)]
+                                 transition duration-200 cursor-pointer"
+                               >
+                                 <div className={action.color || "text-primary"}>
+                                   {action.icon}
+                                 </div>
+                               </button>
+                             </div>
+                          ))}
                         </div>
                       </td>
                     )}

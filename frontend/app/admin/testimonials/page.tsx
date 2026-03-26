@@ -6,6 +6,7 @@ import DeleteConfirmationModal from "@/components/layout/DeleteConfirmationModal
 import TestimonialAddEdit from "@/components/admin/TestimonialAddEdit";
 import toast from "react-hot-toast";
 import { Plus, Star } from "lucide-react";
+import { Pagination } from "@/components/global/Pagination";
 
 interface Testimonial {
   id: number;
@@ -30,6 +31,13 @@ const Page = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Testimonial | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
 
   const getImageUrl = (path?: string | null) => {
     if (!path) return "";
@@ -87,7 +95,16 @@ const Page = () => {
         throw new Error(json.message || "Failed to fetch testimonials");
       }
 
-      setData(json.data || []);
+      setData(json.data?.data || json.data || []);
+      
+      if (json.data?.last_page) {
+        setPagination({
+          currentPage: json.data.current_page,
+          totalPages: json.data.last_page,
+          totalItems: json.data.total,
+          itemsPerPage: json.data.per_page,
+        });
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -197,6 +214,37 @@ const Page = () => {
         actions={actions}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
+        emptyMessage="No testimonials found"
+      />
+
+      <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          itemsPerPage={pagination.itemsPerPage}
+          onPageChange={(page) => {
+              const fetchWithPage = async (p: number) => {
+                  setLoading(true);
+                  try {
+                      const res = await fetch(`${API_URL}/admin/testimonials?page=${p}`, {
+                          headers: {
+                              Authorization: `Bearer ${localStorage.getItem("token")}`,
+                          },
+                      });
+                      const json = await res.json();
+                      setData(json.data?.data || []);
+                      setPagination({
+                          currentPage: json.data.current_page,
+                          totalPages: json.data.last_page,
+                          totalItems: json.data.total,
+                          itemsPerPage: json.data.per_page,
+                      });
+                  } finally {
+                      setLoading(false);
+                  }
+              };
+              fetchWithPage(page);
+          }}
       />
 
       {/* Add/Edit Modal */}

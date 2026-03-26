@@ -13,6 +13,7 @@ class Booking extends Model
         'program_id',
         'schedule_id',
         'instructor_id',
+        'booking_date',
         'name',
         'phone',
         'email',
@@ -21,12 +22,14 @@ class Booking extends Model
         'type',
         'custom_start_time',
         'custom_end_time',
+        'duration_value',
+        'duration_unit',
         'status',
     ];
 
     protected $casts = [
-        'custom_start_time' => 'datetime:H:i',
-        'custom_end_time' => 'datetime:H:i',
+        'custom_start_time' => 'string',
+        'custom_end_time' => 'string',
     ];
 
     public function program()
@@ -42,5 +45,10 @@ class Booking extends Model
     public function instructor()
     {
         return $this->belongsTo(Instructor::class);
+    }
+
+    public function schedules()
+    {
+        return $this->belongsToMany(ProgramSchedule::class, 'booking_schedule', 'booking_id', 'program_schedule_id');
     }
 }

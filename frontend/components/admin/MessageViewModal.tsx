@@ -22,9 +22,13 @@ const MessageViewModal: React.FC<Props> = ({ isOpen, onClose, message }) => {
   if (!isOpen || !message) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 cursor-pointer"
+    >
       <div
-        className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 cursor-default"
       >
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-700">

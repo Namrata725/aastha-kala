@@ -48,7 +48,7 @@ const HomeInstructor = async () => {
         <div className="text-center">
           <Link
             href="/instructors"
-            className="px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg "
+            className="px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg  text-justify"
           >
             See More
           </Link>

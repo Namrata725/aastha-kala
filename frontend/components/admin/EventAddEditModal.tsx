@@ -178,8 +178,14 @@ const EventAddEditModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-white/5 backdrop-blur-lg border border-white/10 flex items-center justify-center z-50">
-      <div className="bg-primary/10 border border-primary/20 backdrop-blur-md w-full max-w-2xl rounded-xl p-6 relative overflow-y-auto max-h-[90vh]">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 bg-white/5 backdrop-blur-lg border border-white/10 flex items-center justify-center z-50 cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-primary/10 border border-primary/20 backdrop-blur-md w-full max-w-2xl rounded-xl p-6 relative overflow-y-auto max-h-[90vh] cursor-default"
+      >
         {/* Close Modal */}
         <button onClick={onClose} className="absolute right-4 top-4 text-white">
           <X />
@@ -202,25 +208,6 @@ const EventAddEditModal: React.FC<Props> = ({
               value={form.location}
               onChange={(e) => handleChange("location", e.target.value)}
             />
-          </div>
-
-          {/* Contact fields (UI unchanged, just added new row) */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* <InputField
-              label="Contact Person Name"
-              value={form.contact_person_name}
-              onChange={(e) =>
-                handleChange("contact_person_name", e.target.value)
-              }
-            /> */}
-
-            {/* <InputField
-              label="Contact Person Phone"
-              value={form.contact_person_phone}
-              onChange={(e) =>
-                handleChange("contact_person_phone", e.target.value)
-              }
-            /> */}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

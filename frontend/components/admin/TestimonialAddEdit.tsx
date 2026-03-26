@@ -166,8 +166,14 @@ const TestimonialAddEdit: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg">
-      <div className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-8 bg-white/5 border border-white/10 backdrop-blur-xl">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-8 bg-white/5 border border-white/10 backdrop-blur-xl cursor-default"
+      >
         {/* Header */}
         <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
           <div className="flex items-center gap-2 font-semibold text-xl text-primary">

@@ -5,6 +5,7 @@ import Table from "@/components/layout/Table";
 import DeleteConfirmationModal from "@/components/layout/DeleteConfirmationModal";
 import MessageViewModal from "@/components/admin/MessageViewModal";
 import toast from "react-hot-toast";
+import { Pagination } from "@/components/global/Pagination";
 
 interface Message {
   id: number;
@@ -18,6 +19,13 @@ interface Message {
 const AdminMessagesPage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
   
   // Modals for Delete
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -54,7 +62,16 @@ const AdminMessagesPage = () => {
       const result = await response.json();
 
       if (response.ok) {
-        setMessages(result.data || []);
+        setMessages(result.data?.data || result.data || []);
+        
+        if (result.data?.last_page) {
+            setPagination({
+                currentPage: result.data.current_page,
+                totalPages: result.data.last_page,
+                totalItems: result.data.total,
+                itemsPerPage: result.data.per_page,
+            });
+        }
       } else {
         toast.error("Failed to fetch messages.");
       }
@@ -143,6 +160,39 @@ const AdminMessagesPage = () => {
           actions={["view", "delete"]}
           onView={handleViewClick}
           onDelete={handleDeleteClick}
+          emptyMessage="No messages found"
+        />
+
+        <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={(page) => {
+                const fetchWithPage = async (p: number) => {
+                    setLoading(true);
+                    try {
+                        const token = localStorage.getItem("token");
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/messages?page=${p}`, {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                Accept: "application/json",
+                            },
+                        });
+                        const result = await res.json();
+                        setMessages(result.data?.data || []);
+                        setPagination({
+                            currentPage: result.data.current_page,
+                            totalPages: result.data.last_page,
+                            totalItems: result.data.total,
+                            itemsPerPage: result.data.per_page,
+                        });
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                fetchWithPage(page);
+            }}
         />
       </div>
 

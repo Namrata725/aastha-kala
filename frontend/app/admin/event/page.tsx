@@ -7,6 +7,7 @@ import { Plus, Image as ImageIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import EventAddEditModal from "@/components/admin/EventAddEditModal";
 import EventViewModal from "@/components/admin/EventViewModal";
+import { Pagination } from "@/components/global/Pagination";
 
 interface Event {
   id: number;
@@ -25,6 +26,13 @@ interface Event {
 const Page = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -68,7 +76,16 @@ const Page = () => {
         throw new Error(result.message || "Failed to fetch events");
       }
 
-      setEvents(result.data || []);
+      setEvents(result.data?.data || result.data || []);
+      
+      if (result.data?.last_page) {
+        setPagination({
+          currentPage: result.data.current_page,
+          totalPages: result.data.last_page,
+          totalItems: result.data.total,
+          itemsPerPage: result.data.per_page,
+        });
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -101,8 +118,8 @@ const Page = () => {
       <span
         className={`px-2 py-1 rounded text-xs ${
           event.status === "published"
-            ? "bg-green-500/20 text-green-400"
-            : "bg-yellow-500/20 text-yellow-400"
+            ? "bg-green-500/20 text-black"
+            : "bg-yellow-500/20 text-black"
         }`}
       >
         {event.status}
@@ -199,6 +216,38 @@ const Page = () => {
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
+          emptyMessage="No events found"
+        />
+
+        <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={(page) => {
+                const fetchWithPage = async (p: number) => {
+                    setLoading(true);
+                    try {
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/events?page=${p}`, {
+                            headers: {
+                                Accept: "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                            },
+                        });
+                        const result = await res.json();
+                        setEvents(result.data?.data || []);
+                        setPagination({
+                            currentPage: result.data.current_page,
+                            totalPages: result.data.last_page,
+                            totalItems: result.data.total,
+                            itemsPerPage: result.data.per_page,
+                        });
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                fetchWithPage(page);
+            }}
         />
       </div>
 

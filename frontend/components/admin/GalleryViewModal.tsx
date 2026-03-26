@@ -17,8 +17,14 @@ const GalleryViewModal: React.FC<GalleryViewModalProps> = ({
   if (!isOpen || !data) return null;
 
   return (
-    <div className="fixed inset-0 bg- primary/5 backdrop-blur-lg border border-white/10 flex items-center justify-center z-50">
-      <div className="bg-primary/10 border border-primary/20 backdrop-blur-md w-full max-w-2xl rounded-xl p-6 relative overflow-y-auto max-h-[90vh]">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 bg-primary/5 backdrop-blur-lg border border-white/10 flex items-center justify-center z-50 cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-primary/10 border border-primary/20 backdrop-blur-md w-full max-w-2xl rounded-xl p-6 relative overflow-y-auto max-h-[90vh] cursor-default"
+      >
         {/* Close Button */}
         <button
           onClick={onClose}

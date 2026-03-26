@@ -25,6 +25,7 @@ interface SidebarProps {
 const menuItems = [
   { name: "Dashboard", icon: Home, href: "/admin" },
   { name: "Instructor", icon: User, href: "/admin/instructor" },
+  { name: "Instructor Schedule", icon: Calendar, href: "/admin/instructor/schedule" },
   { name: "Programs", icon: Book, href: "/admin/programs" },
   { name: "Booking", icon: Calendar, href: "/admin/booking" },
   { name: "Event", icon: Flag, href: "/admin/event" },

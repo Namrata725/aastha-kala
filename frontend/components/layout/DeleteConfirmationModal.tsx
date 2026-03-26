@@ -23,9 +23,15 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm cursor-pointer"
+    >
       {/* Modal container with gradient border */}
-      <div className="p-[1px] rounded-2xl bg-gradient-to-r from-primary/10 to-secondary/10 w-full max-w-md">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="p-[1px] rounded-2xl bg-gradient-to-r from-primary/10 to-secondary/10 w-full max-w-md cursor-default"
+      >
         <div className="rounded-2xl bg-primary/10 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-gradient-to-r from-primary/20 to-secondary/20">

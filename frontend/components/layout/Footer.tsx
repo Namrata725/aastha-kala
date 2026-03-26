@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Phone, Mail, MapPin } from "lucide-react";
+import Link from "next/link";
 
 const Footer: React.FC = () => {
   const [setting, setSetting] = useState<any>(null);
+  const [latestPrograms, setLatestPrograms] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -18,24 +20,39 @@ const Footer: React.FC = () => {
       }
     };
 
+    const fetchLatestPrograms = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/programs/latest`);
+        const data = await res.json();
+        if (data.success) {
+          setLatestPrograms(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch latest programs:", error);
+      }
+    };
+
     fetchSettings();
+    fetchLatestPrograms();
   }, []);
 
   return (
-    <footer className="bg-white border-t mt-10">
+    <footer className="bg-white border-t border-primary mt-10">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Logo & Description */}
           <div>
             <div className="flex items-center space-x-2">
-              <img
-                src={setting?.logo || "/logo.jpg"}
-                alt={setting?.company_name || "Aastha Kala Kendra"}
-                className="h-10 w-10"
-              />
-              <h2 className="text-xl font-semibold text-blue-600">
-                {setting?.company_name || "Aastha Kala Kendra"}
-              </h2>
+              <Link href="/" className="flex items-center space-x-2">
+                <img
+                  src={setting?.logo || "/logo.jpg"}
+                  alt={setting?.company_name || "Aastha Kala Kendra"}
+                  className="h-10 w-10"
+                />
+                <h2 className="text-xl font-semibold text-blue-600">
+                  {setting?.company_name || "Aastha Kala Kendra"}
+                </h2>
+              </Link>
             </div>
             <p className="mt-4 text-gray-600 text-sm">
               {setting?.about_short ||
@@ -49,25 +66,46 @@ const Footer: React.FC = () => {
               Quick Links
             </h3>
             <ul className="space-y-2 text-gray-600 text-sm">
-              <li>About Us</li>
-              <li>Instructors</li>
-              <li>Events</li>
-              <li>Gallery</li>
-              <li>Contact</li>
+              <li>
+                <Link href="/about" className="hover:text-blue-600 transition">About Us</Link>
+              </li>
+              <li>
+                <Link href="/instructors" className="hover:text-blue-600 transition">Instructors</Link>
+              </li>
+              <li>
+                <Link href="/events" className="hover:text-blue-600 transition">Events</Link>
+              </li>
+              <li>
+                <Link href="/gallery" className="hover:text-blue-600 transition">Gallery</Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-blue-600 transition">Contact</Link>
+              </li>
             </ul>
           </div>
 
-          {/* Programs (STATIC as requested) */}
+          {/* Programs (LATEST 5) */}
           <div>
             <h3 className="text-lg font-semibold text-blue-600 mb-4">
               Program
             </h3>
             <ul className="space-y-2 text-gray-600 text-sm">
-              <li>Vocal Training</li>
-              <li>Instrumental Music</li>
-              <li>Dance</li>
-              <li>Acting</li>
-              <li>Performing Arts</li>
+              {latestPrograms.map((program) => (
+                <li key={program.id}>
+                  <Link href={`/programs`} className="hover:text-blue-600 transition">
+                    {program.title}
+                  </Link>
+                </li>
+              ))}
+              {latestPrograms.length === 0 && (
+                <>
+                  <li>Vocal Training</li>
+                  <li>Instrumental Music</li>
+                  <li>Dance</li>
+                  <li>Acting</li>
+                  <li>Performing Arts</li>
+                </>
+              )}
             </ul>
           </div>
 
@@ -105,7 +143,7 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Divider */}
-        <div className="border-t-2 mt-10 pt-6 text-center text-sm text-primary">
+        <div className="border-t-4 mt-10 pt-6 text-center text-sm text-primary">
           © {new Date().getFullYear()}{" "}
           {setting?.company_name || "Aastha Kala Kendra"}, All rights reserved.
         </div>

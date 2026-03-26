@@ -63,10 +63,10 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-[#1A1F8F] mb-3">
+          <h2 className="text-4xl font-bold text-primary mb-3">
             Get In Touch
           </h2>
-          <p className="text-[#9B4DCA] text-base max-w-2xl mx-auto">
+          <p className="text-secondary text-base mx-auto">
             Ready to start your musical journey? Contact us today for more
             information or to schedule a tour
           </p>

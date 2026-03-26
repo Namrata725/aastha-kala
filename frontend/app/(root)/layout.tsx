@@ -7,14 +7,14 @@ interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+export default function PublicLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
 
   return (
     <div>
       <Navbar />
 
-      <main>{children}</main>
+      <main className="public-content">{children}</main>
       <Footer />
     </div>
   );
