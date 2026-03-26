@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Search } from "lucide-react";
 import Table from "@/components/layout/Table";
 import DeleteConfirmationModal from "@/components/layout/DeleteConfirmationModal";
 import MessageViewModal from "@/components/admin/MessageViewModal";
@@ -17,8 +18,9 @@ interface Message {
 }
 
 const AdminMessagesPage = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -86,7 +88,13 @@ const AdminMessagesPage = () => {
     fetchMessages();
   }, []);
 
-  const formattedData = messages.map((msg, index) => ({
+  const filteredMessages = messages.filter((msg) =>
+    msg.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    msg.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    msg.message.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const formattedData = filteredMessages.map((msg, index) => ({
     ...msg,
     sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
     message_preview: (
@@ -143,12 +151,20 @@ const AdminMessagesPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-10">
-      <div className="flex items-center justify-between p-4">
-        <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-          Contact Us Messages
-        </h1>
-        <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
-          {messages.length} total
+      <div className="flex flex-col md:flex-row justify-between items-center p-6 bg-white border border-gray-200 rounded-2xl gap-6 shadow-sm">
+        <div className="flex flex-col text-center md:text-left">
+          <h1 className="text-2xl font-bold text-black">Contact Messages</h1>
+          <span className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">Manage user inquiries</span>
+        </div>
+        <div className="relative w-full md:w-80">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input 
+            type="text" 
+            placeholder="Search by name, email or message..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-white border border-gray-200 rounded-xl px-10 py-2.5 text-sm text-black focus:outline-none focus:border-primary transition shadow-sm"
+          />
         </div>
       </div>
 

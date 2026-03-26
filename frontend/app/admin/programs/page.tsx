@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Search } from "lucide-react";
 import Table from "@/components/layout/Table";
 import DeleteConfirmationModal from "@/components/layout/DeleteConfirmationModal";
 import { Plus, BookOpen, Clock, User } from "lucide-react";
@@ -21,6 +22,8 @@ interface Program {
 const ProgramsPage = () => {
     const [programs, setPrograms] = useState<Program[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
 
     const [pagination, setPagination] = useState({
         currentPage: 1,
@@ -84,7 +87,14 @@ const ProgramsPage = () => {
 
     useEffect(() => { fetchPrograms(); }, []);
 
-    const formattedData = programs.map((p: Program, index: number) => ({
+    const filteredPrograms = programs.filter((p: Program) =>
+      p.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (statusFilter === "all" || 
+       (statusFilter === "active" && p.is_active) ||
+       (statusFilter === "inactive" && !p.is_active))
+    );
+
+    const formattedData = filteredPrograms.map((p: Program, index: number) => ({
         ...p,
         sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
         image: p.image ? <img src={getImageUrl(p.image)} className="w-10 h-10 rounded object-cover" /> : "?",
@@ -133,20 +143,44 @@ const ProgramsPage = () => {
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
-            <div className="flex justify-between items-center p-4 bg-white border border-gray-200 rounded-2xl shadow-sm">
-                <div className="flex flex-col">
+            <div className="flex flex-col lg:flex-row justify-between items-center p-6 bg-white border border-gray-200 rounded-2xl gap-6 shadow-sm mb-6">
+                <div className="flex flex-col text-center lg:text-left">
                     <span className="text-2xl font-bold text-black">Program Catalog</span>
-                    <span className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">Manage fixed classes and schedules</span>
+                    <span className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">Search programs, filter by status</span>
                 </div>
-                <button
+                <div className="flex items-center gap-4 w-full lg:w-auto">
+                  <div className="relative flex-1 lg:w-64">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input 
+                      type="text" 
+                      placeholder="Search program title..." 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-primary transition shadow-sm"
+                    />
+                  </div>
+                  <select 
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
+                    className="px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition shadow-sm min-w-[120px]"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  <button
                     onClick={() => { setEditingProgram(null); setFormModalOpen(true); }}
-                    className="px-6 py-2.5 bg-linear-to-r from-primary to-secondary text-white rounded-xl shadow-xl hover:scale-105 transition active:scale-95 flex gap-2 items-center text-sm font-semibold uppercase tracking-tight"
-                >
+                    className="px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl shadow-xl hover:scale-105 transition active:scale-95 flex gap-2 items-center text-sm font-semibold uppercase tracking-tight"
+                  >
                     <Plus className="w-4 h-4" /> Add Program
-                </button>
+                  </button>
+                </div>
             </div>
 
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm transition duration-500">
+                <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+                  {filteredPrograms.length} / {programs.length} programs ({statusFilter !== "all" ? statusFilter : "all statuses"})
+                </div>
                 <Table
                     columns={columns}
                     data={formattedData}

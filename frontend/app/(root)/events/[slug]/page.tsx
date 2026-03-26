@@ -17,7 +17,7 @@ type EventItem = {
 };
 
 const getImageUrl = (path?: string | null) => {
-  if (!path) return null;
+  if (!path) return undefined;
   if (path.startsWith("http")) return path;
   return `${IMAGE_URL}${path}`;
 };
