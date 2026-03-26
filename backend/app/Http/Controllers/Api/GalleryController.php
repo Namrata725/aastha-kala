@@ -14,18 +14,25 @@ class GalleryController extends Controller
      */
     public function index()
     {
-        $galleries = Gallery::with('category')->latest()->get();
+        $galleries = Gallery::with('category')->latest()->paginate(10);
 
-        $galleries->transform(function ($gallery) {
+        $galleries->getCollection()->transform(function ($gallery) {
             if (!empty($gallery->images)) {
                 $gallery->images = array_map(function ($image) {
+                    // If it's already a full URL, return as is
+                    if (str_starts_with($image, 'http')) {
+                        return $image;
+                    }
                     return asset('storage/' . $image);
                 }, $gallery->images);
             }
             return $gallery;
         });
 
-        return response()->json($galleries);
+        return response()->json([
+            'success' => true,
+            'data' => $galleries
+        ]);
     }
 
     /**
@@ -71,7 +78,20 @@ class GalleryController extends Controller
             'images' => $imagePaths,
         ]);
 
-        return response()->json($gallery, 201);
+        if (!empty($gallery->images)) {
+            $gallery->images = array_map(function ($image) {
+                if (str_starts_with($image, 'http')) {
+                    return $image;
+                }
+                return asset('storage/' . $image);
+            }, $gallery->images);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Gallery created successfully',
+            'data' => $gallery
+        ], 201);
     }
 
     /**
@@ -83,11 +103,17 @@ class GalleryController extends Controller
 
         if (!empty($gallery->images)) {
             $gallery->images = array_map(function ($image) {
+                if (str_starts_with($image, 'http')) {
+                    return $image;
+                }
                 return asset('storage/' . $image);
             }, $gallery->images);
         }
 
-        return response()->json($gallery);
+        return response()->json([
+            'success' => true,
+            'data' => $gallery
+        ]);
     }
 
     /**
@@ -137,18 +163,31 @@ public function update(Request $request, $id)
     }
 
     
-    $gallery->update([
-        'title' => $request->title,
-        'type' => $request->type,
-        'category_id' => $request->category_id,
-        'description' => $request->description,
-        'position' => $request->position,
-        'video' => $request->video,
-        'images' => array_values($existingImages),
-    ]);
+        $gallery->update([
+            'title' => $request->title,
+            'type' => $request->type,
+            'category_id' => $request->category_id,
+            'description' => $request->description,
+            'position' => $request->position,
+            'video' => $request->video,
+            'images' => array_values($existingImages),
+        ]);
 
-    return response()->json($gallery);
-}
+        if (!empty($gallery->images)) {
+            $gallery->images = array_map(function ($image) {
+                if (str_starts_with($image, 'http')) {
+                    return $image;
+                }
+                return asset('storage/' . $image);
+            }, $gallery->images);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Gallery updated successfully',
+            'data' => $gallery
+        ]);
+    }
 
     /**
      * Delete gallery
@@ -184,6 +223,9 @@ public function getByPosition($position)
     $galleries->transform(function ($gallery) {
         if (!empty($gallery->images)) {
             $gallery->images = array_map(function ($image) {
+                if (str_starts_with($image, 'http')) {
+                    return $image;
+                }
                 return asset('storage/' . $image);
             }, $gallery->images);
         }

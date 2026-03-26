@@ -13,7 +13,9 @@ class InstructorController extends Controller
     // GET /api/instructors
     public function index()
     {
-        $instructors = Instructor::with(['availabilities', 'programs'])->paginate(10);
+        $instructors = Instructor::with(['availabilities', 'programs'])
+            ->latest()
+            ->paginate(10);
 
         return response()->json([
             'success' => true,
@@ -260,11 +262,9 @@ public function update(Request $request, $id)
                 'availabilities' => $instructor->availabilities,
                 'classes' => $instructor->fixed_classes->map(function($class) {
                     return [
-                        'day_of_week' => $class->day_of_week,
-                        'start_time' => $class->start_time instanceof \DateTimeInterface ? $class->start_time->format('H:i') : substr($class->start_time, 0, 5),
-                        'end_time' => $class->end_time instanceof \DateTimeInterface ? $class->end_time->format('H:i') : substr($class->end_time, 0, 5),
+                        'start_time'    => $class->start_time instanceof \DateTimeInterface ? $class->start_time->format('H:i') : substr($class->start_time, 0, 5),
+                        'end_time'      => $class->end_time instanceof \DateTimeInterface ? $class->end_time->format('H:i') : substr($class->end_time, 0, 5),
                         'program_title' => $class->program ? $class->program->title : 'Unknown',
-                        'max_capacity' => $class->max_capacity,
                     ];
                 }),
             ]
@@ -273,9 +273,9 @@ public function update(Request $request, $id)
     // GET /api/admin/instructors-schedules
     public function allSchedules()
     {
-        $instructors = Instructor::with(['availabilities', 'fixed_classes.program'])->get();
+        $instructors = Instructor::with(['availabilities', 'fixed_classes.program'])->latest()->paginate(10);
 
-        $data = $instructors->map(function($instructor) {
+        $instructors->getCollection()->transform(function($instructor) {
             return [
                 'instructor' => [
                     'id' => $instructor->id,
@@ -286,11 +286,9 @@ public function update(Request $request, $id)
                 'availabilities' => $instructor->availabilities,
                 'classes' => $instructor->fixed_classes->map(function($class) {
                     return [
-                        'day_of_week' => $class->day_of_week,
-                        'start_time' => $class->start_time instanceof \DateTimeInterface ? $class->start_time->format('H:i') : substr($class->start_time, 0, 5),
-                        'end_time' => $class->end_time instanceof \DateTimeInterface ? $class->end_time->format('H:i') : substr($class->end_time, 0, 5),
+                        'start_time'    => $class->start_time instanceof \DateTimeInterface ? $class->start_time->format('H:i') : substr($class->start_time, 0, 5),
+                        'end_time'      => $class->end_time instanceof \DateTimeInterface ? $class->end_time->format('H:i') : substr($class->end_time, 0, 5),
                         'program_title' => $class->program ? $class->program->title : 'Unknown',
-                        'max_capacity' => $class->max_capacity,
                     ];
                 }),
             ];
@@ -298,7 +296,7 @@ public function update(Request $request, $id)
 
         return response()->json([
             'success' => true,
-            'data' => $data
+            'data' => $instructors
         ]);
     }
     // GET /api/admin/instructors/{id}/check-conflict
@@ -307,14 +305,12 @@ public function update(Request $request, $id)
         $instructor = Instructor::find($id);
         if (!$instructor) return response()->json(['success'=>false, 'message'=>'Instructor not found'], 404);
 
-        $dayOfWeek = $request->day_of_week;
         $startTime = $request->start_time;
-        $endTime = $request->end_time;
+        $endTime   = $request->end_time;
         $excludeProgramId = $request->exclude_program_id;
 
-        // 1. Availability check
+        // 1. Availability check (day-agnostic — only check time range)
         $isAvailableWork = \App\Models\InstructorAvailability::where('instructor_id', $id)
-            ->where('day_of_week', $dayOfWeek)
             ->where('is_available', true)
             ->whereRaw('TIME(start_time) <= TIME(?)', [$startTime])
             ->whereRaw('TIME(end_time) >= TIME(?)', [$endTime])
@@ -324,9 +320,8 @@ public function update(Request $request, $id)
             return response()->json(['conflict' => true, 'message' => 'The teacher is not available at this time slot based on their defined hours.']);
         }
 
-        // 2. Schedule clash check
+        // 2. Schedule clash check (day-agnostic — only check time overlap)
         $isTeaching = \App\Models\ProgramSchedule::where('instructor_id', $id)
-            ->where('day_of_week', $dayOfWeek)
             ->where(function ($q) use ($startTime, $endTime) {
                 $q->whereRaw('TIME(start_time) < TIME(?)', [$endTime])
                   ->whereRaw('TIME(end_time) > TIME(?)', [$startTime]);

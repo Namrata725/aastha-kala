@@ -14,8 +14,11 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Aastha Kala | Dance & Arts Academy",
+  title: "Aastha Kala | Admin Page",
   description: "Learn dance, arts and more with Aastha Kala Academy.",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 const theme = createTheme({

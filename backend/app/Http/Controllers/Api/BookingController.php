@@ -15,7 +15,9 @@ class BookingController extends Controller
     // GET /api/bookings
     public function index()
     {
-        $bookings = Booking::with(['program', 'schedules', 'instructor'])->paginate(10);
+        $bookings = Booking::with(['program', 'schedules.instructor', 'schedule.instructor', 'instructor'])
+            ->latest()
+            ->paginate(10);
 
         return response()->json([
             'success' => true,
@@ -71,7 +73,7 @@ class BookingController extends Controller
     // GET /api/bookings/{id}
     public function show($id)
     {
-        $booking = Booking::with(['program', 'schedules', 'instructor'])->find($id);
+        $booking = Booking::with(['program', 'schedules.instructor', 'schedule.instructor', 'instructor'])->find($id);
 
         if (!$booking) {
             return response()->json([
@@ -131,7 +133,7 @@ class BookingController extends Controller
             $booking->schedules()->sync($request->schedule_ids);
         }
 
-        $booking->load(['program', 'schedules', 'instructor']);
+        $booking->load(['program', 'schedules.instructor', 'schedule.instructor', 'instructor']);
 
         return response()->json([
             'success' => true,
@@ -171,7 +173,7 @@ class BookingController extends Controller
         }
         $booking->save();
 
-        $booking->load(['program', 'schedule', 'instructor']);
+        $booking->load(['program', 'schedule.instructor', 'schedules.instructor', 'instructor']);
 
         return response()->json([
             'success' => true,
@@ -183,7 +185,7 @@ class BookingController extends Controller
     // GET /api/bookings/{id}/available-instructors
     public function availableInstructors($id)
     {
-        $booking = Booking::with(['program', 'schedules', 'schedule'])->find($id);
+        $booking = Booking::with(['program', 'schedules.instructor', 'schedule.instructor'])->find($id);
         if (!$booking) {
             return response()->json(['success' => false, 'message' => 'Booking not found'], 404);
         }

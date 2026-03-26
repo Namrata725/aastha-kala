@@ -12,10 +12,8 @@ class ProgramSchedule extends Model
     protected $fillable = [
         'program_id',
         'instructor_id',
-        'day_of_week',
         'start_time',
         'end_time',
-        'max_capacity'
     ];
 
     protected $casts = [

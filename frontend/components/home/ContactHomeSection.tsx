@@ -66,10 +66,10 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
           <h2 className="text-4xl font-bold text-primary mb-3">
             Get In Touch
           </h2>
-          <p className="text-secondary text-base mx-auto">
+          <h4 className="text-secondary text-base mx-auto">
             Ready to start your musical journey? Contact us today for more
             information or to schedule a tour
-          </p>
+          </h4>
         </div>
 
         {/* Content Grid */}

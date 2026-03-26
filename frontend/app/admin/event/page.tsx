@@ -34,6 +34,14 @@ const Page = () => {
     itemsPerPage: 10,
   });
 
+  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL;
+
+  const getImageUrl = (path?: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${IMAGE_BASE?.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}`;
+  };
+
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -100,11 +108,11 @@ const Page = () => {
   // Format data for table
   const formattedData = events.map((event, index) => ({
     ...event,
-    sn: index + 1,
+    sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
 
     banner: event.banner ? (
       <img
-        src={event.banner}
+        src={getImageUrl(event.banner)}
         alt={event.title}
         className="w-12 h-12 object-cover rounded"
       />

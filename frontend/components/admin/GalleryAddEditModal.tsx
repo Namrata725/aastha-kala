@@ -49,6 +49,13 @@ const GalleryAddEditModal: React.FC<Props> = ({
     images: [],
   });
 
+  const getImageUrl = (path?: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    if (path.startsWith("blob:")) return path; // Skip for newly selected files
+    return `${IMAGE_BASE?.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}`;
+  };
+
   const [loading, setLoading] = useState(false);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [removedImages, setRemovedImages] = useState<string[]>([]);
@@ -180,10 +187,12 @@ const GalleryAddEditModal: React.FC<Props> = ({
     }
   };
 
-  const categoryOptions = categories.map((c) => ({
-    label: c.name,
-    value: c.id.toString(),
-  }));
+  const categoryOptions = Array.isArray(categories) 
+    ? categories.map((c: any) => ({
+        label: c.name,
+        value: c.id.toString(),
+      }))
+    : [];
 
   return (
     <div
@@ -192,15 +201,15 @@ const GalleryAddEditModal: React.FC<Props> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-primary/10 border border-primary/20 backdrop-blur-md w-full max-w-2xl rounded-xl p-6 relative overflow-y-auto max-h-[90vh] cursor-default"
+        className="bg-white/50 border border-white/20 backdrop-blur-xl shadow-2xl w-full max-w-2xl rounded-2xl p-8 relative overflow-y-auto max-h-[90vh] cursor-default"
       >
         {/* Close */}
-        <button onClick={onClose} className="absolute right-4 top-4 text-white">
-          <X />
-        </button>
 
-        <h2 className="text-xl font-bold mb-6 text-primary">
+        <h2 className="text-xl font-bold mb-6 text-primary uppercase italic tracking-tight border-b border-gray-200 pb-4 flex justify-between items-center">
           {editData ? "Edit Gallery" : "Add Gallery"}
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors">
+            <X className="w-5 h-5 text-gray-500 hover:text-black" />
+          </button>
         </h2>
 
         <div className="space-y-5">
@@ -263,7 +272,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
 
           {form.type === "images" && (
             <div>
-              <label className="text-sm text-white mb-1 block">
+              <label className="text-sm text-gray-700 font-bold mb-2 block uppercase tracking-widest text-[10px] italic">
                 Upload Images
               </label>
 
@@ -273,7 +282,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
                 onChange={(e: any) =>
                   handleFileChange(Array.from(e.target.files))
                 }
-                className="text-white"
+                className="text-gray-900 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
               />
 
               {previewImages.length > 0 && (
@@ -281,7 +290,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
                   {previewImages.map((img, index) => (
                     <div key={index} className="relative">
                       <img
-                        src={img}
+                        src={getImageUrl(img)}
                         className="w-20 h-20 object-cover rounded"
                       />
 
@@ -303,9 +312,9 @@ const GalleryAddEditModal: React.FC<Props> = ({
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-lg"
+            className="w-full py-3.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-black uppercase tracking-widest text-xs italic shadow-lg shadow-primary/20 transition-all hover:scale-[1.01] active:scale-[0.99]"
           >
-            {loading ? "Saving..." : editData ? "Update" : "Create"}
+            {loading ? "Saving..." : editData ? "Update Gallery Entry" : "Create Gallery Entry"}
           </button>
         </div>
       </div>

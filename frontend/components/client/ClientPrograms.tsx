@@ -16,10 +16,8 @@ import toast from "react-hot-toast";
 
 interface Schedule {
   id: number;
-  day_of_week: string;
   start_time: string;
   end_time: string;
-  max_capacity?: number;
   instructor?: { name: string };
 }
 
@@ -78,8 +76,8 @@ function BookingModal({
     booking_date: "",
     custom_start_time: "",
     custom_end_time: "",
-    duration_value: "1",
-    duration_unit: "months",
+    duration_value: "",
+    duration_unit: "",
     instructor_id: "",
     message: "",
     current_address: "",
@@ -186,11 +184,10 @@ function BookingModal({
                     key={value}
                     type="button"
                     onClick={() => setBookingType(value as any)}
-                    className={`flex items-center gap-2.5 justify-center p-3.5 rounded-xl border-2 font-semibold text-sm transition ${
-                      bookingType === value
+                    className={`flex items-center gap-2.5 justify-center p-3.5 rounded-xl border-2 font-semibold text-sm transition ${bookingType === value
                         ? "border-primary bg-primary/5 text-primary"
                         : "border-gray-100 text-gray-500 hover:border-gray-300"
-                    }`}
+                      }`}
                   >
                     {icon} {label}
                   </button>
@@ -226,11 +223,10 @@ function BookingModal({
                     key={value}
                     type="button"
                     onClick={() => set("class_mode", value)}
-                    className={`flex items-center gap-2.5 justify-center p-3.5 rounded-xl border-2 font-semibold text-sm transition ${
-                      form.class_mode === value
+                    className={`flex items-center gap-2.5 justify-center p-3.5 rounded-xl border-2 font-semibold text-sm transition ${form.class_mode === value
                         ? "border-secondary bg-secondary/5 text-secondary"
                         : "border-gray-100 text-gray-500 hover:border-gray-300"
-                    }`}
+                      }`}
                   >
                     {icon} {label}
                   </button>
@@ -254,17 +250,15 @@ function BookingModal({
             {/* Schedule (regular) or Custom Time (private) */}
             {bookingType === "regular" ? (
               <div>
-                <label className={labelCls}>Select Fixed Class Slot *</label>
                 {program.schedules && program.schedules.length > 0 ? (
                   <div className="space-y-2">
                     {program.schedules.map((s) => (
                       <label
                         key={s.id}
-                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition ${
-                          form.schedule_ids.includes(String(s.id))
+                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition ${form.schedule_ids.includes(String(s.id))
                             ? "border-primary bg-primary/5"
                             : "border-gray-100 hover:border-gray-200"
-                        }`}
+                          }`}
                       >
                         <input
                           type="checkbox"
@@ -282,23 +276,16 @@ function BookingModal({
                           className="accent-primary w-4 h-4 rounded"
                         />
                         <div className="flex-1">
-                            <p className="font-bold text-primary text-sm">
-                              {s.day_of_week}
-                              <span className="ml-2 text-[10px] bg-secondary/10 text-secondary px-2 py-0.5 rounded font-black uppercase tracking-tighter italic">
-                                {getTimeOfDay(s.start_time)}
-                              </span>
+                          <p className="text-sm text-primary font-bold flex items-center gap-2">
+                             <Clock className="w-4 h-4 text-secondary" />
+                             {formatTime12h(s.start_time)} – {formatTime12h(s.end_time)}
+                          </p>
+                          {s.instructor && (
+                            <p className="text-xs text-gray-400 mt-1 italic pl-6">
+                              Lead Instructor: {s.instructor.name}
                             </p>
-                            <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                              <Clock className="w-3 h-3" />
-                              {formatTime12h(s.start_time)} – {formatTime12h(s.end_time)}
-                              {s.instructor && <span className="ml-2 text-gray-400">· {s.instructor.name}</span>}
-                            </p>
-                          </div>
-                        {s.max_capacity && (
-                          <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold uppercase">
-                            Max {s.max_capacity}
-                          </span>
-                        )}
+                          )}
+                        </div>
                       </label>
                     ))}
                   </div>
@@ -328,24 +315,35 @@ function BookingModal({
             )}
 
             {/* Program Duration */}
-            <div>
-              <label className={labelCls}>How long do you plan to take this program? *</label>
-              <div className="grid grid-cols-2 gap-4">
-                
-                <div>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Unit</p>
-                  <select className={inputCls} value={form.duration_unit} onChange={(e) => set("duration_unit", e.target.value)}>
-                    <option value="days">Days</option>
-                    <option value="months">Months</option>
-                    <option value="years">Years</option>
-                  </select>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Duration</p>
-                  <input required type="number" className={inputCls} value={form.duration_value} onChange={(e) => set("duration_value", e.target.value)} />
+            {bookingType === "customization" && (
+              <div>
+                <label className={labelCls}>How long do you plan to take this program? *</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Unit</p>
+                    <select className={inputCls} value={form.duration_unit} onChange={(e) => set("duration_unit", e.target.value)}>
+                      <option value="" disabled>Select Unit</option>
+                      <option value="days">Days</option>
+                      <option value="months">Months</option>
+                      <option value="years">Years</option>
+                    </select>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Duration</p>
+                    <input
+                      required
+                      type="number"
+                      min="1"
+                      className={`${inputCls} ${!form.duration_unit ? "opacity-50 cursor-not-allowed bg-gray-50" : ""}`}
+                      disabled={!form.duration_unit}
+                      placeholder={!form.duration_unit ? "Choose Unit first" : "Enter duration"}
+                      value={form.duration_value}
+                      onChange={(e) => set("duration_value", e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Current Address */}
             <div>
@@ -392,11 +390,11 @@ function BookingModal({
 
 // ─── Program Card ─────────────────────────────────────────────────────────────
 
-function ProgramCard({ program, onBook }: { program: Program; onBook: () => void }) {
+function ProgramCard({ program, onBook, index }: { program: Program; onBook: () => void; index: number }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="flex flex-col md:flex-row gap-0 bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
+    <div className={`flex flex-col ${index % 2 !== 0 ? "md:flex-row-reverse" : "md:flex-row"} gap-0 bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300`}>
       {/* Image */}
       <div className="md:w-80 w-full shrink-0 relative overflow-hidden">
         {program.image ? (
@@ -411,7 +409,7 @@ function ProgramCard({ program, onBook }: { program: Program; onBook: () => void
           </div>
         )}
         {/* Gradient overlay on image */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/20 md:block hidden" />
+        <div className={`absolute inset-0 bg-gradient-to-${index % 2 !== 0 ? "l" : "r"} from-transparent to-white/20 md:block hidden`} />
       </div>
 
       {/* Content */}
@@ -469,10 +467,11 @@ export default function ClientPrograms({ programs }: Props) {
   return (
     <section className="container mx-auto px-4 py-14 max-w-5xl space-y-8">
 
-      {activePrograms.map((program) => (
+      {activePrograms.map((program, index) => (
         <ProgramCard
           key={program.id}
           program={program}
+          index={index}
           onBook={() => setSelectedProgram(program)}
         />
       ))}

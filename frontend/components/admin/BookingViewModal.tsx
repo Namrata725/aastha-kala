@@ -30,12 +30,14 @@ const BookingViewModal: React.FC<BookingViewModalProps> = ({
   React.useEffect(() => {
     if (isOpen && booking?.id) {
       fetchAvailableInstructors(booking.id);
-      setSelectedInstructorId(booking.instructor_id || "");
+      
+      const preAssignedId = booking.schedule?.instructor_id || booking.schedules?.find((s: any) => s.instructor_id)?.instructor_id;
+      setSelectedInstructorId(booking.instructor_id || (booking.type === 'regular' ? preAssignedId : "") || "");
     } else {
       setAvailableInstructors([]);
       setSelectedInstructorId("");
     }
-  }, [isOpen, booking?.id]);
+  }, [isOpen, booking?.id, booking?.instructor_id, booking?.type, booking?.schedule, booking?.schedules]);
 
   const fetchAvailableInstructors = async (bookingId: number) => {
     try {
@@ -157,7 +159,6 @@ const BookingViewModal: React.FC<BookingViewModalProps> = ({
                           {(booking.schedules && booking.schedules.length > 0 ? booking.schedules : [booking.schedule]).filter(Boolean).map((s: any, i: number) => (
                             <span key={i} className="text-xs text-primary font-bold flex items-center gap-2 bg-white/60 px-4 py-2 rounded-lg border border-primary/10 w-fit italic shadow-sm hover:border-primary/40 transition">
                               <Clock className="w-3.5 h-3.5 text-secondary" /> 
-                              <span className="text-primary uppercase tracking-widest font-black mr-1">{s.day_of_week}:</span>
                               {to12h(s.start_time)} - {to12h(s.end_time)}
                             </span>
                           ))}
@@ -193,37 +194,95 @@ const BookingViewModal: React.FC<BookingViewModalProps> = ({
               <User className="w-3.5 h-3.5 text-primary" /> Assign Instructor
             </h4>
             <div className="bg-white/40 rounded-xl p-6 border border-primary/20 space-y-4 shadow-sm">
-              <div className="flex flex-col gap-2">
-                <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest italic">Available Teachers for this Slot</span>
-                <select 
-                  value={selectedInstructorId}
-                  onChange={(e) => setSelectedInstructorId(e.target.value ? Number(e.target.value) : "")}
-                  className="bg-white/60 border border-primary/20 rounded-xl px-4 py-3 text-sm text-primary font-bold italic focus:outline-none focus:border-primary transition w-full appearance-none cursor-pointer hover:border-primary/40"
-                  disabled={loadingInstructors}
-                >
-                  <option value="">-- Choose a teacher --</option>
-                  {availableInstructors.map((ins) => {
-                    let statusText = "";
-                    if (ins.is_available) {
-                      statusText = "Perfectly Available";
-                    } else if (ins.free_slots && ins.free_slots.length > 0) {
-                      const slots = ins.free_slots.map((s: any) => `${to12h(s.start)} - ${to12h(s.end)}`).join(", ");
-                      statusText = `Busy. Free: ${slots}`;
-                    } else {
-                      statusText = "No free time defined today";
+              {booking.type === 'regular' && (booking.schedule?.instructor || (booking.schedules && booking.schedules.some((s: any) => s.instructor))) ? (
+                // For regular bookings with pre-assigned instructor
+                <div className="flex flex-col gap-2">
+                  <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest italic">Pre-assigned Teacher(s)</span>
+                  {(() => {
+                    // Extract unique instructors across all schedules
+                    const uniqueInstructors: any[] = [];
+                    const foundIds = new Set();
+
+                    const addToUnique = (ins: any) => {
+                      if (ins && !foundIds.has(ins.id)) {
+                        uniqueInstructors.push(ins);
+                        foundIds.add(ins.id);
+                      }
+                    };
+
+                    if (booking.schedule?.instructor) addToUnique(booking.schedule.instructor);
+                    if (booking.schedules) {
+                       booking.schedules.forEach((s: any) => addToUnique(s.instructor));
                     }
+
                     return (
-                      <option key={ins.id} value={ins.id}>
-                        {ins.name} ({statusText})
-                      </option>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {uniqueInstructors.map((instructor) => (
+                          <div 
+                            key={instructor.id}
+                            onClick={() => setSelectedInstructorId(instructor.id)}
+                            className={`border rounded-xl px-4 py-3 text-sm font-bold italic shadow-sm flex items-center gap-3 cursor-pointer transition-all ${
+                              selectedInstructorId === instructor.id 
+                                ? "bg-primary text-white border-primary shadow-primary/20 scale-[1.02]" 
+                                : "bg-primary/5 text-primary border-primary/20 hover:border-primary/40 hover:bg-primary/10"
+                            }`}
+                          >
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center border transition-colors ${
+                              selectedInstructorId === instructor.id ? "bg-white/20 border-white/30 text-white" : "bg-primary/10 border-primary/20 text-primary"
+                            }`}>
+                              <User className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="line-clamp-1">{instructor.name}</p>
+                              <p className={`text-[9px] font-medium uppercase tracking-tighter ${
+                                selectedInstructorId === instructor.id ? "text-white/80" : "text-primary/60"
+                              }`}>Assigned to class schedule</p>
+                            </div>
+                            {selectedInstructorId === instructor.id && (
+                              <div className="bg-white rounded-full p-1 text-primary">
+                                <CheckCircle2 className="w-3 h-3" />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     );
-                  })}
-                </select>
-                {loadingInstructors && <span className="text-[10px] text-primary/60 animate-pulse font-bold italic">Checking availability...</span>}
-                {!loadingInstructors && availableInstructors.length === 0 && (
-                  <span className="text-[10px] text-red-500 font-bold uppercase tracking-widest italic">No instructors assigned to this program.</span>
-                )}
-              </div>
+                  })()}
+                </div>
+              ) : (
+                // For customization or if no teacher is pre-assigned
+                <div className="flex flex-col gap-2">
+                  <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest italic">Available Teachers for this Slot</span>
+                  <select 
+                    value={selectedInstructorId}
+                    onChange={(e) => setSelectedInstructorId(e.target.value ? Number(e.target.value) : "")}
+                    className="bg-white/60 border border-primary/20 rounded-xl px-4 py-3 text-sm text-primary font-bold italic focus:outline-none focus:border-primary transition w-full appearance-none cursor-pointer hover:border-primary/40"
+                    disabled={loadingInstructors}
+                  >
+                    <option value="">-- Choose a teacher --</option>
+                    {availableInstructors.map((ins) => {
+                      let statusText = "";
+                      if (ins.is_available) {
+                        statusText = "Perfectly Available";
+                      } else if (ins.free_slots && ins.free_slots.length > 0) {
+                        const slots = ins.free_slots.map((s: any) => `${to12h(s.start)} - ${to12h(s.end)}`).join(", ");
+                        statusText = `Busy. Free: ${slots}`;
+                      } else {
+                        statusText = "No free time defined today";
+                      }
+                      return (
+                        <option key={ins.id} value={ins.id}>
+                          {ins.name} ({statusText})
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {loadingInstructors && <span className="text-[10px] text-primary/60 animate-pulse font-bold italic">Checking availability...</span>}
+                  {!loadingInstructors && availableInstructors.length === 0 && (
+                    <span className="text-[10px] text-red-500 font-bold uppercase tracking-widest italic">No instructors assigned to this program.</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -12,7 +12,7 @@ const StatsSection: React.FC<StatsSectionProps> = ({ settings }) => {
     { label: "Awards & Recognization", value: settings?.awards },
     { label: "Expert Instructors", value: settings?.number_of_instructors },
     { label: "Students Trained", value: settings?.number_of_students },
-    { label: "Success Rate", value: settings?.success_rate },
+    { label: "Success Rate", value: settings?.success_rate + "%" },
   ].filter(stat => stat.value); // Only show stats with values
 
   if (stats.length === 0) return null;

@@ -30,17 +30,17 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
       {/* Modal container with gradient border */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="p-[1px] rounded-2xl bg-gradient-to-r from-primary/10 to-secondary/10 w-full max-w-md cursor-default"
+        className="p-[1px] rounded-2xl bg-gray-400/20 w-full max-w-md cursor-default shadow-2xl"
       >
-        <div className="rounded-2xl bg-primary/10 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden">
+        <div className="rounded-2xl bg-white/50 backdrop-blur-xl border border-white/20 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-gradient-to-r from-primary/20 to-secondary/20">
-            <h2 className="text-white font-semibold">{title}</h2>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gray-50/50">
+            <h2 className="text-gray-900 font-bold uppercase italic tracking-tight">{title}</h2>
             <button
               onClick={onClose}
-              className="p-1 rounded-md hover:bg-white/10 transition"
+              className="p-1.5 rounded-lg hover:bg-gray-200 transition-all text-gray-500 hover:text-black"
             >
-              <X className="w-5 h-5 text-white/70" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
@@ -52,14 +52,14 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
               </div>
             </div>
 
-            <p className="text-primary/70 text-lg font-bold">{description}</p>
+            <p className="text-gray-700 text-base font-bold leading-relaxed">{description}</p>
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-3 px-5 py-4 border-t border-white/10 bg-white/5">
+          <div className="flex justify-end gap-3 px-5 py-4 border-t border-gray-100 bg-gray-50/30">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm text-white/80 bg-white/5 hover:bg-white/10 border border-white/10 transition"
+              className="px-6 py-2 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all active:scale-95"
             >
               Cancel
             </button>
@@ -67,9 +67,9 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
             <button
               onClick={onConfirm}
               disabled={loading}
-              className="px-4 py-2 rounded-lg text-sm text-white bg-gradient-to-r from-red-500 to-red-600 hover:opacity-90 transition disabled:opacity-50"
+              className="px-6 py-2 rounded-xl text-sm font-black uppercase tracking-widest text-white bg-gradient-to-r from-red-500 to-red-600 hover:shadow-lg hover:shadow-red-500/30 transition-all active:scale-95 disabled:opacity-50"
             >
-              {loading ? "Deleting..." : "Delete"}
+              {loading ? "Deleting..." : "Delete Permanently"}
             </button>
           </div>
         </div>

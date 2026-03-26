@@ -46,6 +46,13 @@ const Page = () => {
   const [viewData, setViewData] = useState<Gallery | null>(null);
 
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL;
+
+  const getImageUrl = (path?: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${IMAGE_BASE?.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}`;
+  };
 
   const columns = [
     { key: "sn", label: "SN" },
@@ -108,8 +115,8 @@ const Page = () => {
         },
       });
 
-      const data = await res.json();
-      setCategories(data || []);
+      const result = await res.json();
+      setCategories(result.data || result || []);
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -140,7 +147,7 @@ const Page = () => {
 
   const formattedData = galleries.map((item, index) => ({
     ...item,
-    sn: index + 1,
+    sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
     category: item.category?.name || "N/A",
 
     preview:
@@ -161,7 +168,7 @@ const Page = () => {
       ) : item.images && item.images.length > 0 ? (
         <div className="relative w-10 h-10">
           <img
-            src={item.images[0]}
+            src={getImageUrl(item.images[0])}
             className="w-10 h-10 object-cover rounded"
             alt="preview"
           />

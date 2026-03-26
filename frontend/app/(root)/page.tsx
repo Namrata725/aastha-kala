@@ -3,6 +3,7 @@ import HeroSection from "@/components/home/HeroSection";
 import StatsSection from "@/components/home/StatsSection";
 import AboutHomeSection from "@/components/home/AboutHomeSection";
 import HomeInstructor from "@/components/home/HomeInstructor";
+import HomeProgramSection from "@/components/home/HomeProgramSection";
 import TestimonialSlider from "@/components/home/TestimonialSlider";
 import HomeGallery from "@/components/home/HomeGallery";
 import ContactHomeSection from "@/components/home/ContactHomeSection";
@@ -58,6 +59,10 @@ const Page = async () => {
       {settings && (
         <AboutHomeSection settings={settings} gallery={aboutHomeGallery?.[0]} />
       )}
+
+      <Suspense fallback={<SectionPlaceholder />}>
+        <HomeProgramSection />
+      </Suspense>
 
       <Suspense fallback={<SectionPlaceholder />}>
         <HomeInstructor />

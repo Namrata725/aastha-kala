@@ -43,7 +43,7 @@ const fetchEvents = async (): Promise<EventItem[]> => {
     if (!res.ok) throw new Error("Failed to fetch events");
 
     const json = await res.json();
-    const events = json?.data;
+    const events = json?.data?.data || json?.data;
 
     if (!Array.isArray(events)) return [];
 

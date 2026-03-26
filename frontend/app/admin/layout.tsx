@@ -5,6 +5,8 @@ import FloatingBlobs from "@/components/layout/FloadtingBlobs";
 import ToastProvider from "@/components/layout/ToastProvider";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DashboardProvider } from "@/lib/DashboardContext";
+
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
@@ -25,7 +27,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }, [router]);
   if (!checked) return null;
   return (
-    <div className="flex min-h-screen overflow-hidden bg-gray-100 ">
+    <DashboardProvider>
+      <div className="flex min-h-screen overflow-hidden bg-slate-300 text-black">
       {/* Sidebar */}
       <Sidebar
         collapsed={collapsed}
@@ -38,13 +41,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           collapsed ? "ml-20" : "ml-64"
         }`}
       >
-        <div className="relative overflow-hidden w-full h-full">
-          {/* <FloatingBlobs /> */}
-
+        <div className="relative w-full h-full min-h-screen z-10">
           {children}
           {/* <ToastProvider /> */}
         </div>
       </main>
     </div>
+    </DashboardProvider>
   );
 }

@@ -72,7 +72,7 @@ const ClientGallery = ({ gallery, categories }: Props) => {
           All
         </button>
 
-        {categories.map((cat) => (
+        {(Array.isArray(categories) ? categories : []).map((cat) => (
           <button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
@@ -98,7 +98,9 @@ const ClientGallery = ({ gallery, categories }: Props) => {
           filteredGallery.map((item) => {
             const categoryName =
               item.category?.name ||
-              categories.find((c) => c.id === item.category_id)?.name;
+              (Array.isArray(categories) ? categories : []).find(
+                (c) => c.id === item.category_id
+              )?.name;
 
             return (
               <div

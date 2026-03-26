@@ -14,6 +14,14 @@ const GalleryViewModal: React.FC<GalleryViewModalProps> = ({
   onClose,
   data,
 }) => {
+  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL;
+
+  const getImageUrl = (path?: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${IMAGE_BASE?.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}`;
+  };
+
   if (!isOpen || !data) return null;
 
   return (
@@ -85,8 +93,8 @@ const GalleryViewModal: React.FC<GalleryViewModalProps> = ({
                 {data.images.map((img: string, index: number) => (
                   <img
                     key={index}
-                    src={img}
-                    className="w-full h-24 object-cover rounded-lg border border- primary/10"
+                    src={getImageUrl(img)}
+                    className="w-full h-24 object-cover rounded-lg border border-primary/10"
                   />
                 ))}
               </div>

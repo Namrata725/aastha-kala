@@ -30,17 +30,16 @@ const HomeInstructor = async () => {
   const hasMoreThanTwo = instructors.length > 2;
 
   return (
-    <section className=" max-w-6xl mx-auto my-6">
+    <section className="max-w-7xl mx-auto px-6 my-16 space-y-12">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-primary tracking-wide font-poppins mb-2">
           Meet Our Instructors
         </h1>
-        <p className=" font-semibold text-secondary tracking-wider">
+        <h4 className=" font-semibold text-secondary tracking-wider">
           <span>
-            Learn from industry professionals and award-winning artists
-            dedicated to your success.
+            Learn from industry professionals and award-winning artists dedicated to your success.
           </span>
-        </p>
+        </h4>
       </div>
       <ClientInstructors instructors={limitedInstructors} />
 

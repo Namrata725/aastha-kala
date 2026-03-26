@@ -118,7 +118,7 @@ const Page = () => {
 
   const formattedData = data.map((item, index) => ({
     ...item,
-    sn: index + 1,
+    sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
 
     image: item.image ? (
       <img

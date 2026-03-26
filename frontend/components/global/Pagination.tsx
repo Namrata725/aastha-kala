@@ -22,7 +22,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-4 bg-white border-t border-gray-200 sm:px-6 mt-4 rounded-lg shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-4  sm:px-6 mt-4 rounded-lg ">
             <div className="flex flex-1 justify-between sm:hidden">
                 <button
                     onClick={() => onPageChange(currentPage - 1)}

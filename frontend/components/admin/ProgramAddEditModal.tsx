@@ -12,10 +12,8 @@ interface Instructor {
 interface Schedule {
   id?: number;
   instructor_id: string | number;
-  day_of_week: string;
   start_time: string;
   end_time: string;
-  max_capacity: string | number;
 }
 
 interface ProgramAddEditModalProps {
@@ -25,7 +23,6 @@ interface ProgramAddEditModalProps {
   onSuccess: () => void;
 }
 
-const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
   isOpen,
@@ -55,6 +52,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
         setIsActive(program.is_active ?? true);
         setSchedules(program.schedules?.map((s: any) => ({
           ...s,
+          instructor_id: s.instructor_id ?? "",
           start_time: s.start_time?.substring(0, 5) || "",
           end_time: s.end_time?.substring(0, 5) || "",
         })) || []);
@@ -95,7 +93,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
   const addSchedule = () => {
     setSchedules([
       ...schedules,
-      { day_of_week: "Monday", start_time: "07:00", end_time: "08:00", instructor_id: "", max_capacity: 10 },
+      { start_time: "07:00", end_time: "08:00", instructor_id: "" },
     ]);
   };
 
@@ -105,8 +103,8 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
 
   const [conflicts, setConflicts] = useState<{[key: number]: string}>({});
 
-  const checkConflict = async (index: number, instructorId: string | number, day: string, start: string, end: string) => {
-    if (!instructorId || !day || !start || !end) {
+  const checkConflict = async (index: number, instructorId: string | number, start: string, end: string) => {
+    if (!instructorId || !start || !end) {
         setConflicts(prev => {
             const newConflicts = {...prev};
             delete newConflicts[index];
@@ -116,7 +114,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
     }
     
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructors/${instructorId}/check-conflict?day_of_week=${day}&start_time=${start}&end_time=${end}${program?.id ? `&exclude_program_id=${program.id}` : ""}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructors/${instructorId}/check-conflict?start_time=${start}&end_time=${end}${program?.id ? `&exclude_program_id=${program.id}` : ""}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         const data = await res.json();
@@ -149,11 +147,9 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
     });
 
     schedules.forEach((s, i) => {
-      formData.append(`schedules[${i}][day_of_week]`, s.day_of_week);
       formData.append(`schedules[${i}][start_time]`, s.start_time);
       formData.append(`schedules[${i}][end_time]`, s.end_time);
       if (s.instructor_id) formData.append(`schedules[${i}][instructor_id]`, s.instructor_id.toString());
-      if (s.max_capacity) formData.append(`schedules[${i}][max_capacity]`, s.max_capacity.toString());
     });
 
     try {
@@ -298,7 +294,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                 />
                 <div className="flex flex-col">
                    <label className="text-sm font-bold text-primary cursor-pointer italic">Live / Active</label>
-                   <span className="text-[10px] text-primary/60 uppercase font-medium italic">Allow students to see and book this program</span>
+                   {/* <span className="text-[10px] text-primary/60 uppercase font-medium italic">Allow students to see and book this program</span> */}
                 </div>
               </div>
             </div>
@@ -308,9 +304,9 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
             <div className="flex justify-between items-center mb-6">
                <div className="flex flex-col">
                   <h3 className="text-lg font-bold text-primary tracking-tight italic flex items-center gap-2">
-                    Fixed Schedules & Instructors
+                    Fixed Schedules
                   </h3>
-                  <span className="text-[10px] text-primary/60 uppercase font-black tracking-widest italic">Assign specific slots to specific teachers</span>
+                  {/* <span className="text-[10px] text-primary/60 uppercase font-black tracking-widest italic">Assign specific slots to specific teachers</span> */}
                </div>
               <button type="button" onClick={addSchedule} className="flex items-center gap-2 text-[10px] bg-linear-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg font-black uppercase hover:opacity-90 transition active:scale-95 shadow-xl shadow-primary/10 tracking-widest italic">
                 <Plus className="w-4 h-4" /> Add Slot
@@ -319,23 +315,8 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
 
             <div className="space-y-4">
               {schedules.map((s, index) => (
-                <div key={index} className="grid grid-cols-1 sm:grid-cols-6 gap-4 p-5 bg-white/40 rounded-2xl border border-primary/20 group hover:border-primary/40 transition relative overflow-hidden shadow-sm">
-                  <div className="sm:col-span-1">
-                    <label className="text-[10px] font-black uppercase text-primary/40 block mb-2 tracking-widest italic">Day</label>
-                    <select
-                      value={s.day_of_week}
-                      onChange={(e) => {
-                        const newS = [...schedules];
-                        newS[index].day_of_week = e.target.value;
-                        setSchedules(newS);
-                        checkConflict(index, newS[index].instructor_id, e.target.value, s.start_time, s.end_time);
-                      }}
-                      className="w-full bg-white/60 border border-primary/20 rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition cursor-pointer appearance-none font-bold italic"
-                    >
-                      {days.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                  </div>
-                  <div className="sm:col-span-1">
+                <div key={index} className="grid grid-cols-1 sm:grid-cols-7 gap-4 p-5 bg-white/40 rounded-2xl border border-primary/20 group hover:border-primary/40 transition relative overflow-hidden shadow-sm">
+                  <div className="sm:col-span-2">
                     <label className="text-[10px] font-black uppercase text-primary/40 block mb-2 tracking-widest italic">Start Time</label>
                     <input
                       type="time"
@@ -344,12 +325,12 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                         const newS = [...schedules];
                         newS[index].start_time = e.target.value;
                         setSchedules(newS);
-                        checkConflict(index, newS[index].instructor_id, s.day_of_week, e.target.value, s.end_time);
+                        checkConflict(index, newS[index].instructor_id, e.target.value, s.end_time);
                       }}
                       className="w-full bg-white/60 border border-primary/20 rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition font-bold"
                     />
                   </div>
-                  <div className="sm:col-span-1">
+                  <div className="sm:col-span-2">
                     <label className="text-[10px] font-black uppercase text-primary/40 block mb-2 tracking-widest italic">End Time</label>
                     <input
                       type="time"
@@ -358,42 +339,28 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                         const newS = [...schedules];
                         newS[index].end_time = e.target.value;
                         setSchedules(newS);
-                        checkConflict(index, newS[index].instructor_id, s.day_of_week, s.start_time, e.target.value);
+                        checkConflict(index, newS[index].instructor_id, s.start_time, e.target.value);
                       }}
                       className="w-full bg-white/60 border border-primary/20 rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition font-bold"
                     />
                   </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-[10px] font-black uppercase text-primary/40 block mb-2 tracking-widest italic">Lead Instructor</label>
-                    <select
-                      value={s.instructor_id}
-                      onChange={(e) => {
-                        const newS = [...schedules];
-                        newS[index].instructor_id = e.target.value;
-                        setSchedules(newS);
-                        checkConflict(index, e.target.value, s.day_of_week, s.start_time, s.end_time);
-                      }}
-                      className={`w-full bg-white/60 border rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition cursor-pointer appearance-none font-bold italic ${conflicts[index] ? 'border-red-500/50' : 'border-primary/20'}`}
-                    >
-                      <option value="">Select Instructor</option>
-                      {instructors.map(inst => <option key={inst.id} value={inst.id}>{inst.name}</option>)}
-                    </select>
-                    {conflicts[index] && <p className="text-[9px] text-red-500 mt-1 font-medium">{conflicts[index]}</p>}
-                  </div>
-                  <div className="sm:col-span-1 flex items-end gap-3">
+                  <div className="sm:col-span-3 flex items-end gap-3">
                     <div className="flex-1">
-                       <label className="text-[10px] font-black uppercase text-primary/40 block mb-2 tracking-widest italic">Max Cap</label>
-                       <input
-                        type="number"
-                        min="1"
-                        value={s.max_capacity}
+                      <label className="text-[10px] font-black uppercase text-primary/40 block mb-2 tracking-widest italic">Lead Instructor</label>
+                      <select
+                        value={s.instructor_id}
                         onChange={(e) => {
                           const newS = [...schedules];
-                          newS[index].max_capacity = e.target.value;
+                          newS[index].instructor_id = e.target.value;
                           setSchedules(newS);
+                          checkConflict(index, e.target.value, s.start_time, s.end_time);
                         }}
-                        className="w-full bg-white/60 border border-primary/20 rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition font-bold italic"
-                      />
+                        className={`w-full bg-white/60 border rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition cursor-pointer appearance-none font-bold italic ${conflicts[index] ? 'border-red-500/50' : 'border-primary/20'}`}
+                      >
+                        <option value="">Select Instructor</option>
+                        {instructors.map(inst => <option key={inst.id} value={inst.id}>{inst.name}</option>)}
+                      </select>
+                      {conflicts[index] && <p className="text-[9px] text-red-500 mt-1 font-medium">{conflicts[index]}</p>}
                     </div>
                     <button type="button" onClick={() => removeSchedule(index)} className="p-2 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition group-hover:opacity-100">
                         <Trash2 className="w-5 h-5 px-1" />

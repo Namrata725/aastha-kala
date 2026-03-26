@@ -66,32 +66,26 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
   };
   return (
     <aside
-      className={`fixed top-0 left-0 h-screen flex flex-col transition-all duration-300 ${
+      className={`fixed top-0 left-0 h-screen flex flex-col transition-all duration-300 bg-gray-400 ${
         collapsed ? "w-20" : "w-64"
       }`}
       style={{
-        background:
-          "linear-linear(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2))",
-        backdropFilter: "blur(20px)",
-        borderRight: "1px solid rgba(255,255,255,0.1)",
+        borderRight: "1px solid #e2e8f0",
+        boxShadow: "4px 0 15px rgba(0,0,0,0.03)"
       }}
     >
-      {/* Floating linear blobs */}
-      <div className="absolute top-10 left-5 w-40 h-40 bg-primary/30 rounded-full blur-3xl animate-float-slow" />
-      <div className="absolute bottom-10 right-5 w-32 h-32 bg-secondary/30 rounded-full blur-2xl animate-float-medium" />
-
       {/* Sidebar content */}
       <div className="flex flex-col h-screen relative z-10">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
           {!collapsed && (
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary select-none">
-              Admin Panel
+            <span className="text-2xl font-black text-black select-none tracking-tight">
+              Aastha Kala
             </span>
           )}
           <button
             onClick={toggleCollapse}
-            className="p-1 rounded hover:bg-primary/20 transition text-primary"
+            className="p-1.5 rounded-lg bg-white/30 hover:bg-white/50 border border-white/10 transition-all duration-300 text-gray-900"
           >
             {collapsed ? "→" : "←"}
           </button>
@@ -107,26 +101,26 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
                 <li key={item.name} className="relative group">
                   <Link
                     href={item.href}
-                    className={`flex items-center p-1 rounded-lg transition-all duration-200 text-sm
+                    className={`flex items-center p-2 rounded-xl transition-all duration-300 text-sm font-semibold
                       ${
                         isActive
-                          ? "bg-white/10 backdrop-blur-md shadow-md"
-                          : "hover:bg-white/10 hover:backdrop-blur-sm"
+                          ? "bg-white/40 shadow-sm border border-white/20"
+                          : "hover:bg-white/20 text-gray-900"
                       }
                     `}
                   >
                     <item.icon
-                      className={`w-6 h-6 mr-3 ${
-                        isActive ? "stroke-primary" : "stroke-primary/70"
+                      className={`w-5 h-5 mr-3 shrink-0 ${
+                        isActive ? "stroke-primary" : "stroke-gray-800"
                       }`}
                     />
 
                     {!collapsed && (
                       <span
-                        className={`ml-2 font-bold bg-clip-text text-transparent ${
+                        className={`ml-2 font-bold ${
                           isActive
-                            ? "bg-linear-to-r from-primary to-secondary"
-                            : "bg-linear-to-r from-primary/70 to-secondary/70"
+                            ? "text-primary"
+                            : "text-gray-900"
                         }`}
                       >
                         {item.name}
@@ -140,14 +134,14 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
         </nav>
 
         {/* Footer with Logout */}
-        <div className="p-4 border-t border-white/10 flex flex-col gap-2 mt-auto">
+        <div className="p-4 border-t border-gray-100 flex flex-col gap-2 mt-auto">
           {!collapsed && (
             <>
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center gap-2 p-2 rounded-lg font-bold text-sm bg-white/10 backdrop-blur-md transition hover:bg-white/20"
+                className="flex items-center justify-center gap-2 p-2.5 rounded-xl font-bold text-sm bg-white/30 border border-white/10 transition-all duration-300 hover:bg-white/50 text-gray-900 shadow-sm"
               >
-                <LogOut className="w-5 h-5 stroke-primary" />
+                <LogOut className="w-5 h-5 stroke-primary cursor-pointer" />
                 Logout
               </button>
             </>
@@ -156,9 +150,9 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
           {collapsed && (
             <button
               onClick={handleLogout}
-              className="flex items-center justify-center p-2 rounded-lg hover:bg-white/20 transition"
+              className="flex items-center justify-center p-2.5 rounded-xl hover:bg-white/40 border border-transparent hover:border-white/20 transition-all duration-300 text-gray-900"
             >
-              <LogOut className="w-6 h-6 stroke-primary" />
+              <LogOut className="w-5 h-5 stroke-primary" />
             </button>
           )}
         </div>

@@ -347,7 +347,7 @@ const InstructorModal: React.FC<Props> = ({
             <h3 className="text-lg font-bold text-primary italic flex items-center gap-2">
               Programs Taught
             </h3>
-            <p className="text-[10px] text-white/40 font-black uppercase tracking-widest mt-1">Which programs does this instructor teach?</p>
+            <p className="text-[10px] text-black font-black uppercase tracking-widest mt-1">Which programs does this instructor teach?</p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -364,7 +364,7 @@ const InstructorModal: React.FC<Props> = ({
                 className={`p-3 rounded-xl border transition cursor-pointer flex items-center gap-3 ${
                   selectedPrograms.includes(program.id)
                     ? "bg-primary/20 border-primary text-white shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]"
-                    : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
+                    : "bg-white/5 border-white/10 text-black hover:bg-white/10"
                 }`}
               >
                 <div className={`w-2 h-2 rounded-full ${selectedPrograms.includes(program.id) ? "bg-primary animate-pulse" : "bg-white/20"}`} />
@@ -386,7 +386,7 @@ const InstructorModal: React.FC<Props> = ({
               <h3 className="text-lg font-bold text-primary italic flex items-center gap-2">
                 Working Hours & Availability
               </h3>
-              <p className="text-[10px] text-white/40 font-black uppercase tracking-widest mt-1">When is this instructor available to teach?</p>
+              <p className="text-[10px] text-black font-black uppercase tracking-widest mt-1">When is this instructor available to teach?</p>
             </div>
             <button 
               type="button" 
@@ -441,15 +441,15 @@ const InstructorModal: React.FC<Props> = ({
                    </div>
                  </div>
                  <div className="flex gap-3 justify-center border-t border-white/5 pt-2">
-                    <span className="text-[9px] text-white/40 font-black italic uppercase tracking-widest">{to12h(avail.start_time)}</span>
-                    <span className="text-[9px] text-white/10 italic">—</span>
-                    <span className="text-[9px] text-white/40 font-black italic uppercase tracking-widest">{to12h(avail.end_time)}</span>
+                    <span className="text-[9px] text-secondary font-black italic uppercase tracking-widest">{to12h(avail.start_time)}</span>
+                    <span className="text-[9px] text-secondary italic">—</span>
+                    <span className="text-[9px] text-secondary font-black italic uppercase tracking-widest">{to12h(avail.end_time)}</span>
                  </div>
                </div>
             ))}
             {availabilities.length === 0 && (
               <div className="col-span-full py-8 border-2 border-dashed border-white/5 rounded-2xl flex items-center justify-center bg-white/[0.02]">
-                 <span className="text-xs font-bold text-white/20 uppercase tracking-widest">No working hours defined yet</span>
+                 <span className="text-xs font-bold text-secondary uppercase tracking-widest">No working hours defined yet</span>
               </div>
             )}
           </div>

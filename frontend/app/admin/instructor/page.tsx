@@ -53,6 +53,14 @@ const Page = () => {
     itemsPerPage: 10,
   });
 
+  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL;
+
+  const getImageUrl = (path?: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${IMAGE_BASE?.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}`;
+  };
+
   const getInitials = (name: string) => {
     if (!name) return "?";
 
@@ -115,12 +123,11 @@ const Page = () => {
 
   const formattedData = instructors.map((inst, index) => ({
     ...inst,
-
-    sn: index + 1,
+    sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
 
     image: inst.image ? (
       <img
-        src={inst.image}
+        src={getImageUrl(inst.image)}
         alt={inst.name}
         className="w-10 h-10 rounded-full object-cover"
       />
@@ -201,7 +208,7 @@ const Page = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex justify-between p-4">
-        <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">
+        <span className="text-2xl font-bold text-black">
           Our Instructors
         </span>
 

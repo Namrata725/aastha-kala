@@ -21,6 +21,7 @@ import {
   Type,
   AlignLeft,
   Mail,
+  Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -73,6 +74,8 @@ const Settings: React.FC = () => {
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [initialData, setInitialData] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
 
   // GENERAL
   const [setting, setSetting] = useState<Setting>({
@@ -145,7 +148,7 @@ const Settings: React.FC = () => {
           if (s.logo) setLogoPreview(s.logo);
           if (s.banner) setBannerPreview(s.banner);
 
-          setSetting({
+          const settingData = {
             company_name: s.company_name || "",
             address: s.address || "",
             location: s.location_map || "",
@@ -153,48 +156,55 @@ const Settings: React.FC = () => {
             email: s.email || "",
             about: s.about || "",
             about_short: s.about_short || "",
-          });
+          };
+          setSetting(settingData);
 
           const soc = data.data.social_links;
-          setSocial({
+          const socialData = {
             facebook: soc?.facebook || "",
             instagram: soc?.instagram || "",
             tiktok: soc?.tiktok || "",
             twitter: soc?.x || "",
-          });
+          };
+          setSocial(socialData);
 
           const st = s;
-          setStats({
+          const statsData = {
             experience: st.years_of_experience?.toString() || "",
             awards: st.awards?.toString() || "",
             instructors: st.number_of_instructors?.toString() || "",
             students: st.number_of_students?.toString() || "",
             success_rate: st.success_rate?.toString() || "",
-          });
+          };
+          setStats(statsData);
 
-          if (
-            data.data.why_us &&
-            Array.isArray(data.data.why_us) &&
-            data.data.why_us.length > 0
-          ) {
-            setWhyUsItems(
-              data.data.why_us.map((item: any) => ({
-                title: item.title,
-                desc: item.description,
-              })),
-            );
+          let whyUsData = [{ title: "", desc: "" }];
+          if (data.data.why_us && Array.isArray(data.data.why_us) && data.data.why_us.length > 0) {
+            whyUsData = data.data.why_us.map((item: any) => ({
+              title: item.title,
+              desc: item.description,
+            }));
           }
+          setWhyUsItems(whyUsData);
 
           const mission = data.data.setting?.mission;
-
+          let missionData = [{ title: "", desc: "" }];
           if (mission && Array.isArray(mission)) {
-            setMissionItems(
-              mission.map((item: any) => ({
-                title: item.title,
-                desc: item.description,
-              })),
-            );
+            missionData = mission.map((item: any) => ({
+              title: item.title,
+              desc: item.description || "",
+            }));
           }
+          setMissionItems(missionData);
+
+          // Store all initial data for change detection
+          setInitialData(JSON.stringify({
+            setting: settingData,
+            social: socialData,
+            stats: statsData,
+            whyUsItems: whyUsData,
+            missionItems: missionData
+          }));
         }
       } catch (err) {
         console.error(err);
@@ -206,7 +216,6 @@ const Settings: React.FC = () => {
   }, []);
 
   // save
-
   const saveSettings = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -214,6 +223,14 @@ const Settings: React.FC = () => {
       return;
     }
 
+    // Change detection
+    const currentData = JSON.stringify({ setting, social, stats, whyUsItems, missionItems });
+    if (currentData === initialData && !logoFile && !bannerFile) {
+      toast("No changes made");
+      return;
+    }
+
+    setIsSaving(true);
     const formData = new FormData();
 
     // GENERAL
@@ -252,37 +269,37 @@ const Settings: React.FC = () => {
     if (bannerFile) formData.append("banner", bannerFile);
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/settings`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-          body: formData,
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/settings`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
         },
-      );
+        body: formData,
+      });
 
       const data = await res.json();
 
       if (data.success) {
+        setInitialData(currentData);
+        setLogoFile(null);
+        setBannerFile(null);
         toast.success("Settings saved successfully");
       } else {
         let errorMessage = data.message;
-
         if (data.errors) {
           const firstField = Object.keys(data.errors)[0];
           if (firstField && data.errors[firstField]?.length) {
             errorMessage = data.errors[firstField][0];
           }
         }
-
         toast.error(errorMessage || "Failed to save settings");
       }
     } catch (err) {
       console.error(err);
       toast.error("Failed to save settings");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -581,13 +598,13 @@ const Settings: React.FC = () => {
                 >
                   <button
                     type="button"
-                    className="absolute top-2 right-2 text-red-500"
+                    className="absolute top-4 right-4 text-red-500 hover:text-red-700 transition"
                     onClick={() => {
                       const updated = whyUsItems.filter((_, i) => i !== idx);
                       setWhyUsItems(updated);
                     }}
                   >
-                    Remove
+                    <Trash2 className="w-5 h-5" />
                   </button>
                   <InputField
                     label={`Title #${idx + 1}`}
@@ -634,13 +651,13 @@ const Settings: React.FC = () => {
                 >
                   <button
                     type="button"
-                    className="absolute top-2 right-2 text-red-500"
+                    className="absolute top-4 right-4 text-red-500 hover:text-red-700 transition"
                     onClick={() => {
                       const updated = missionItems.filter((_, i) => i !== idx);
                       setMissionItems(updated);
                     }}
                   >
-                    Remove
+                    <Trash2 className="w-5 h-5" />
                   </button>
                   <InputField
                     label={`Misiion ${idx + 1}`}
@@ -671,9 +688,17 @@ const Settings: React.FC = () => {
         <div className="mt-6 flex justify-end">
           <button
             onClick={saveSettings}
-            className="px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg"
+            disabled={isSaving}
+            className="px-8 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px]"
           >
-            Save Settings
+            {isSaving ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Saving...</span>
+              </div>
+            ) : (
+              "Save Settings"
+            )}
           </button>
         </div>
       </div>

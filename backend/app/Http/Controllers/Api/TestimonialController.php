@@ -13,7 +13,7 @@ class TestimonialController extends Controller
     // GET /api/admin/testimonials
     public function index()
     {
-        $testimonials = Testimonial::orderBy('order', 'asc')->get();
+        $testimonials = Testimonial::latest()->paginate(10);
 
         return response()->json([
             'success' => true,

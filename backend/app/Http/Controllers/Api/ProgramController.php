@@ -16,7 +16,9 @@ class ProgramController extends Controller
     // GET /api/programs
     public function index()
     {
-        $programs = Program::with(['schedules', 'instructors'])->paginate(10);
+        $programs = Program::with(['schedules', 'instructors'])
+            ->latest()
+            ->paginate(10);
 
         return response()->json([
             'success' => true,
@@ -52,10 +54,8 @@ class ProgramController extends Controller
             'instructor_ids.*' => 'exists:instructors,id',
             'schedules' => 'nullable|array',
             'schedules.*.instructor_id' => 'nullable|exists:instructors,id',
-            'schedules.*.day_of_week' => 'required_with:schedules|string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             'schedules.*.start_time' => 'required_with:schedules|date_format:H:i',
             'schedules.*.end_time' => 'required_with:schedules|date_format:H:i',
-            'schedules.*.max_capacity' => 'nullable|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -85,10 +85,8 @@ class ProgramController extends Controller
             foreach ($request->schedules as $schedule) {
                 $program->schedules()->create([
                     'instructor_id' => $schedule['instructor_id'] ?? null,
-                    'day_of_week' => $schedule['day_of_week'],
-                    'start_time' => $schedule['start_time'],
-                    'end_time' => $schedule['end_time'],
-                    'max_capacity' => $schedule['max_capacity'] ?? null,
+                    'start_time'    => $schedule['start_time'],
+                    'end_time'      => $schedule['end_time'],
                 ]);
             }
         }
@@ -144,10 +142,8 @@ class ProgramController extends Controller
             'instructor_ids.*' => 'exists:instructors,id',
             'schedules' => 'nullable|array',
             'schedules.*.instructor_id' => 'nullable|exists:instructors,id',
-            'schedules.*.day_of_week' => 'required_with:schedules|string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             'schedules.*.start_time' => 'required_with:schedules|date_format:H:i',
             'schedules.*.end_time' => 'required_with:schedules|date_format:H:i',
-            'schedules.*.max_capacity' => 'nullable|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -190,10 +186,8 @@ class ProgramController extends Controller
             foreach ($request->schedules as $schedule) {
                 $program->schedules()->create([
                     'instructor_id' => $schedule['instructor_id'] ?? null,
-                    'day_of_week' => $schedule['day_of_week'],
-                    'start_time' => $schedule['start_time'],
-                    'end_time' => $schedule['end_time'],
-                    'max_capacity' => $schedule['max_capacity'] ?? null,
+                    'start_time'    => $schedule['start_time'],
+                    'end_time'      => $schedule['end_time'],
                 ]);
             }
         }

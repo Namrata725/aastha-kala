@@ -130,33 +130,20 @@ const ProgramViewModal: React.FC<ProgramViewModalProps> = ({
                   className="bg-white/40 border border-primary/10 rounded-xl p-5 space-y-4 shadow-sm group hover:border-primary/40 transition duration-300 relative overflow-hidden"
                 >
                   <div className="flex justify-between items-center border-b border-primary/10 pb-3">
-                    <span className="text-sm font-black text-primary italic uppercase tracking-wider">
-                      {s.day_of_week}
-                    </span>
-                    <div className="flex items-center gap-1.5 text-primary/40 group-hover:text-primary transition italic">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">
+                    <div className="flex items-center gap-1.5 text-primary italic">
+                      <Clock className="w-3.5 h-3.5 text-secondary" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-primary">
                         {s.start_time?.substring(0, 5)} -{" "}
                         {s.end_time?.substring(0, 5)}
                       </span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center gap-2 bg-primary/5 px-3 py-2 rounded-lg border border-primary/10">
-                      <User className="w-3.5 h-3.5 text-secondary" />
-                      <span className="text-xs font-bold text-primary uppercase tracking-tight truncate italic">
-                        {s.instructor?.name || "Unassigned"}
-                      </span>
-                    </div>
-                    {s.max_capacity && (
-                      <div className="flex items-center gap-2 bg-secondary/5 px-3 py-2 rounded-lg border border-secondary/10">
-                        <Users className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-[9px] font-black text-secondary uppercase tracking-widest italic">
-                          {s.max_capacity} Seats
-                        </span>
-                      </div>
-                    )}
+                  <div className="flex items-center gap-2 bg-primary/5 px-3 py-2 rounded-lg border border-primary/10 w-fit">
+                    <User className="w-3.5 h-3.5 text-secondary" />
+                    <span className="text-xs font-bold text-primary uppercase tracking-tight truncate italic">
+                      {s.instructor?.name || "Unassigned"}
+                    </span>
                   </div>
                 </div>
               ))}

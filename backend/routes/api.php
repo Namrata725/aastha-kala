@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\ProgramController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\InstructorAvailabilityController;
+use App\Http\Controllers\Api\DashboardController;
 
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -41,6 +42,8 @@ Route::post('/bookings', [BookingController::class, 'store']);
 // Admin Routes
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 
     Route::apiResource('settings', SettingController::class)->only(['index', 'update']);
     Route::get('/settings', [SettingController::class, 'show']);

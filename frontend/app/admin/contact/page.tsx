@@ -88,7 +88,7 @@ const AdminMessagesPage = () => {
 
   const formattedData = messages.map((msg, index) => ({
     ...msg,
-    sn: index + 1,
+    sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
     message_preview: (
       <div className="max-w-[200px] truncate" title={msg.message}>
         {msg.message}

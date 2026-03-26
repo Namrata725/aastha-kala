@@ -14,7 +14,7 @@ class GalleryCategoryController extends Controller
      */
     public function index()
     {
-        return response()->json(GalleryCategory::all());
+        return response()->json(GalleryCategory::latest()->paginate(10));
     }
 
     /**

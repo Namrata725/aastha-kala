@@ -107,26 +107,26 @@ const BookingManagementPage = () => {
 
     const formattedData = filteredBookings.map((b: any, index: number) => ({
         ...b,
-        sn: index + 1,
+        sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
         customer: (
             <div className="flex flex-col">
-                <span className="text-sm font-bold text-white">{b.name}</span>
-                <span className="text-[10px] text-white/30 uppercase tracking-tight">{b.email}</span>
+                <span className="text-sm font-bold text-black">{b.name}</span>
+                <span className="text-[10px] text-gray-500 uppercase tracking-tight">{b.email}</span>
             </div>
         ),
         programInfo: (
             <div className="flex flex-col gap-1">
                 <span className="text-xs font-bold text-secondary">{b.program?.title}</span>
                 <div className="flex items-center gap-2">
-                   <span className="text-[9px] bg-white/5 border border-white/10 px-1 py-0.5 rounded text-white/60 font-medium uppercase">{b.class_mode}</span>
+                   <span className="text-[9px] bg-gray-50 border border-gray-100 px-1 py-0.5 rounded text-gray-500 font-medium uppercase">{b.class_mode}</span>
                    <span className={`text-[9px] px-1 py-0.5 rounded font-bold uppercase ${b.type === 'regular' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary border border-secondary/20'}`}>{b.type}</span>
                 </div>
             </div>
         ),
         date_time: (
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-white">{b.booking_date}</span>
-              <span className="text-[10px] text-white/40 italic">
+              <span className="text-xs font-bold text-black">{b.booking_date}</span>
+              <span className="text-[10px] text-gray-500 italic">
                 {b.type === 'regular' ? `${b.schedule?.start_time?.substring(0, 5)} - ${b.schedule?.end_time?.substring(0, 5)}` : `${b.custom_start_time?.substring(0, 5)} - ${b.custom_end_time?.substring(0, 5)}`}
               </span>
             </div>
@@ -140,25 +140,25 @@ const BookingManagementPage = () => {
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-center p-6 bg-white/5 border border-white/10 rounded-2xl gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-center p-6 bg-white border border-gray-200 rounded-2xl gap-6 shadow-sm">
                 <div className="flex flex-col text-center md:text-left">
-                    <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">Booking Requests</span>
-                    <span className="text-xs text-white/40 font-medium uppercase tracking-widest mt-0.5">Approve or reject student registration requests</span>
+                    <span className="text-2xl font-bold text-black">Booking Requests</span>
+                    <span className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">Approve or reject student registration requests</span>
                 </div>
 
                 <div className="relative w-full md:w-80">
-                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                    <input 
                      type="text" 
                      placeholder="Search names, emails or programs..." 
                      value={searchTerm}
                      onChange={(e) => setSearchTerm(e.target.value)}
-                     className="w-full bg-black/40 border border-white/10 rounded-xl px-10 py-2.5 text-sm text-white focus:outline-none focus:border-primary transition"
+                     className="w-full bg-white border border-gray-200 rounded-xl px-10 py-2.5 text-sm text-black focus:outline-none focus:border-primary transition shadow-sm"
                    />
                 </div>
             </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-md">
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
                 <Table
                     columns={columns}
                     data={formattedData}

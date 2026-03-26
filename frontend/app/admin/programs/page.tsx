@@ -29,6 +29,14 @@ const ProgramsPage = () => {
         itemsPerPage: 10,
     });
 
+    const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL;
+
+    const getImageUrl = (path?: string | null) => {
+        if (!path) return "";
+        if (path.startsWith("http")) return path;
+        return `${IMAGE_BASE?.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}`;
+    };
+
     const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -78,12 +86,12 @@ const ProgramsPage = () => {
 
     const formattedData = programs.map((p: Program, index: number) => ({
         ...p,
-        sn: index + 1,
-        image: p.image ? <img src={p.image} className="w-10 h-10 rounded object-cover" /> : "?",
+        sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
+        image: p.image ? <img src={getImageUrl(p.image)} className="w-10 h-10 rounded object-cover" /> : "?",
         schedule_count: (
             <div className="flex flex-col gap-1">
                 <span className="text-xs font-bold text-primary">{p.schedules?.length || 0} slots</span>
-                <span className="text-[10px] text-white/40 uppercase tracking-tighter hover:text-white cursor-pointer" onClick={() => handleView(p)}>View Details</span>
+                <span className="text-[10px] text-gray-500 uppercase tracking-tighter hover:text-black cursor-pointer" onClick={() => handleView(p)}>View Details</span>
             </div>
         ),
         status: (
@@ -125,10 +133,10 @@ const ProgramsPage = () => {
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
-            <div className="flex justify-between items-center p-4 bg-white/5 border border-white/10 rounded-2xl shadow-lg">
+            <div className="flex justify-between items-center p-4 bg-white border border-gray-200 rounded-2xl shadow-sm">
                 <div className="flex flex-col">
-                    <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">Program Catalog</span>
-                    <span className="text-xs text-white/40 font-medium uppercase tracking-widest mt-0.5">Manage fixed classes and schedules</span>
+                    <span className="text-2xl font-bold text-black">Program Catalog</span>
+                    <span className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">Manage fixed classes and schedules</span>
                 </div>
                 <button
                     onClick={() => { setEditingProgram(null); setFormModalOpen(true); }}
@@ -138,7 +146,7 @@ const ProgramsPage = () => {
                 </button>
             </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-2xl transition duration-500 backdrop-blur-md">
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm transition duration-500">
                 <Table
                     columns={columns}
                     data={formattedData}

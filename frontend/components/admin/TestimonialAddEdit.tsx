@@ -172,17 +172,17 @@ const TestimonialAddEdit: React.FC<Props> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-8 bg-white/5 border border-white/10 backdrop-blur-xl cursor-default"
+        className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-8 bg-white/50 border border-white/20 backdrop-blur-xl cursor-default shadow-2xl"
       >
         {/* Header */}
-        <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
-          <div className="flex items-center gap-2 font-semibold text-xl text-primary">
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+          <div className="flex items-center gap-2 font-bold text-xl text-primary uppercase italic tracking-tight">
             {isEdit ? <Pencil /> : <Plus />}
             {isEdit ? "Edit Testimonial" : "Add Testimonial"}
           </div>
 
-          <button onClick={onClose}>
-            <X className="text-white/70 hover:text-white" />
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors">
+            <X className="text-gray-500 hover:text-black" />
           </button>
         </div>
 
@@ -190,7 +190,7 @@ const TestimonialAddEdit: React.FC<Props> = ({
         <div className="flex flex-col items-center mb-6">
           <div className="relative w-28 h-28">
             {/* Preview */}
-            <div className="w-28 h-28 rounded-full border border-white/20 overflow-hidden flex items-center justify-center bg-white/5">
+            <div className="w-28 h-28 rounded-full border border-gray-200 overflow-hidden flex items-center justify-center bg-white/40 shadow-inner">
               {preview ? (
                 <img
                   src={preview}
@@ -198,7 +198,7 @@ const TestimonialAddEdit: React.FC<Props> = ({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <User className="w-10 h-10 text-white/40" />
+                <User className="w-10 h-10 text-gray-300" />
               )}
             </div>
 
@@ -224,7 +224,7 @@ const TestimonialAddEdit: React.FC<Props> = ({
             )}
           </div>
 
-          <p className="text-xs text-white/50 mt-2">Upload or remove image</p>
+          <p className="text-xs text-gray-500 font-medium mt-2">Upload or remove image</p>
         </div>
 
         {/* Form */}
@@ -267,7 +267,7 @@ const TestimonialAddEdit: React.FC<Props> = ({
         <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-white/10">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-lg text-white/80 bg-white/5 hover:bg-white/10"
+            className="px-5 py-2 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 font-bold transition-all"
           >
             Cancel
           </button>
