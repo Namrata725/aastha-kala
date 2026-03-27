@@ -31,6 +31,11 @@ const InstructorSchedulePage = () => {
             if (!res.ok) throw new Error(result.message || "Failed to fetch schedules");
             
             const list = result.data?.data || result.data || [];
+            if (list.length === 0 && page > 1) {
+                fetchSchedules(page - 1);
+                return;
+            }
+
             setInstructorsSchedules(list);
             
             if (result.data?.last_page) {

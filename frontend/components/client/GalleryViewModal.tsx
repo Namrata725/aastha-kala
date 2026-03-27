@@ -99,35 +99,19 @@ const GalleryViewModal = ({
 
         {/* Content */}
         <div className="p-6">
-          {currentSlide === 0 && (
-            <div className="space-y-4">
-              {/* Title with gradient */}
-              <span className="text-3xl md:text-4xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                {item.title}
-              </span>
-
-              {/* Description (normal text for readability) */}
-              <p className="text-base md:text-lg text-primary gray-700 leading-relaxed max-w-prose mt-3">
-                {item.description || "No description available."}
-              </p>
-            </div>
-          )}
-
-          {/* Media Slides */}
-          {currentSlide > 0 && (
+          {/* Media Slides (First) */}
+          {currentSlide < maxSlide && (
             <div className="flex items-center justify-center">
               {(() => {
-                const index = currentSlide - 1;
-
                 // Images
                 if (
                   item.type === "images" &&
                   item.images &&
-                  item.images[index]
+                  item.images[currentSlide]
                 ) {
                   return (
                     <img
-                      src={item.images[index]}
+                      src={item.images[currentSlide]}
                       className="max-h-[70vh] object-contain"
                       alt=""
                     />
@@ -135,7 +119,7 @@ const GalleryViewModal = ({
                 }
 
                 // Video
-                if (item.type === "video" && item.video && index === 0) {
+                if (item.type === "video" && item.video && currentSlide === 0) {
                   return (
                     <iframe
                       src={getYouTubeEmbedUrl(item.video)}
@@ -152,6 +136,21 @@ const GalleryViewModal = ({
                   </div>
                 );
               })()}
+            </div>
+          )}
+
+          {/* Title & Description (Last) */}
+          {currentSlide === maxSlide && (
+            <div className="space-y-4">
+              {/* Title with gradient */}
+              <span className="text-3xl md:text-4xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+                {item.title}
+              </span>
+
+              {/* Description (normal text for readability) */}
+              <p className="text-base md:text-lg text-primary gray-700 leading-relaxed max-w-prose mt-3">
+                {item.description || "No description available."}
+              </p>
             </div>
           )}
         </div>

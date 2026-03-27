@@ -47,12 +47,12 @@ const [messages, setMessages] = useState<Message[]>([]);
     { key: "date", label: "Date" },
   ];
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (page: number = 1) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/messages`,
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/messages?page=${page}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -64,7 +64,14 @@ const [messages, setMessages] = useState<Message[]>([]);
       const result = await response.json();
 
       if (response.ok) {
-        setMessages(result.data?.data || result.data || []);
+        const list = result.data?.data || result.data || [];
+        
+        if (list.length === 0 && page > 1) {
+            fetchMessages(page - 1);
+            return;
+        }
+
+        setMessages(list);
         
         if (result.data?.last_page) {
             setPagination({
@@ -136,7 +143,7 @@ const [messages, setMessages] = useState<Message[]>([]);
 
       if (response.ok) {
         toast.success("Message deleted successfully.");
-        setMessages((prev) => prev.filter((msg) => msg.id !== selectedMessageForDelete.id));
+        fetchMessages(pagination.currentPage);
       } else {
         toast.error("Failed to delete message.");
       }
@@ -184,31 +191,7 @@ const [messages, setMessages] = useState<Message[]>([]);
             totalPages={pagination.totalPages}
             totalItems={pagination.totalItems}
             itemsPerPage={pagination.itemsPerPage}
-            onPageChange={(page) => {
-                const fetchWithPage = async (p: number) => {
-                    setLoading(true);
-                    try {
-                        const token = localStorage.getItem("token");
-                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/messages?page=${p}`, {
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                                Accept: "application/json",
-                            },
-                        });
-                        const result = await res.json();
-                        setMessages(result.data?.data || []);
-                        setPagination({
-                            currentPage: result.data.current_page,
-                            totalPages: result.data.last_page,
-                            totalItems: result.data.total,
-                            itemsPerPage: result.data.per_page,
-                        });
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-                fetchWithPage(page);
-            }}
+            onPageChange={(page) => fetchMessages(page)}
         />
       </div>
 

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import InputField from "@/components/layout/InputField";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
+import { getYouTubeEmbedUrl } from "@/utils/url";
 
 interface Category {
   id: number;
@@ -161,6 +162,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
       const res = await fetch(url, {
         method,
         headers: {
+          Accept: "application/json",
           Authorization: token ? `Bearer ${token}` : "",
         },
         body: formData,
@@ -170,7 +172,8 @@ const GalleryAddEditModal: React.FC<Props> = ({
 
       if (!res.ok) {
         if (result.errors) {
-          const firstError = Object.values(result.errors)[0] as string[];
+          const validationErrors = result.errors as Record<string, string[]>;
+          const firstError = Object.values(validationErrors)[0] as string[];
           throw new Error(firstError[0]);
         }
         throw new Error(result.message || "Something went wrong");
@@ -263,11 +266,28 @@ const GalleryAddEditModal: React.FC<Props> = ({
           />
 
           {form.type === "video" && (
-            <InputField
-              label="Video URL"
-              value={form.video}
-              onChange={(e) => handleChange("video", e.target.value)}
-            />
+            <div className="space-y-3">
+              <InputField
+                label="Video URL"
+                value={form.video}
+                onChange={(e) => handleChange("video", e.target.value)}
+              />
+
+              {form.video && (
+                <div className="mt-2 text-primary">
+                  <span className="text-sm font-bold block mb-2 uppercase tracking-widest text-[10px] italic">
+                    Video Preview
+                  </span>
+                  <div className="w-full aspect-video rounded-xl overflow-hidden border border-white/20">
+                    <iframe
+                      src={getYouTubeEmbedUrl(form.video)}
+                      className="w-full h-full"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {form.type === "images" && (

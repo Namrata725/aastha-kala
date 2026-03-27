@@ -46,6 +46,7 @@ const EventAddEditModal: React.FC<Props> = ({
   });
 
   const [previewBanner, setPreviewBanner] = useState<string | null>(null);
+const [errors, setErrors] = useState<{[key: string]: string[]}>({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -160,8 +161,11 @@ const EventAddEditModal: React.FC<Props> = ({
 
       if (!res.ok) {
         if (result.errors) {
-          const firstError = Object.values(result.errors)[0] as string[];
-          throw new Error(firstError[0]);
+          const validationErrors = result.errors as Record<string, string[]>;
+          setErrors(validationErrors);
+          const firstError = Object.values(validationErrors)[0]?.[0] || result.message || "Validation failed";
+          toast.error(firstError);
+          return;
         }
         throw new Error(result.message || "Something went wrong");
       }
@@ -199,24 +203,30 @@ const EventAddEditModal: React.FC<Props> = ({
           <div className="grid grid-cols-2 gap-4">
             <InputField
               label="Title"
+              required={true}
               value={form.title}
               onChange={(e) => handleChange("title", e.target.value)}
             />
+            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title[0]}</p>}
 
             <InputField
               label="Location"
+              required={true}
               value={form.location}
               onChange={(e) => handleChange("location", e.target.value)}
             />
+            {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location[0]}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <InputField
               label="Event Date"
               type="datetime-local"
+              required={true}
               value={form.event_date}
               onChange={(e) => handleChange("event_date", e.target.value)}
             />
+            {errors.event_date && <p className="text-red-500 text-xs mt-1">{errors.event_date[0]}</p>}
 
             <InputField
               label="Status"

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { X } from "lucide-react";
+import { getYouTubeEmbedUrl } from "@/utils/url";
 
 interface GalleryViewModalProps {
   isOpen: boolean;
@@ -77,10 +78,17 @@ const GalleryViewModal: React.FC<GalleryViewModalProps> = ({
               <a
                 href={data.video}
                 target="_blank"
-                className="text-blue-400 underline break-all"
+                className="text-blue-400 underline break-all block mb-3 text-xs"
               >
                 {data.video}
               </a>
+              <div className="w-full aspect-video rounded-lg overflow-hidden border border-primary/20 bg-black/20">
+                <iframe
+                  src={getYouTubeEmbedUrl(data.video)}
+                  className="w-full h-full"
+                  allowFullScreen
+                />
+              </div>
             </div>
           )}
 

@@ -40,18 +40,23 @@ const CategoryPage = () => {
 
       const result = await res.json();
       
-      // Since we updated the backend to return basic data without pagination wrapper yet,
-      // we need to handle if it returns an array (old way) or paginated object (new way)
+      // Handle empty page
+      const items = Array.isArray(result) ? result : (result.data || []);
+      if (items.length === 0 && page > 1) {
+          fetchCategories(page - 1);
+          return;
+      }
+
       if (Array.isArray(result)) {
         setCategories(result);
         setPagination({ ...pagination, totalItems: result.length, itemsPerPage: result.length });
       } else if (result.data) {
         setCategories(result.data);
         setPagination({
-          currentPage: result.current_page,
-          totalPages: result.last_page,
-          totalItems: result.total,
-          itemsPerPage: result.per_page,
+          currentPage: result.current_page || page,
+          totalPages: result.last_page || 1,
+          totalItems: result.total || result.data.length,
+          itemsPerPage: result.per_page || 10,
         });
       }
 

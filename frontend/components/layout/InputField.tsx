@@ -36,11 +36,13 @@ const InputField: React.FC<Props> = ({
   return (
     <div className="w-full">
       {/* Label */}
-      <label className="flex items-center text-sm mb-1 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent font-medium gap-2">
+      <label className="flex items-center text-sm mb-1 font-medium gap-2">
+        <div className="flex items-center gap-2 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
           {Icon && <Icon className="w-4 h-4 text-primary" />}
           {label}
-          {required && <span className="text-red-500 ml-0.5">*</span>}
-        </label>
+        </div>
+        {required && <span className="text-red-500 ml-0.5 font-bold">*</span>}
+      </label>
 
       {/* Container */}
       <div className="p-1px rounded-xl bg-linear-to-r from-primary/20 to-secondary/20">

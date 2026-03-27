@@ -79,12 +79,12 @@ const Page = () => {
     { key: "phone", label: "Phone" },
   ];
 
-  const fetchInstructors = async () => {
+  const fetchInstructors = async (page: number = 1) => {
     try {
       setLoading(true);
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/instructors`,
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/instructors?page=${page}`,
         {
           headers: {
             Accept: "application/json",
@@ -100,6 +100,12 @@ const Page = () => {
       }
 
       const list = result.data?.data || result.data || [];
+      
+      if (list.length === 0 && page > 1) {
+          fetchInstructors(page - 1);
+          return;
+      }
+
       setInstructors(list);
 
       if (result.data?.last_page) {
@@ -191,9 +197,7 @@ const Page = () => {
 
       toast.success("Instructor deleted");
 
-      setInstructors((prev) =>
-        prev.filter((i) => i.id !== selectedInstructor.id),
-      );
+      fetchInstructors(pagination.currentPage);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -249,30 +253,7 @@ const Page = () => {
             totalPages={pagination.totalPages}
             totalItems={pagination.totalItems}
             itemsPerPage={pagination.itemsPerPage}
-            onPageChange={(page) => {
-                const fetchWithPage = async (p: number) => {
-                    setLoading(true);
-                    try {
-                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructors?page=${p}`, {
-                            headers: {
-                                Accept: "application/json",
-                                Authorization: `Bearer ${localStorage.getItem("token")}`,
-                            },
-                        });
-                        const result = await res.json();
-                        setInstructors(result.data?.data || []);
-                        setPagination({
-                            currentPage: result.data.current_page,
-                            totalPages: result.data.last_page,
-                            totalItems: result.data.total,
-                            itemsPerPage: result.data.per_page,
-                        });
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-                fetchWithPage(page);
-            }}
+            onPageChange={(page) => fetchInstructors(page)}
         />
       </div>
 

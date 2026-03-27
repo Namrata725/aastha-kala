@@ -11,6 +11,7 @@ import { Pagination } from "@/components/global/Pagination";
 interface Testimonial {
   id: number;
   name: string;
+  title?: string;
   description: string;
   rating: number;
   order: number;
@@ -73,17 +74,18 @@ const Page = () => {
   const columns = [
     { key: "sn", label: "SN" },
     { key: "image", label: "Image" },
-    { key: "name", label: "Name" },
+  { key: "name", label: "Name" },
+    { key: "title", label: "Title" },
     { key: "description", label: "Description" },
     { key: "rating", label: "Rating" },
     { key: "order", label: "Order" },
   ];
 
-  const fetchData = async () => {
+  const fetchData = async (page: number = 1) => {
     try {
       setLoading(true);
 
-      const res = await fetch(`${API_URL}/admin/testimonials`, {
+      const res = await fetch(`${API_URL}/admin/testimonials?page=${page}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -95,7 +97,14 @@ const Page = () => {
         throw new Error(json.message || "Failed to fetch testimonials");
       }
 
-      setData(json.data?.data || json.data || []);
+      const items = json.data?.data || json.data || [];
+
+      if (items.length === 0 && page > 1) {
+          fetchData(page - 1);
+          return;
+      }
+
+      setData(items);
       
       if (json.data?.last_page) {
         setPagination({
@@ -134,6 +143,7 @@ const Page = () => {
 
     rating: renderStars(item.rating),
 
+    title: item.title || "-",
     description:
       item.description.length > 150
         ? item.description.slice(0, 150) + "..."
@@ -176,7 +186,7 @@ const Page = () => {
 
       toast.success("Deleted successfully");
 
-      setData((prev) => prev.filter((i) => i.id !== selectedItem.id));
+      fetchData(pagination.currentPage);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -222,29 +232,7 @@ const Page = () => {
           totalPages={pagination.totalPages}
           totalItems={pagination.totalItems}
           itemsPerPage={pagination.itemsPerPage}
-          onPageChange={(page) => {
-              const fetchWithPage = async (p: number) => {
-                  setLoading(true);
-                  try {
-                      const res = await fetch(`${API_URL}/admin/testimonials?page=${p}`, {
-                          headers: {
-                              Authorization: `Bearer ${localStorage.getItem("token")}`,
-                          },
-                      });
-                      const json = await res.json();
-                      setData(json.data?.data || []);
-                      setPagination({
-                          currentPage: json.data.current_page,
-                          totalPages: json.data.last_page,
-                          totalItems: json.data.total,
-                          itemsPerPage: json.data.per_page,
-                      });
-                  } finally {
-                      setLoading(false);
-                  }
-              };
-              fetchWithPage(page);
-          }}
+          onPageChange={(page) => fetchData(page)}
       />
 
       {/* Add/Edit Modal */}

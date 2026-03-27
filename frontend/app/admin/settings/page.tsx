@@ -286,14 +286,15 @@ const Settings: React.FC = () => {
         setBannerFile(null);
         toast.success("Settings saved successfully");
       } else {
-        let errorMessage = data.message;
         if (data.errors) {
-          const firstField = Object.keys(data.errors)[0];
-          if (firstField && data.errors[firstField]?.length) {
-            errorMessage = data.errors[firstField][0];
-          }
+          // Show specific validation errors
+          Object.values(data.errors).flat().forEach((msg: any) => {
+            toast.error(msg as string);
+          });
+        } else {
+          // Show general message or detailed error
+          toast.error(data.message || data.error || "Failed to save settings");
         }
-        toast.error(errorMessage || "Failed to save settings");
       }
     } catch (err) {
       console.error(err);
@@ -350,6 +351,7 @@ const Settings: React.FC = () => {
               <InputField
                 label="Company Name"
                 icon={Building2}
+                required
                 value={setting.company_name}
                 onChange={(e) =>
                   setSetting({ ...setting, company_name: e.target.value })
@@ -382,6 +384,7 @@ const Settings: React.FC = () => {
               <InputField
                 label="Email"
                 icon={Mail}
+                required
                 value={setting.email}
                 onChange={(e) =>
                   setSetting({ ...setting, email: e.target.value })

@@ -10,6 +10,7 @@ import Link from "next/link";
 import GalleryAddEditModal from "@/components/admin/GalleryAddEditModal";
 import GalleryViewModal from "@/components/admin/GalleryViewModal";
 import { Pagination } from "@/components/global/Pagination";
+import { getYouTubeId } from "@/utils/url";
 
 interface Gallery {
   id: number;
@@ -65,13 +66,13 @@ const [galleries, setGalleries] = useState<Gallery[]>([]);
     { key: "position", label: "Position" },
   ];
 
-  const fetchGalleries = async () => {
+  const fetchGalleries = async (page: number = 1) => {
     try {
       setLoading(true);
 
       const token = localStorage.getItem("token");
 
-      const res = await fetch(`${BASE_URL}/admin/galleries`, {
+      const res = await fetch(`${BASE_URL}/admin/galleries?page=${page}`, {
         headers: {
           Accept: "application/json",
           Authorization: token ? `Bearer ${token}` : "",
@@ -84,7 +85,16 @@ const [galleries, setGalleries] = useState<Gallery[]>([]);
         throw new Error(result.message || "Failed to fetch galleries");
       }
 
-      setGalleries(result.data?.data || result.data || []);
+      // Handle both paginated and non-paginated responses
+      const galleryData = result.data?.data || result.data || [];
+      
+      // If the current page is empty and it's not the first page, go back one page
+      if (galleryData.length === 0 && page > 1) {
+        fetchGalleries(page - 1);
+        return;
+      }
+
+      setGalleries(galleryData);
       
       if (result.data?.last_page) {
         setPagination({
@@ -129,28 +139,10 @@ const [galleries, setGalleries] = useState<Gallery[]>([]);
     fetchCategories();
   }, []);
 
-  const getYouTubeId = (url: string) => {
-    try {
-      const parsed = new URL(url);
-
-      if (parsed.hostname.includes("youtu.be")) {
-        return parsed.pathname.slice(1);
-      }
-
-      if (parsed.searchParams.get("v")) {
-        return parsed.searchParams.get("v");
-      }
-
-      return null;
-    } catch {
-      return null;
-    }
-  };
-
   const filteredGalleries = galleries.filter((item) =>
-    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.type || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.category?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
     (item.position || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -226,7 +218,8 @@ const [galleries, setGalleries] = useState<Gallery[]>([]);
 
       toast.success("Gallery deleted");
 
-      setGalleries((prev) => prev.filter((g) => g.id !== selectedGallery.id));
+      // Refresh the current page to sync pagination state
+      fetchGalleries(pagination.currentPage);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -300,35 +293,11 @@ const [galleries, setGalleries] = useState<Gallery[]>([]);
         />
 
         <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            totalItems={pagination.totalItems}
-            itemsPerPage={pagination.itemsPerPage}
-            onPageChange={(page) => {
-                const fetchWithPage = async (p: number) => {
-                    setLoading(true);
-                    try {
-                        const token = localStorage.getItem("token");
-                        const res = await fetch(`${BASE_URL}/admin/galleries?page=${p}`, {
-                            headers: {
-                                Accept: "application/json",
-                                Authorization: token ? `Bearer ${token}` : "",
-                            },
-                        });
-                        const result = await res.json();
-                        setGalleries(result.data?.data || []);
-                        setPagination({
-                            currentPage: result.data.current_page,
-                            totalPages: result.data.last_page,
-                            totalItems: result.data.total,
-                            itemsPerPage: result.data.per_page,
-                        });
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-                fetchWithPage(page);
-            }}
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          itemsPerPage={pagination.itemsPerPage}
+          onPageChange={(page) => fetchGalleries(page)}
         />
       </div>
 
@@ -336,7 +305,10 @@ const [galleries, setGalleries] = useState<Gallery[]>([]);
         key={editData ? editData.id : "new"}
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSuccess={fetchGalleries}
+        onSuccess={() => {
+          setSearchTerm("");
+          fetchGalleries();
+        }}
         editData={editData}
         categories={categories}
       />

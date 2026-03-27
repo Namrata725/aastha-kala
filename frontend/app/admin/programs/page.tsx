@@ -58,17 +58,24 @@ const ProgramsPage = () => {
         { key: "status", label: "Status" },
     ];
 
-    const fetchPrograms = async () => {
+    const fetchPrograms = async (page: number = 1) => {
         try {
             setLoading(true);
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/programs`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/programs?page=${page}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
             });
             const result = await res.json();
             if (!res.ok) throw new Error(result.message || "Failed to fetch programs");
-            setPrograms(result.data?.data || result.data || []);
+            
+            const data = result.data?.data || result.data || [];
+            if (data.length === 0 && page > 1) {
+                fetchPrograms(page - 1);
+                return;
+            }
+
+            setPrograms(data);
             
             if (result.data?.last_page) {
                 setPagination({
@@ -136,7 +143,7 @@ const ProgramsPage = () => {
             });
             if (!res.ok) throw new Error("Delete failed");
             toast.success("Program deleted");
-            fetchPrograms();
+            fetchPrograms(pagination.currentPage);
         } catch (error: any) { toast.error(error.message); }
         finally { setDeleting(false); setDeleteModalOpen(false); }
     };
@@ -178,9 +185,6 @@ const ProgramsPage = () => {
             </div>
 
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm transition duration-500">
-                <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
-                  {filteredPrograms.length} / {programs.length} programs ({statusFilter !== "all" ? statusFilter : "all statuses"})
-                </div>
                 <Table
                     columns={columns}
                     data={formattedData}
@@ -197,27 +201,7 @@ const ProgramsPage = () => {
                     totalPages={pagination.totalPages}
                     totalItems={pagination.totalItems}
                     itemsPerPage={pagination.itemsPerPage}
-                    onPageChange={(page) => {
-                        const fetchWithPage = async (p: number) => {
-                            setLoading(true);
-                            try {
-                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/programs?page=${p}`, {
-                                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-                                });
-                                const result = await res.json();
-                                setPrograms(result.data?.data || []);
-                                setPagination({
-                                    currentPage: result.data.current_page,
-                                    totalPages: result.data.last_page,
-                                    totalItems: result.data.total,
-                                    itemsPerPage: result.data.per_page,
-                                });
-                            } finally {
-                                setLoading(false);
-                            }
-                        };
-                        fetchWithPage(page);
-                    }}
+                    onPageChange={(page) => fetchPrograms(page)}
                 />
             </div>
 
@@ -225,7 +209,10 @@ const ProgramsPage = () => {
                 isOpen={formModalOpen}
                 onClose={() => setFormModalOpen(false)}
                 program={editingProgram}
-                onSuccess={fetchPrograms}
+                onSuccess={() => {
+                    setSearchTerm("");
+                    fetchPrograms();
+                }}
             />
 
             <ProgramViewModal

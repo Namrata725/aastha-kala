@@ -44,6 +44,7 @@ class TestimonialController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string',
+            'title' => 'nullable|string',
             'description' => 'required|string',
             'rating' => 'required|integer|min:1|max:5',
             'order' => 'required|integer',
@@ -72,6 +73,7 @@ class TestimonialController extends Controller
 
         $data = $request->only([
             'name',
+            'title',
             'description',
             'rating',
             'order'
@@ -105,6 +107,7 @@ class TestimonialController extends Controller
 
     $validator = Validator::make($request->all(), [
         'name' => 'required|string',
+        'title' => 'nullable|string',
         'description' => 'required|string',
         'rating' => 'required|integer|min:1|max:5',
         'order' => 'required|integer',
@@ -121,6 +124,7 @@ class TestimonialController extends Controller
 
     $data = $request->only([
         'name',
+        'title',
         'description',
         'rating',
         'order'

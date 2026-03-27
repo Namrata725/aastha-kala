@@ -8,10 +8,10 @@ const StatsSection: React.FC<StatsSectionProps> = ({ settings }) => {
   if (!settings) return null;
 
   const stats = [
-    { label: "Years Experience", value: settings?.years_of_experience },
-    { label: "Awards & Recognization", value: settings?.awards },
-    { label: "Expert Instructors", value: settings?.number_of_instructors },
-    { label: "Students Trained", value: settings?.number_of_students },
+    { label: "Years Experience", value: settings?.years_of_experience + "+  " },
+    { label: "Awards & Recognization", value: settings?.awards + "+" },
+    { label: "Expert Instructors", value: settings?.number_of_instructors + "+" },
+    { label: "Students Trained", value: settings?.number_of_students + "+" },
     { label: "Success Rate", value: settings?.success_rate + "%" },
   ].filter(stat => stat.value); // Only show stats with values
 

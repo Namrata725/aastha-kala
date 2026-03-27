@@ -41,15 +41,22 @@ const BookingManagementPage = () => {
         { key: "status_badge", label: "Status" },
     ];
 
-    const fetchBookings = async () => {
+    const fetchBookings = async (page: number = 1) => {
         try {
             setLoading(true);
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings?page=${page}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
             const result = await res.json();
             if (!res.ok) throw new Error(result.message || "Failed to fetch bookings");
-            setBookings(result.data?.data || result.data || []);
+            
+            const data = result.data?.data || result.data || [];
+            if (data.length === 0 && page > 1) {
+                fetchBookings(page - 1);
+                return;
+            }
+
+            setBookings(data);
             
             if (result.data?.last_page) {
                 setPagination({
@@ -95,7 +102,7 @@ const BookingManagementPage = () => {
             });
             if (!res.ok) throw new Error("Delete failed");
             toast.success("Booking record removed");
-            fetchBookings();
+            fetchBookings(pagination.currentPage);
         } catch (error: any) { toast.error(error.message); }
         finally { setDeleting(false); setDeleteModalOpen(false); }
     };
@@ -191,27 +198,7 @@ const BookingManagementPage = () => {
                     totalPages={pagination.totalPages}
                     totalItems={pagination.totalItems}
                     itemsPerPage={pagination.itemsPerPage}
-                    onPageChange={(page) => {
-                        const fetchWithPage = async (p: number) => {
-                            setLoading(true);
-                            try {
-                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings?page=${p}`, {
-                                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-                                });
-                                const result = await res.json();
-                                setBookings(result.data?.data || []);
-                                setPagination({
-                                    currentPage: result.data.current_page,
-                                    totalPages: result.data.last_page,
-                                    totalItems: result.data.total,
-                                    itemsPerPage: result.data.per_page,
-                                });
-                            } finally {
-                                setLoading(false);
-                            }
-                        };
-                        fetchWithPage(page);
-                    }}
+                    onPageChange={(page) => fetchBookings(page)}
                 />
             </div>
 

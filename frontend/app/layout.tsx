@@ -13,13 +13,35 @@ const poppins = Poppins({
   variable: "--font-poppins",
 });
 
-export const metadata: Metadata = {
-  title: "Aastha Kala | Admin Page",
-  description: "Learn dance, arts and more with Aastha Kala Academy.",
-  icons: {
-    icon: "/logo.png",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  try {
+    const res = await fetch(`${API_URL}/settings`, { next: { revalidate: 3600 } });
+    const json = await res.json();
+    const settings = json?.data?.setting;
+    const companyName = settings?.company_name || "Aastha Kala";
+    const description = settings?.about_short || "Learn dance, arts and more with Aastha Kala Academy.";
+    
+    return {
+      title: {
+        template: `%s | ${companyName}`,
+        default: companyName,
+      },
+      description: description,
+      icons: {
+        icon: "/logo.png",
+      },
+    };
+  } catch (error) {
+    return {
+      title: "Aastha Kala",
+      description: "Learn dance, arts and more with Aastha Kala Academy.",
+      icons: {
+        icon: "/logo.png",
+      },
+    };
+  }
+}
 
 const theme = createTheme({
   fontFamily: "var(--font-poppins), sans-serif",

@@ -67,12 +67,12 @@ const Page = () => {
   ];
 
   // Fetch events
-  const fetchEvents = async () => {
+  const fetchEvents = async (page: number = 1) => {
     try {
       setLoading(true);
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/events`,
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/events?page=${page}`,
         {
           headers: {
             Accept: "application/json",
@@ -87,7 +87,14 @@ const Page = () => {
         throw new Error(result.message || "Failed to fetch events");
       }
 
-      setEvents(result.data?.data || result.data || []);
+      const list = result.data?.data || result.data || [];
+      
+      if (list.length === 0 && page > 1) {
+          fetchEvents(page - 1);
+          return;
+      }
+
+      setEvents(list);
       
       if (result.data?.last_page) {
         setPagination({
@@ -192,7 +199,7 @@ const Page = () => {
 
       toast.success("Event deleted");
 
-      setEvents((prev) => prev.filter((e) => e.id !== selectedEvent.id));
+      fetchEvents(pagination.currentPage);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -268,30 +275,7 @@ const Page = () => {
             totalPages={pagination.totalPages}
             totalItems={pagination.totalItems}
             itemsPerPage={pagination.itemsPerPage}
-            onPageChange={(page) => {
-                const fetchWithPage = async (p: number) => {
-                    setLoading(true);
-                    try {
-                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/events?page=${p}`, {
-                            headers: {
-                                Accept: "application/json",
-                                Authorization: `Bearer ${localStorage.getItem("token")}`,
-                            },
-                        });
-                        const result = await res.json();
-                        setEvents(result.data?.data || []);
-                        setPagination({
-                            currentPage: result.data.current_page,
-                            totalPages: result.data.last_page,
-                            totalItems: result.data.total,
-                            itemsPerPage: result.data.per_page,
-                        });
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-                fetchWithPage(page);
-            }}
+            onPageChange={(page) => fetchEvents(page)}
         />
       </div>
 
@@ -303,7 +287,10 @@ const Page = () => {
           setEditingEvent(null);
         }}
         event={editingEvent}
-        onSuccess={fetchEvents}
+        onSuccess={() => {
+            setSearchTerm("");
+            fetchEvents();
+        }}
       />
 
       {/* View Modal */}
