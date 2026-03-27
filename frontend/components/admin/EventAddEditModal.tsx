@@ -46,6 +46,7 @@ const EventAddEditModal: React.FC<Props> = ({
   });
 
   const [previewBanner, setPreviewBanner] = useState<string | null>(null);
+const [errors, setErrors] = useState<{[key: string]: string[]}>({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -160,8 +161,11 @@ const EventAddEditModal: React.FC<Props> = ({
 
       if (!res.ok) {
         if (result.errors) {
-          const firstError = Object.values(result.errors)[0] as string[];
-          throw new Error(firstError[0]);
+          const validationErrors = result.errors as Record<string, string[]>;
+          setErrors(validationErrors);
+          const firstError = Object.values(validationErrors)[0]?.[0] || result.message || "Validation failed";
+          toast.error(firstError);
+          return;
         }
         throw new Error(result.message || "Something went wrong");
       }
@@ -178,8 +182,14 @@ const EventAddEditModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-white/5 backdrop-blur-lg border border-white/10 flex items-center justify-center z-50">
-      <div className="bg-primary/10 border border-primary/20 backdrop-blur-md w-full max-w-2xl rounded-xl p-6 relative overflow-y-auto max-h-[90vh]">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 bg-white/5 backdrop-blur-lg border border-white/10 flex items-center justify-center z-50 cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-primary/10 border border-primary/20 backdrop-blur-md w-full max-w-2xl rounded-xl p-6 relative overflow-y-auto max-h-[90vh] cursor-default"
+      >
         {/* Close Modal */}
         <button onClick={onClose} className="absolute right-4 top-4 text-white">
           <X />
@@ -193,43 +203,30 @@ const EventAddEditModal: React.FC<Props> = ({
           <div className="grid grid-cols-2 gap-4">
             <InputField
               label="Title"
+              required={true}
               value={form.title}
               onChange={(e) => handleChange("title", e.target.value)}
             />
+            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title[0]}</p>}
 
             <InputField
               label="Location"
+              required={true}
               value={form.location}
               onChange={(e) => handleChange("location", e.target.value)}
             />
-          </div>
-
-          {/* Contact fields (UI unchanged, just added new row) */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* <InputField
-              label="Contact Person Name"
-              value={form.contact_person_name}
-              onChange={(e) =>
-                handleChange("contact_person_name", e.target.value)
-              }
-            /> */}
-
-            {/* <InputField
-              label="Contact Person Phone"
-              value={form.contact_person_phone}
-              onChange={(e) =>
-                handleChange("contact_person_phone", e.target.value)
-              }
-            /> */}
+            {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location[0]}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <InputField
               label="Event Date"
               type="datetime-local"
+              required={true}
               value={form.event_date}
               onChange={(e) => handleChange("event_date", e.target.value)}
             />
+            {errors.event_date && <p className="text-red-500 text-xs mt-1">{errors.event_date[0]}</p>}
 
             <InputField
               label="Status"

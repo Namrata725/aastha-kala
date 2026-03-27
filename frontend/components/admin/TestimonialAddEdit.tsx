@@ -17,6 +17,7 @@ interface Testimonial {
   id?: number;
   name: string;
   description: string;
+  title?: string;
   rating: number;
   order: number;
   image?: string | null;
@@ -41,12 +42,13 @@ const TestimonialAddEdit: React.FC<Props> = ({
 
   const [form, setForm] = useState<Testimonial>({
     name: "",
+    title: "",
     description: "",
     rating: 0,
     order: 0,
   });
 
-  const [errors, setErrors] = useState<any>({});
+const [errors, setErrors] = useState<{[key: string]: string[]}>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
@@ -68,8 +70,9 @@ const TestimonialAddEdit: React.FC<Props> = ({
 
     if (initialData) {
       setForm({
-        name: initialData.name || "",
-        description: initialData.description || "",
+      name: initialData.name || "",
+      title: initialData.title || "",
+      description: initialData.description || "",
         rating: initialData.rating || 0,
         order: initialData.order || 0,
       });
@@ -78,8 +81,9 @@ const TestimonialAddEdit: React.FC<Props> = ({
       setImageFile(null);
     } else {
       setForm({
-        name: "",
-        description: "",
+      name: "",
+      title: "",
+      description: "",
         rating: 0,
         order: 0,
       });
@@ -119,7 +123,8 @@ const TestimonialAddEdit: React.FC<Props> = ({
       const formData = new FormData();
 
       formData.append("name", form.name || "");
-      formData.append("description", form.description || "");
+      formData.append("title", form.title || "");
+      formData.append("description", form.description || ""); 
       formData.append("rating", String(form.rating || 0));
       formData.append("order", String(form.order || 0));
 
@@ -147,8 +152,10 @@ const TestimonialAddEdit: React.FC<Props> = ({
 
       if (!res.ok) {
         if (result.errors) {
-          setErrors(result.errors);
-          toast.error("Please fix validation errors");
+          const validationErrors = result.errors as Record<string, string[]>;
+          setErrors(validationErrors);
+          const firstError = Object.values(validationErrors)[0]?.[0] || result.message || "Validation failed";
+          toast.error(firstError);
           return;
         }
         throw new Error(result.message || "Something went wrong");
@@ -166,17 +173,23 @@ const TestimonialAddEdit: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg">
-      <div className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-8 bg-white/5 border border-white/10 backdrop-blur-xl">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-8 bg-white/50 border border-white/20 backdrop-blur-xl cursor-default shadow-2xl"
+      >
         {/* Header */}
-        <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
-          <div className="flex items-center gap-2 font-semibold text-xl text-primary">
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+          <div className="flex items-center gap-2 font-bold text-xl text-primary uppercase italic tracking-tight">
             {isEdit ? <Pencil /> : <Plus />}
             {isEdit ? "Edit Testimonial" : "Add Testimonial"}
           </div>
 
-          <button onClick={onClose}>
-            <X className="text-white/70 hover:text-white" />
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors">
+            <X className="text-gray-500 hover:text-black" />
           </button>
         </div>
 
@@ -184,7 +197,7 @@ const TestimonialAddEdit: React.FC<Props> = ({
         <div className="flex flex-col items-center mb-6">
           <div className="relative w-28 h-28">
             {/* Preview */}
-            <div className="w-28 h-28 rounded-full border border-white/20 overflow-hidden flex items-center justify-center bg-white/5">
+            <div className="w-28 h-28 rounded-full border border-gray-200 overflow-hidden flex items-center justify-center bg-white/40 shadow-inner">
               {preview ? (
                 <img
                   src={preview}
@@ -192,7 +205,7 @@ const TestimonialAddEdit: React.FC<Props> = ({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <User className="w-10 h-10 text-white/40" />
+                <User className="w-10 h-10 text-gray-300" />
               )}
             </div>
 
@@ -218,7 +231,7 @@ const TestimonialAddEdit: React.FC<Props> = ({
             )}
           </div>
 
-          <p className="text-xs text-white/50 mt-2">Upload or remove image</p>
+          <p className="text-xs text-gray-500 font-medium mt-2">Upload or remove image</p>
         </div>
 
         {/* Form */}
@@ -226,42 +239,58 @@ const TestimonialAddEdit: React.FC<Props> = ({
           <InputField
             label="Name"
             icon={User}
+            required={true}
             value={form.name}
             onChange={(e) => handleChange("name", e.target.value)}
+          />
+          {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name[0]}</p>}
+
+          <InputField
+            label="Title"
+            icon={FileText}
+            value={form.title}
+            onChange={(e) => handleChange("title", e.target.value)}
           />
 
           <InputField
             label="Rating"
             icon={Star}
             type="number"
+            required={true}
             value={form.rating}
             onChange={(e) => handleChange("rating", e.target.value)}
           />
+          {errors.rating && <p className="text-red-500 text-xs mt-1">{errors.rating[0]}</p>}
 
           <InputField
             label="Order"
             icon={Star}
             type="number"
+            required={true}
             value={form.order}
             onChange={(e) => handleChange("order", e.target.value)}
           />
+          {errors.order && <p className="text-red-500 text-xs mt-1">{errors.order[0]}</p>}
 
           <div className="md:col-span-2">
             <InputField
               label="Description"
               icon={FileText}
+              required={true}
               textarea
               value={form.description}
               onChange={(e) => handleChange("description", e.target.value)}
             />
+            {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description[0]}</p>}
           </div>
         </div>
+
 
         {/* Footer */}
         <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-white/10">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-lg text-white/80 bg-white/5 hover:bg-white/10"
+            className="px-5 py-2 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 font-bold transition-all"
           >
             Cancel
           </button>

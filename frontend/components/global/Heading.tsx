@@ -5,7 +5,7 @@ import React from "react";
 
 interface HeadingProps {
   title: string;
-  subtitle: string;
+  subtitle: React.ReactNode;
   image: string;
 }
 

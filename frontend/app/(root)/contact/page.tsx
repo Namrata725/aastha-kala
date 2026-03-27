@@ -133,7 +133,7 @@ const ContactPage = async () => {
                   <h3 className="text-xl font-bold text-gray-900">
                     Contact Number
                   </h3>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-black text-xl mt-1">
                     {settings?.phone || "+977 9841305158"}
                   </p>
                 </div>
@@ -147,7 +147,7 @@ const ContactPage = async () => {
                   <h3 className="text-xl font-bold text-gray-900">
                     Email Address
                   </h3>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-black text-xl mt-1">
                     {settings?.email || "aasthakalakendra1@gmail.com"}
                   </p>
                 </div>
@@ -159,7 +159,7 @@ const ContactPage = async () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">Location</h3>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-black text-xl mt-1">
                     {settings?.address || "Narayangoal Chowk, Kathmandu, Nepal"}
                   </p>
                 </div>

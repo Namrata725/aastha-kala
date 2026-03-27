@@ -66,6 +66,14 @@ class SettingController extends Controller
                 'awards','number_of_instructors','number_of_students','success_rate'
             ]);
 
+            // Ensure numeric fields are not null
+            $numericFields = ['years_of_experience', 'awards', 'number_of_instructors', 'number_of_students', 'success_rate'];
+            foreach ($numericFields as $field) {
+                if (!isset($data[$field]) || $data[$field] === null || $data[$field] === "") {
+                    $data[$field] = 0;
+                }
+            }
+
             
             if ($request->has('mission')) {
                 $decodedMission = json_decode($request->mission, true);
@@ -102,8 +110,11 @@ class SettingController extends Controller
                 WhyUs::truncate(); 
 
                 foreach ($request->why_us as $index => $wu) {
+                    // Skip if both are empty
+                    if (empty($wu['title']) && empty($wu['description'])) continue;
+                    
                     WhyUs::create([
-                        'title' => $wu['title'] ?? null,
+                        'title' => $wu['title'] ?? '',
                         'description' => $wu['description'] ?? null,
                         'order' => $index,
                     ]);
@@ -161,6 +172,14 @@ class SettingController extends Controller
                 'awards','number_of_instructors','number_of_students','success_rate'
             ]);
 
+            // Ensure numeric fields are not null
+            $numericFields = ['years_of_experience', 'awards', 'number_of_instructors', 'number_of_students', 'success_rate'];
+            foreach ($numericFields as $field) {
+                if (!isset($data[$field]) || $data[$field] === null || $data[$field] === "") {
+                    $data[$field] = 0;
+                }
+            }
+
             
             if ($request->has('mission')) {
                 $decodedMission = json_decode($request->mission, true);
@@ -202,8 +221,11 @@ class SettingController extends Controller
                 WhyUs::truncate();
 
                 foreach ($request->why_us as $index => $wu) {
+                    // Skip if both are empty
+                    if (empty($wu['title']) && empty($wu['description'])) continue;
+
                     WhyUs::create([
-                        'title' => $wu['title'] ?? null,
+                        'title' => $wu['title'] ?? '',
                         'description' => $wu['description'] ?? null,
                         'order' => $index,
                     ]);

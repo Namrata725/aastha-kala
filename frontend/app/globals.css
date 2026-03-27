@@ -2,8 +2,8 @@
 
 
 :root {
-  --primary:#0a35c8;
-  --secondary:#9e33cf;
+  --primary: #0a35c8;
+  --secondary: #9e33cf;
 }
 
 @theme inline {
@@ -12,7 +12,7 @@
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --font-poppins: var(--font-poppins);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-poppins);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,14 +22,25 @@
   }
 }
 
+* {
+  font-family: var(--font-poppins), sans-serif;
+}
+
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
 }
 
 @layer utilities {
   @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
   }
 
   .animate-float {
@@ -37,18 +48,20 @@ body {
   }
 
   @keyframes infinite-bounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-12px);
-  }
-}
 
-.animate-infinite-bounce {
-  animation: infinite-bounce 1.2s ease-in-out infinite;
-}
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+
+  .animate-infinite-bounce {
+    animation: infinite-bounce 1.2s ease-in-out infinite;
+  }
 }
 
 .hide-scrollbar {
@@ -59,6 +72,7 @@ body {
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .swiper {
   padding-bottom: 40px;
 }
@@ -72,11 +86,15 @@ body {
 
 
 .custom-pagination .swiper-pagination-bullet {
-  background-color: #a855f7 !important; 
+  background-color: #a855f7 !important;
   opacity: 0.4;
 }
 
 .custom-pagination .swiper-pagination-bullet-active {
-  background-color: #7e22ce !important; 
+  background-color: #7e22ce !important;
   opacity: 1;
+}
+
+.public-content p {
+  color: black;
 }

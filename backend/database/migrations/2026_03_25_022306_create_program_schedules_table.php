@@ -14,8 +14,11 @@ return new class extends Migration
     Schema::create('program_schedules', function (Blueprint $table) {
             $table->id();
             $table->foreignId('program_id')->constrained()->onDelete('cascade');
+            $table->foreignId('instructor_id')->nullable()->constrained()->onDelete('set null');
+            $table->enum('day_of_week', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
             $table->time('start_time');
             $table->time('end_time');
+            $table->integer('max_capacity')->nullable();
             $table->timestamps();
         });
     }

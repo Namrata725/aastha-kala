@@ -42,9 +42,9 @@ const InstructorSection = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center space-y-2 mb-16">
           <h2 className="text-4xl font-bold text-blue-900">Meet Our Instructors</h2>
-          <p className="text-blue-500 text-sm max-w-2xl mx-auto">
+          <h4 className="text-secondary text-sm max-w-2xl mx-auto">
             Learn from industry professional music and art and taking artist and director for your success.
-          </p>
+          </h4>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import GalleryViewModal from "./GalleryViewModal";
 import { ImageOff } from "lucide-react";
+import { getYouTubeEmbedUrl } from "@/utils/url";
 
 type Category = {
   id: number;
@@ -32,25 +33,6 @@ const ClientGallery = ({ gallery, categories }: Props) => {
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const getYouTubeEmbedUrl = (url: string) => {
-    try {
-      const parsed = new URL(url);
-
-      if (parsed.hostname === "youtu.be") {
-        const id = parsed.pathname.slice(1);
-        return `https://www.youtube.com/embed/${id}`;
-      }
-
-      const videoId = parsed.searchParams.get("v");
-      if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`;
-      }
-
-      return url;
-    } catch {
-      return url;
-    }
-  };
 
   const filteredGallery =
     activeCategory === "all"
@@ -72,7 +54,7 @@ const ClientGallery = ({ gallery, categories }: Props) => {
           All
         </button>
 
-        {categories.map((cat) => (
+        {(Array.isArray(categories) ? categories : []).map((cat) => (
           <button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
@@ -98,7 +80,9 @@ const ClientGallery = ({ gallery, categories }: Props) => {
           filteredGallery.map((item) => {
             const categoryName =
               item.category?.name ||
-              categories.find((c) => c.id === item.category_id)?.name;
+              (Array.isArray(categories) ? categories : []).find(
+                (c) => c.id === item.category_id
+              )?.name;
 
             return (
               <div

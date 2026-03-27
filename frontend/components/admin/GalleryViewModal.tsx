@@ -2,6 +2,7 @@
 
 import React from "react";
 import { X } from "lucide-react";
+import { getYouTubeEmbedUrl } from "@/utils/url";
 
 interface GalleryViewModalProps {
   isOpen: boolean;
@@ -14,11 +15,25 @@ const GalleryViewModal: React.FC<GalleryViewModalProps> = ({
   onClose,
   data,
 }) => {
+  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL;
+
+  const getImageUrl = (path?: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${IMAGE_BASE?.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}`;
+  };
+
   if (!isOpen || !data) return null;
 
   return (
-    <div className="fixed inset-0 bg- primary/5 backdrop-blur-lg border border-white/10 flex items-center justify-center z-50">
-      <div className="bg-primary/10 border border-primary/20 backdrop-blur-md w-full max-w-2xl rounded-xl p-6 relative overflow-y-auto max-h-[90vh]">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 bg-primary/5 backdrop-blur-lg border border-white/10 flex items-center justify-center z-50 cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-primary/10 border border-primary/20 backdrop-blur-md w-full max-w-2xl rounded-xl p-6 relative overflow-y-auto max-h-[90vh] cursor-default"
+      >
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -63,10 +78,17 @@ const GalleryViewModal: React.FC<GalleryViewModalProps> = ({
               <a
                 href={data.video}
                 target="_blank"
-                className="text-blue-400 underline break-all"
+                className="text-blue-400 underline break-all block mb-3 text-xs"
               >
                 {data.video}
               </a>
+              <div className="w-full aspect-video rounded-lg overflow-hidden border border-primary/20 bg-black/20">
+                <iframe
+                  src={getYouTubeEmbedUrl(data.video)}
+                  className="w-full h-full"
+                  allowFullScreen
+                />
+              </div>
             </div>
           )}
 
@@ -79,8 +101,8 @@ const GalleryViewModal: React.FC<GalleryViewModalProps> = ({
                 {data.images.map((img: string, index: number) => (
                   <img
                     key={index}
-                    src={img}
-                    className="w-full h-24 object-cover rounded-lg border border- primary/10"
+                    src={getImageUrl(img)}
+                    className="w-full h-24 object-cover rounded-lg border border-primary/10"
                   />
                 ))}
               </div>

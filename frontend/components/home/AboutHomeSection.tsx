@@ -29,7 +29,7 @@ const AboutHomeSection: React.FC<AboutHomeSectionProps> = ({
               Dance & Music School
             </h3>
 
-            <div className="text-gray-600 space-y-4 leading-relaxed text-sm md:text-base">
+            <div className="text-black space-y-4 leading-relaxed text-sm md:text-base">
               {settings?.about ? (
                 <div
                   dangerouslySetInnerHTML={{ __html: settings.about }}
@@ -53,7 +53,7 @@ const AboutHomeSection: React.FC<AboutHomeSectionProps> = ({
             </div>
 
             <Link href="/about">
-              <button className="mt-8 bg-linear-to-r from-primary to-secondary  transition duration-300 text-white font-semibold py-3 px-8 rounded-xl">
+              <button className="bg-linear-to-r from-primary to-secondary  transition duration-300 text-white font-semibold py-2 px-8 rounded-xl">
                 Read More
               </button>
             </Link>

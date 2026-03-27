@@ -22,6 +22,16 @@ class Instructor extends Model
 
     public function programs()
     {
-        return $this->belongsToMany(Program::class)->withTimestamps();
+        return $this->belongsToMany(Program::class, 'program_instructor')->withTimestamps();
+    }
+
+    public function availabilities()
+    {
+        return $this->hasMany(InstructorAvailability::class);
+    }
+
+    public function fixed_classes()
+    {
+        return $this->hasMany(ProgramSchedule::class);
     }
 }

@@ -7,6 +7,9 @@ import { Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import InstructorModal from "@/components/admin/InstructorModal";
 import InstructorViewModal from "@/components/admin/InstructorViewModal";
+import InstructorAvailabilityModal from "@/components/admin/InstructorAvailabilityModal";
+import { Clock } from "lucide-react";
+import { Pagination } from "@/components/global/Pagination";
 
 interface Instructor {
   id: number;
@@ -40,6 +43,24 @@ const Page = () => {
     null,
   );
 
+  const [availabilityModalOpen, setAvailabilityModalOpen] = useState(false);
+  const [availabilityInstructor, setAvailabilityInstructor] = useState<Instructor | null>(null);
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
+
+  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL;
+
+  const getImageUrl = (path?: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${IMAGE_BASE?.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}`;
+  };
+
   const getInitials = (name: string) => {
     if (!name) return "?";
 
@@ -58,12 +79,12 @@ const Page = () => {
     { key: "phone", label: "Phone" },
   ];
 
-  const fetchInstructors = async () => {
+  const fetchInstructors = async (page: number = 1) => {
     try {
       setLoading(true);
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/instructors`,
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/instructors?page=${page}`,
         {
           headers: {
             Accept: "application/json",
@@ -79,7 +100,22 @@ const Page = () => {
       }
 
       const list = result.data?.data || result.data || [];
+      
+      if (list.length === 0 && page > 1) {
+          fetchInstructors(page - 1);
+          return;
+      }
+
       setInstructors(list);
+
+      if (result.data?.last_page) {
+        setPagination({
+          currentPage: result.data.current_page,
+          totalPages: result.data.last_page,
+          totalItems: result.data.total,
+          itemsPerPage: result.data.per_page,
+        });
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -93,12 +129,11 @@ const Page = () => {
 
   const formattedData = instructors.map((inst, index) => ({
     ...inst,
-
-    sn: index + 1,
+    sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
 
     image: inst.image ? (
       <img
-        src={inst.image}
+        src={getImageUrl(inst.image)}
         alt={inst.name}
         className="w-10 h-10 rounded-full object-cover"
       />
@@ -133,6 +168,12 @@ const Page = () => {
     setDeleteModalOpen(true);
   };
 
+  const handleAvailability = (row: any) => {
+    const original = instructors.find((i) => i.id === row.id);
+    setAvailabilityInstructor(original || null);
+    setAvailabilityModalOpen(true);
+  };
+
   const confirmDelete = async () => {
     if (!selectedInstructor) return;
 
@@ -156,9 +197,7 @@ const Page = () => {
 
       toast.success("Instructor deleted");
 
-      setInstructors((prev) =>
-        prev.filter((i) => i.id !== selectedInstructor.id),
-      );
+      fetchInstructors(pagination.currentPage);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -173,7 +212,7 @@ const Page = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex justify-between p-4">
-        <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">
+        <span className="text-2xl font-bold text-black">
           Our Instructors
         </span>
 
@@ -198,6 +237,23 @@ const Page = () => {
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
+          customActions={[
+            {
+              icon: <Clock className="h-4 w-4" />,
+              label: "Availability",
+              onClick: handleAvailability,
+              color: "text-secondary",
+            },
+          ]}
+          emptyMessage="No instructors found"
+        />
+
+        <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={(page) => fetchInstructors(page)}
         />
       </div>
 
@@ -230,6 +286,12 @@ const Page = () => {
         description={`Are you sure you want to delete "${
           selectedInstructor?.name || ""
         }"? This action cannot be undone.`}
+      />
+
+      <InstructorAvailabilityModal
+        isOpen={availabilityModalOpen}
+        onClose={() => setAvailabilityModalOpen(false)}
+        instructor={availabilityInstructor}
       />
     </div>
   );

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Program;
 use App\Models\Instructor;
+use App\Models\InstructorAvailability;
+use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +16,23 @@ class ProgramController extends Controller
     // GET /api/programs
     public function index()
     {
-        $programs = Program::with(['schedules', 'instructors'])->paginate(10);
+        $programs = Program::with(['schedules', 'instructors'])
+            ->latest()
+            ->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'data' => $programs
+        ]);
+    }
+
+    // GET /api/programs/latest
+    public function latest()
+    {
+        $programs = Program::where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -35,6 +53,7 @@ class ProgramController extends Controller
             'instructor_ids' => 'nullable|array',
             'instructor_ids.*' => 'exists:instructors,id',
             'schedules' => 'nullable|array',
+            'schedules.*.instructor_id' => 'nullable|exists:instructors,id',
             'schedules.*.start_time' => 'required_with:schedules|date_format:H:i',
             'schedules.*.end_time' => 'required_with:schedules|date_format:H:i',
         ]);
@@ -65,8 +84,9 @@ class ProgramController extends Controller
         if ($request->has('schedules')) {
             foreach ($request->schedules as $schedule) {
                 $program->schedules()->create([
-                    'start_time' => $schedule['start_time'],
-                    'end_time' => $schedule['end_time'],
+                    'instructor_id' => $schedule['instructor_id'] ?? null,
+                    'start_time'    => $schedule['start_time'],
+                    'end_time'      => $schedule['end_time'],
                 ]);
             }
         }
@@ -121,6 +141,7 @@ class ProgramController extends Controller
             'instructor_ids' => 'nullable|array',
             'instructor_ids.*' => 'exists:instructors,id',
             'schedules' => 'nullable|array',
+            'schedules.*.instructor_id' => 'nullable|exists:instructors,id',
             'schedules.*.start_time' => 'required_with:schedules|date_format:H:i',
             'schedules.*.end_time' => 'required_with:schedules|date_format:H:i',
         ]);
@@ -164,8 +185,9 @@ class ProgramController extends Controller
             $program->schedules()->delete();
             foreach ($request->schedules as $schedule) {
                 $program->schedules()->create([
-                    'start_time' => $schedule['start_time'],
-                    'end_time' => $schedule['end_time'],
+                    'instructor_id' => $schedule['instructor_id'] ?? null,
+                    'start_time'    => $schedule['start_time'],
+                    'end_time'      => $schedule['end_time'],
                 ]);
             }
         }
@@ -202,6 +224,58 @@ class ProgramController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Program deleted successfully'
+        ]);
+    }
+
+    // GET /api/programs/{id}/available-instructors?day_of_week=Monday&start_time=09:00&end_time=10:00&booking_date=2026-03-26
+    public function availableInstructors(Request $request, $id)
+    {
+        $program = Program::find($id);
+        if (!$program) {
+            return response()->json(['success' => false, 'message' => 'Program not found'], 404);
+        }
+
+        $dayOfWeek = $request->day_of_week; // e.g. "Monday"
+        $startTime = $request->start_time; // e.g. "09:00"
+        $endTime = $request->end_time; // e.g. "10:00"
+        $bookingDate = $request->booking_date; // e.g. "2026-03-26" (for conflict check)
+
+        // Step 1: get instructor IDs linked to this program
+        $linkedInstructorIds = $program->instructors()->pluck('instructors.id');
+
+        if ($linkedInstructorIds->isEmpty()) {
+            return response()->json(['success' => true, 'data' => [], 'message' => 'No instructors assigned to this program']);
+        }
+
+        // Step 2: filter to those whose availability covers the requested day+time
+        $availableInstructorIds = InstructorAvailability::whereIn('instructor_id', $linkedInstructorIds)
+            ->where('day_of_week', $dayOfWeek)
+            ->where('is_available', true)
+            ->where('start_time', '<=', $startTime)
+            ->where('end_time', '>=', $endTime)
+            ->pluck('instructor_id');
+
+        // Step 3: exclude any instructor who already has an accepted booking on this date at an overlapping time
+        if ($bookingDate && $availableInstructorIds->isNotEmpty()) {
+            $conflictedIds = Booking::whereIn('instructor_id', $availableInstructorIds)
+                ->where('booking_date', $bookingDate)
+                ->where('status', 'accepted')
+                ->where(function ($q) use ($startTime, $endTime) {
+                $q->whereRaw('custom_start_time < ?', [$endTime])
+                    ->whereRaw('custom_end_time > ?', [$startTime]);
+            })
+                ->pluck('instructor_id');
+
+            $availableInstructorIds = $availableInstructorIds->diff($conflictedIds)->values();
+        }
+
+        $instructors = Instructor::whereIn('id', $availableInstructorIds)
+            ->select('id', 'name', 'title', 'image')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $instructors,
         ]);
     }
 }

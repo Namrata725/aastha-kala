@@ -17,32 +17,39 @@ interface Props {
   onView?: (row: any) => void;
   onEdit?: (row: any) => void;
   onDelete?: (row: any) => void;
+  customActions?: {
+    icon: React.ReactNode;
+    label: string;
+    onClick: (row: any) => void;
+    color?: string;
+  }[];
   loading?: boolean;
+  emptyMessage?: string;
 }
 
 const SkeletonRow = ({ columns }: { columns: Column[] }) => {
   return (
-    <tr className="border-t border-primary/20">
+    <tr className="border-t border-gray-100">
       {columns.map((_, idx) => (
         <td key={idx} className="px-4 py-3">
-          <div className="h-4 w-full bg-white/10 rounded animate-pulse" />
+          <div className="h-4 w-full bg-gray-100 rounded animate-pulse" />
         </td>
       ))}
       <td className="px-4 py-3">
         <div className="flex gap-2">
-          <div className="h-9 w-9 bg-white/10 rounded-lg animate-pulse" />
-          <div className="h-9 w-9 bg-white/10 rounded-lg animate-pulse" />
+          <div className="h-9 w-9 bg-gray-100 rounded-lg animate-pulse" />
+          <div className="h-9 w-9 bg-gray-100 rounded-lg animate-pulse" />
         </div>
       </td>
     </tr>
   );
 };
 
-const EmptyState = () => {
+const EmptyState = ({ message }: { message: string }) => {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-black/60 animate-fadeIn">
+    <div className="flex flex-col items-center justify-center py-12 text-gray-400 animate-fadeIn">
       <Mailbox size={70} className="mb-3 opacity-70" />
-      <p className="text-sm">No contacts yet</p>
+      <p className="text-sm">{message}</p>
     </div>
   );
 };
@@ -54,7 +61,9 @@ const Table: React.FC<Props> = ({
   onView,
   onEdit,
   onDelete,
+  customActions,
   loading,
+  emptyMessage = "No data found",
 }) => {
   // Map actions to icons + handlers
   const actionMap: Record<
@@ -84,24 +93,24 @@ const Table: React.FC<Props> = ({
 
   return (
     <div className="w-full">
-      {/* Gradient Border Wrapper */}
-      <div className="p-[1px] rounded-2xl bg-gradient-to-r from-primary/30 to-secondary/30">
-        <div className="rounded-2xl bg-primary/10 backdrop-blur-xl border border-primary/20 overflow-hidden">
+      {/* Eye Comfort Light Border Wrapper */}
+      <div className="p-[1px] rounded-2xl bg-gray-400/20 backdrop-blur-sm">
+        <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden shadow-sm">
           <table className="w-full border-collapse">
             {/* HEADER */}
-            <thead className="bg-gradient-to-r from-primary to-secondary">
+            <thead className="bg-gray-400/5 border-b border-gray-200">
               <tr>
                 {columns.map((col) => (
-                  <th
-                    key={col.key}
-                    className="text-left px-4 py-3 text-sm font-semibold text-white/90"
-                  >
-                    {col.label}
-                  </th>
+                    <th
+                      key={col.key}
+                      className="text-left px-4 py-3 text-[11px] font-black uppercase tracking-widest text-gray-900"
+                    >
+                      {col.label}
+                    </th>
                 ))}
 
                 {actions && actions.length > 0 && (
-                  <th className="px-4 py-3 text-sm font-semibold text-white/90">
+                  <th className="px-4 py-3 text-[11px] font-black uppercase tracking-widest text-gray-900">
                     Actions
                   </th>
                 )}
@@ -117,29 +126,29 @@ const Table: React.FC<Props> = ({
               ) : data.length === 0 ? (
                 <tr>
                   <td colSpan={columns.length + (actions ? 1 : 0)}>
-                    <EmptyState />
+                    <EmptyState message={emptyMessage} />
                   </td>
                 </tr>
               ) : (
                 data.map((row, rowIndex) => (
                   <tr
                     key={rowIndex}
-                    className="border-t border-primary/20 hover:bg-primary/5 transition duration-200"
+                    className="border-t border-gray-100 hover:bg-gray-400/5 transition duration-200"
                   >
                     {columns.map((col) => (
-                      <td
-                        key={col.key}
-                        className="px-4 py-3 text-sm text-black/80"
-                      >
-                        {row[col.key]}
-                      </td>
+                        <td
+                          key={col.key}
+                          className="px-4 py-3 text-sm text-gray-800 font-medium"
+                        >
+                          {row[col.key]}
+                        </td>
                     ))}
 
                     {/* ACTIONS */}
-                    {actions && actions.length > 0 && (
+                    {( (actions && actions.length > 0) || (customActions && customActions.length > 0) ) && (
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2 ">
-                          {actions.map((actionKey) => {
+                          {actions?.map((actionKey) => {
                             const action = actionMap[actionKey];
                             if (!action) return null;
 
@@ -168,6 +177,27 @@ const Table: React.FC<Props> = ({
                               </div>
                             );
                           })}
+
+                          {customActions?.map((action, idx) => (
+                             <div
+                               key={`custom-${idx}`}
+                               className="p-[1px] rounded-lg bg-gradient-to-r from-primary/30 to-secondary/30"
+                             >
+                               <button
+                                 onClick={() => action.onClick(row)}
+                                 title={action.label}
+                                 className="flex items-center justify-center w-7 h-7 rounded-lg 
+                                 bg-primary/10 backdrop-blur-md border border-primary/20
+                                 hover:bg-primary/20 hover:scale-105 active:scale-95
+                                 hover:shadow-[0_0_10px_rgba(255,255,255,0.15)]
+                                 transition duration-200 cursor-pointer"
+                               >
+                                 <div className={action.color || "text-primary"}>
+                                   {action.icon}
+                                 </div>
+                               </button>
+                             </div>
+                          ))}
                         </div>
                       </td>
                     )}

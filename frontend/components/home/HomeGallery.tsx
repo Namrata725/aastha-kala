@@ -45,7 +45,7 @@ const fetchGallery = async (): Promise<GalleryItem[]> => {
     if (!res.ok) throw new Error("Failed to fetch gallery");
 
     const data = await res.json();
-    return data || [];
+    return Array.isArray(data) ? data : (data?.data || []);
   } catch (error) {
     console.error(error);
     return [];
@@ -61,7 +61,7 @@ const fetchCategories = async (): Promise<Category[]> => {
     if (!res.ok) throw new Error("Failed to fetch categories");
 
     const data = await res.json();
-    return data || [];
+    return Array.isArray(data) ? data : (data?.data || []);
   } catch (error) {
     console.error(error);
     return [];
@@ -101,54 +101,56 @@ const HomeGallery = async ({ socialLinks }: { socialLinks: SocialLinks | null })
   const limitedGallery = gallery.slice(0, 8);
 
   return (
-    <section className="max-w-6xl mx-auto my-6">
-      {/* HEADER */}
-      <div className="text-center my-5">
-        <h1 className="text-3xl font-bold text-primary tracking-wide font-poppins m-2">
-          Gallery and Videos
-        </h1>
-        <p className="font-semibold text-secondary tracking-wider">
-          <span>Moments and memories</span>
-        </p>
-      </div>
-
-      {/* GALLERY */}
-      <ClientGallery gallery={limitedGallery} categories={categories} />
-
-      {/* SOCIAL LINKS */}
-      {socialLinks && (
-        <div className="flex justify-center gap-4 mt-8">
-          {socialLinks.facebook && (
-            <a
-              href={formatUrl(socialLinks.facebook)}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Facebook className="p-1.5 w-9 h-9 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition" />
-            </a>
-          )}
-
-          {socialLinks.instagram && (
-            <a
-              href={formatUrl(socialLinks.instagram)}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Instagram className="p-1.5 w-9 h-9 rounded-full bg-pink-100 text-pink-600 hover:bg-pink-200 transition" />
-            </a>
-          )}
-
-          {socialLinks.x && (
-            <a
-              href={formatUrl(socialLinks.x)}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Twitter className="p-1.5 w-9 h-9 rounded-full bg-gray-200 text-blue-500 hover:bg-gray-300 transition" />
-            </a>
-          )}
+    <section className="py-20 px-6">
+      <div className="max-w-7xl mx-auto">
+        {/* HEADER */}
+        <div className="text-center my-5">
+          <h4 className="font-semibold text-secondary tracking-wider">
+            <span>Moments & memories</span>
+          </h4>
+          <h1 className="text-3xl font-bold text-primary tracking-wide font-poppins m-2">
+            Gallery and Videos
+          </h1>
         </div>
-      )}
+
+        {/* GALLERY */}
+        <ClientGallery gallery={limitedGallery} categories={categories} />
+
+        {/* SOCIAL LINKS */}
+        {socialLinks && (
+          <div className="flex justify-center gap-4 mt-8">
+            {socialLinks.facebook && (
+              <a
+                href={formatUrl(socialLinks.facebook)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Facebook className="p-1.5 w-9 h-9 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition" />
+              </a>
+            )}
+
+            {socialLinks.instagram && (
+              <a
+                href={formatUrl(socialLinks.instagram)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Instagram className="p-1.5 w-9 h-9 rounded-full bg-pink-100 text-pink-600 hover:bg-pink-200 transition" />
+              </a>
+            )}
+
+            {socialLinks.x && (
+              <a
+                href={formatUrl(socialLinks.x)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Twitter className="p-1.5 w-9 h-9 rounded-full bg-gray-200 text-blue-500 hover:bg-gray-300 transition" />
+              </a>
+            )}
+          </div>
+        )}
+      </div>
     </section>
   );
 };

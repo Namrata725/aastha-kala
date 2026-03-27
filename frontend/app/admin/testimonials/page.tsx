@@ -6,10 +6,12 @@ import DeleteConfirmationModal from "@/components/layout/DeleteConfirmationModal
 import TestimonialAddEdit from "@/components/admin/TestimonialAddEdit";
 import toast from "react-hot-toast";
 import { Plus, Star } from "lucide-react";
+import { Pagination } from "@/components/global/Pagination";
 
 interface Testimonial {
   id: number;
   name: string;
+  title?: string;
   description: string;
   rating: number;
   order: number;
@@ -30,6 +32,13 @@ const Page = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Testimonial | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
 
   const getImageUrl = (path?: string | null) => {
     if (!path) return "";
@@ -65,17 +74,18 @@ const Page = () => {
   const columns = [
     { key: "sn", label: "SN" },
     { key: "image", label: "Image" },
-    { key: "name", label: "Name" },
+  { key: "name", label: "Name" },
+    { key: "title", label: "Title" },
     { key: "description", label: "Description" },
     { key: "rating", label: "Rating" },
     { key: "order", label: "Order" },
   ];
 
-  const fetchData = async () => {
+  const fetchData = async (page: number = 1) => {
     try {
       setLoading(true);
 
-      const res = await fetch(`${API_URL}/admin/testimonials`, {
+      const res = await fetch(`${API_URL}/admin/testimonials?page=${page}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -87,7 +97,23 @@ const Page = () => {
         throw new Error(json.message || "Failed to fetch testimonials");
       }
 
-      setData(json.data || []);
+      const items = json.data?.data || json.data || [];
+
+      if (items.length === 0 && page > 1) {
+          fetchData(page - 1);
+          return;
+      }
+
+      setData(items);
+      
+      if (json.data?.last_page) {
+        setPagination({
+          currentPage: json.data.current_page,
+          totalPages: json.data.last_page,
+          totalItems: json.data.total,
+          itemsPerPage: json.data.per_page,
+        });
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -101,7 +127,7 @@ const Page = () => {
 
   const formattedData = data.map((item, index) => ({
     ...item,
-    sn: index + 1,
+    sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
 
     image: item.image ? (
       <img
@@ -117,6 +143,7 @@ const Page = () => {
 
     rating: renderStars(item.rating),
 
+    title: item.title || "-",
     description:
       item.description.length > 150
         ? item.description.slice(0, 150) + "..."
@@ -159,7 +186,7 @@ const Page = () => {
 
       toast.success("Deleted successfully");
 
-      setData((prev) => prev.filter((i) => i.id !== selectedItem.id));
+      fetchData(pagination.currentPage);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -197,6 +224,15 @@ const Page = () => {
         actions={actions}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
+        emptyMessage="No testimonials found"
+      />
+
+      <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          itemsPerPage={pagination.itemsPerPage}
+          onPageChange={(page) => fetchData(page)}
       />
 
       {/* Add/Edit Modal */}

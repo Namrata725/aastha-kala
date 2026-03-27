@@ -14,12 +14,12 @@ class Program extends Model
         'description',
         'image',
         'speciality',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
         'speciality' => 'array',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
     public function schedules()
@@ -29,7 +29,7 @@ class Program extends Model
 
     public function instructors()
     {
-        return $this->belongsToMany(Instructor::class)->withTimestamps();
+        return $this->belongsToMany(Instructor::class, 'program_instructor')->withTimestamps();
     }
 
     public function bookings()

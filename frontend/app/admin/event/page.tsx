@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Search } from "lucide-react";
 import Table from "@/components/layout/Table";
 import DeleteConfirmationModal from "@/components/layout/DeleteConfirmationModal";
 import { Plus, Image as ImageIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import EventAddEditModal from "@/components/admin/EventAddEditModal";
 import EventViewModal from "@/components/admin/EventViewModal";
+import { Pagination } from "@/components/global/Pagination";
 
 interface Event {
   id: number;
@@ -25,6 +27,23 @@ interface Event {
 const Page = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "draft" | "published">("all");
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
+
+  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL;
+
+  const getImageUrl = (path?: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${IMAGE_BASE?.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}`;
+  };
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -48,12 +67,12 @@ const Page = () => {
   ];
 
   // Fetch events
-  const fetchEvents = async () => {
+  const fetchEvents = async (page: number = 1) => {
     try {
       setLoading(true);
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/events`,
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/events?page=${page}`,
         {
           headers: {
             Accept: "application/json",
@@ -68,7 +87,23 @@ const Page = () => {
         throw new Error(result.message || "Failed to fetch events");
       }
 
-      setEvents(result.data || []);
+      const list = result.data?.data || result.data || [];
+      
+      if (list.length === 0 && page > 1) {
+          fetchEvents(page - 1);
+          return;
+      }
+
+      setEvents(list);
+      
+      if (result.data?.last_page) {
+        setPagination({
+          currentPage: result.data.current_page,
+          totalPages: result.data.last_page,
+          totalItems: result.data.total,
+          itemsPerPage: result.data.per_page,
+        });
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -80,14 +115,21 @@ const Page = () => {
     fetchEvents();
   }, []);
 
+// Filtered data
+  const filteredEvents = events.filter((event) =>
+    (event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     event.location.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (statusFilter === "all" || event.status === statusFilter)
+  );
+
   // Format data for table
-  const formattedData = events.map((event, index) => ({
+  const formattedData = filteredEvents.map((event, index) => ({
     ...event,
-    sn: index + 1,
+    sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
 
     banner: event.banner ? (
       <img
-        src={event.banner}
+        src={getImageUrl(event.banner)}
         alt={event.title}
         className="w-12 h-12 object-cover rounded"
       />
@@ -101,8 +143,8 @@ const Page = () => {
       <span
         className={`px-2 py-1 rounded text-xs ${
           event.status === "published"
-            ? "bg-green-500/20 text-green-400"
-            : "bg-yellow-500/20 text-yellow-400"
+            ? "bg-green-500/20 text-black"
+            : "bg-yellow-500/20 text-black"
         }`}
       >
         {event.status}
@@ -157,7 +199,7 @@ const Page = () => {
 
       toast.success("Event deleted");
 
-      setEvents((prev) => prev.filter((e) => e.id !== selectedEvent.id));
+      fetchEvents(pagination.currentPage);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -172,25 +214,51 @@ const Page = () => {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex justify-between p-4">
-        <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">
-          Events
-        </span>
-
-        <button
-          onClick={() => {
-            setEditingEvent(null);
-            setFormModalOpen(true);
-          }}
-          className="px-6 py-2 text-sm bg-linear-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center cursor-pointer"
-        >
-          <Plus className="h-4 w-4" />
-          Add Event
-        </button>
+      <div className="flex flex-col lg:flex-row justify-between items-center p-6 bg-white border border-gray-200 rounded-2xl gap-6 shadow-sm mb-6">
+        <div className="flex flex-col text-center lg:text-left">
+          <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+            Events
+          </span>
+          <span className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">Search title/location, filter by status</span>
+        </div>
+        <div className="flex items-center gap-4 w-full lg:w-auto">
+          <div className="relative flex-1 lg:w-64">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Search title or location..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-primary transition shadow-sm"
+            />
+          </div>
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as "all" | "draft" | "published")}
+            className="px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition shadow-sm min-w-[120px]"
+          >
+            <option value="all">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+          </select>
+          <button
+            onClick={() => {
+              setEditingEvent(null);
+              setFormModalOpen(true);
+            }}
+            className="px-6 py-2.5 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 flex items-center gap-2 transition-all"
+          >
+            <Plus className="h-4 w-4" />
+            Add Event
+          </button>
+        </div>
       </div>
 
       {/* Table */}
       <div className="mt-6">
+        <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+          {filteredEvents.length} / {events.length} events
+        </div>
         <Table
           columns={columns}
           data={formattedData}
@@ -199,6 +267,15 @@ const Page = () => {
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
+          emptyMessage="No events found"
+        />
+
+        <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={(page) => fetchEvents(page)}
         />
       </div>
 
@@ -210,7 +287,10 @@ const Page = () => {
           setEditingEvent(null);
         }}
         event={editingEvent}
-        onSuccess={fetchEvents}
+        onSuccess={() => {
+            setSearchTerm("");
+            fetchEvents();
+        }}
       />
 
       {/* View Modal */}

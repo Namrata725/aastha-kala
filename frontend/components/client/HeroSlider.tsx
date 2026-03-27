@@ -21,7 +21,7 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ heroImages }) => {
   return (
     <div
       className="relative w-full overflow-hidden"
-      style={{ aspectRatio: "3/1.3", minHeight: 320 }}
+      style={{ aspectRatio: "3/1.6", minHeight: 400 }}
     >
       {heroImages.map((img, idx) => (
         <img

@@ -1,20 +1,16 @@
-"use client";
-
-import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
-  const router = useRouter();
+export default function PublicLayout({ children }: AdminLayoutProps) {
 
   return (
     <div>
       <Navbar />
 
-      <main>{children}</main>
+      <main className="public-content">{children}</main>
       <Footer />
     </div>
   );

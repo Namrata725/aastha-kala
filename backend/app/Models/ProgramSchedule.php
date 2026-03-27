@@ -11,17 +11,23 @@ class ProgramSchedule extends Model
 
     protected $fillable = [
         'program_id',
+        'instructor_id',
         'start_time',
-        'end_time'
+        'end_time',
     ];
 
     protected $casts = [
-        'start_time' => 'datetime:H:i',
-        'end_time' => 'datetime:H:i',
+        'start_time' => 'string',
+        'end_time' => 'string',
     ];
 
     public function program()
     {
         return $this->belongsTo(Program::class);
+    }
+
+    public function instructor()
+    {
+        return $this->belongsTo(Instructor::class);
     }
 }

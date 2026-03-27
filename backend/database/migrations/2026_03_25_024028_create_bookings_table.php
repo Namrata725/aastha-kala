@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('program_id')->constrained()->onDelete('cascade');
             $table->foreignId('schedule_id')->nullable()->constrained('program_schedules')->onDelete('set null');
             $table->foreignId('instructor_id')->nullable()->constrained()->onDelete('set null');
+            $table->date('booking_date');
             $table->string('name');
             $table->string('phone');
             $table->string('email');
@@ -21,8 +22,9 @@ return new class extends Migration
             $table->enum('type', ['regular', 'customization']);
             $table->time('custom_start_time')->nullable();
             $table->time('custom_end_time')->nullable();
+            $table->unsignedInteger('duration_value')->nullable(); // e.g. 3
+            $table->enum('duration_unit', ['days', 'months', 'years'])->nullable(); // e.g. months
             $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
-
             $table->timestamps();
         });
     }

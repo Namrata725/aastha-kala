@@ -1,33 +1,54 @@
-import React, { useEffect, useState } from "react";
 import { Phone, Mail, MapPin } from "lucide-react";
+import Link from "next/link";
 
-const Footer: React.FC = () => {
-  const [setting, setSetting] = useState<any>(null);
+// Fetch settings with caching (1 hour)
+const getSettings = async () => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/settings`, {
+      next: { revalidate: 3600 }, // cache for 1 hour
+    });
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/settings`);
-        const data = await res.json();
+    const data = await res.json();
+    return data?.data?.setting || null;
+  } catch (error) {
+    console.error("Failed to fetch settings:", error);
+    return null;
+  }
+};
 
-        if (data.success) {
-          setSetting(data.data.setting);
-        }
-      } catch (error) {
-        console.error("Failed to fetch settings:", error);
+//  Fetch latest programs with caching
+const getLatestPrograms = async () => {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/programs/latest`,
+      {
+        next: { revalidate: 3600 },
       }
-    };
+    );
 
-    fetchSettings();
-  }, []);
+    const data = await res.json();
+    return data?.data || [];
+  } catch (error) {
+    console.error("Failed to fetch programs:", error);
+    return [];
+  }
+};
+
+//  Server Component 
+const Footer = async () => {
+  const [setting, latestPrograms] = await Promise.all([
+    getSettings(),
+    getLatestPrograms(),
+  ]);
 
   return (
-    <footer className="bg-white border-t mt-10">
+    <footer className="bg-white border-t border-blue-100 mt-10">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          
           {/* Logo & Description */}
           <div>
-            <div className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2">
               <img
                 src={setting?.logo || "/logo.jpg"}
                 alt={setting?.company_name || "Aastha Kala Kendra"}
@@ -36,7 +57,8 @@ const Footer: React.FC = () => {
               <h2 className="text-xl font-semibold text-blue-600">
                 {setting?.company_name || "Aastha Kala Kendra"}
               </h2>
-            </div>
+            </Link>
+
             <p className="mt-4 text-gray-600 text-sm">
               {setting?.about_short ||
                 "Empowering artists and nurturing talent since 1999. Join our vibrant community and discover your creative potential."}
@@ -49,29 +71,41 @@ const Footer: React.FC = () => {
               Quick Links
             </h3>
             <ul className="space-y-2 text-gray-600 text-sm">
-              <li>About Us</li>
-              <li>Instructors</li>
-              <li>Events</li>
-              <li>Gallery</li>
-              <li>Contact</li>
+              <li><Link href="/about" className="hover:text-blue-600">About Us</Link></li>
+              <li><Link href="/instructors" className="hover:text-blue-600">Instructors</Link></li>
+              <li><Link href="/events" className="hover:text-blue-600">Events</Link></li>
+              <li><Link href="/gallery" className="hover:text-blue-600">Gallery</Link></li>
+              <li><Link href="/contact" className="hover:text-blue-600">Contact</Link></li>
             </ul>
           </div>
 
-          {/* Programs (STATIC as requested) */}
+          {/* Programs */}
           <div>
             <h3 className="text-lg font-semibold text-blue-600 mb-4">
               Program
             </h3>
             <ul className="space-y-2 text-gray-600 text-sm">
-              <li>Vocal Training</li>
-              <li>Instrumental Music</li>
-              <li>Dance</li>
-              <li>Acting</li>
-              <li>Performing Arts</li>
+              {latestPrograms.length > 0 ? (
+                latestPrograms.map((program: any) => (
+                  <li key={program.id}>
+                    <Link href="/programs" className="hover:text-blue-600">
+                      {program.title}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <>
+                  <li>Vocal Training</li>
+                  <li>Instrumental Music</li>
+                  <li>Dance</li>
+                  <li>Acting</li>
+                  <li>Performing Arts</li>
+                </>
+              )}
             </ul>
           </div>
 
-          {/* Contact Details */}
+          {/* Contact */}
           <div>
             <h3 className="text-lg font-semibold text-blue-600 mb-4">
               Contact Details
@@ -79,33 +113,28 @@ const Footer: React.FC = () => {
 
             <div className="space-y-4 text-sm text-gray-600">
               <div className="flex items-center space-x-3">
-                <div className="bg-linear-to-r from-primary to-secondary p-1.5 rounded-full flex items-center justify-center">
-                  <Phone className="h-4 w-4 text-white" />
-                </div>
+                <Phone className="h-4 w-4 text-blue-600" />
                 <span>{setting?.phone || "+977 9841305158"}</span>
               </div>
 
               <div className="flex items-center space-x-3">
-                <div className="bg-linear-to-r from-primary to-secondary p-1.5 rounded-full flex items-center justify-center">
-                  <Mail className="h-4 w-4 text-white" />
-                </div>
+                <Mail className="h-4 w-4 text-blue-600" />
                 <span>{setting?.email || "aasthakalakendra@gmail.com"}</span>
               </div>
 
               <div className="flex items-center space-x-3">
-                <div className="bg-linear-to-r from-primary to-secondary p-1.5 rounded-full flex items-center justify-center">
-                  <MapPin className="h-4 w-4 text-white" />
-                </div>
+                <MapPin className="h-4 w-4 text-blue-600" />
                 <span>
-                  {setting?.address || "Narayangopal Chowk, Kathmandu, Nepal"}
+                  {setting?.address ||
+                    "Narayangopal Chowk, Kathmandu, Nepal"}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t-2 mt-10 pt-6 text-center text-sm text-primary">
+        {/* Footer Bottom */}
+        <div className="border-t-4 mt-10 pt-6 text-center text-sm text-blue-600">
           © {new Date().getFullYear()}{" "}
           {setting?.company_name || "Aastha Kala Kendra"}, All rights reserved.
         </div>

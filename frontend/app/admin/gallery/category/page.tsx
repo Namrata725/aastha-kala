@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import InputField from "@/components/layout/InputField";
 import Table from "@/components/layout/Table";
 import { Tag } from "lucide-react";
+import { Pagination } from "@/components/global/Pagination";
 
 const CategoryPage = () => {
   const API = `${process.env.NEXT_PUBLIC_API_URL}/admin/gallery-categories`;
@@ -16,22 +17,49 @@ const CategoryPage = () => {
     name: "",
   });
 
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
+
   // Get token
   const getToken = () => localStorage.getItem("token");
 
   // Fetch Categories
-  const fetchCategories = async () => {
+  const fetchCategories = async (page: number = 1) => {
     try {
       setLoading(true);
 
-      const res = await fetch(API, {
+      const res = await fetch(`${API}?page=${page}`, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
         },
       });
 
-      const data = await res.json();
-      setCategories(data);
+      const result = await res.json();
+      
+      // Handle empty page
+      const items = Array.isArray(result) ? result : (result.data || []);
+      if (items.length === 0 && page > 1) {
+          fetchCategories(page - 1);
+          return;
+      }
+
+      if (Array.isArray(result)) {
+        setCategories(result);
+        setPagination({ ...pagination, totalItems: result.length, itemsPerPage: result.length });
+      } else if (result.data) {
+        setCategories(result.data);
+        setPagination({
+          currentPage: result.current_page || page,
+          totalPages: result.last_page || 1,
+          totalItems: result.total || result.data.length,
+          itemsPerPage: result.per_page || 10,
+        });
+      }
+
     } catch (error) {
       console.error("Fetch error:", error);
     } finally {
@@ -110,14 +138,23 @@ const CategoryPage = () => {
         <div>
           <Table
             columns={[
-              { key: "id", label: "ID" },
+              { key: "sn", label: "SN" },
               { key: "name", label: "Category Name" },
             ]}
-            data={categories}
+            data={categories.map((c, i) => ({ ...c, sn: (pagination.currentPage - 1) * pagination.itemsPerPage + i + 1 }))}
             loading={loading}
             actions={["edit", "delete"]}
             onEdit={handleEdit}
             onDelete={handleDelete}
+          />
+          <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalItems}
+              itemsPerPage={pagination.itemsPerPage}
+              onPageChange={(page) => {
+                  fetchCategories(page);
+              }}
           />
         </div>
 

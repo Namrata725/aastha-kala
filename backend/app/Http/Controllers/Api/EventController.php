@@ -16,7 +16,9 @@ class EventController extends Controller
      */
     public function index()
     {
-        $events = Event::latest()->get()->map(function ($event) {
+        $events = Event::latest()->paginate(10);
+        
+        $events->getCollection()->transform(function ($event) {
             $event->banner = $this->getBannerUrl($event->banner);
             return $event;
         });

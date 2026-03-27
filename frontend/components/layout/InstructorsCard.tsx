@@ -46,7 +46,7 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
         {/* Top Content */}
         <div>
           {/* Name */}
-          <h3 className="text-xl font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-gray-800">
             {instructor.name}
           </h3>
 
@@ -58,7 +58,7 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
           {/* About */}
           {instructor.about && (
             <div>
-              <p className="text-sm text-gray-700 mb-1">
+              <p className="text-sm text-black mb-1">
                 {expanded
                   ? instructor.about
                   : instructor.about.length > 150
@@ -69,7 +69,7 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
               {instructor.about.length > 150 && (
                 <button
                   onClick={() => setExpanded(!expanded)}
-                  className="text-blue-500 text-xs hover:underline"
+                  className="text-blue-500 text-lg hover:underline"
                 >
                   {expanded ? "See less" : "See more"}
                 </button>

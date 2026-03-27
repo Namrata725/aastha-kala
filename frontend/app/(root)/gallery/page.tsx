@@ -46,7 +46,7 @@ const fetchGallery = async (): Promise<GalleryItem[]> => {
     if (!res.ok) throw new Error("Failed to fetch gallery");
 
     const data = await res.json();
-    return data || [];
+    return Array.isArray(data) ? data : (data?.data || []);
   } catch (error) {
     console.error(error);
     return [];
@@ -62,7 +62,7 @@ const fetchCategories = async (): Promise<Category[]> => {
     if (!res.ok) throw new Error("Failed to fetch categories");
 
     const data = await res.json();
-    return data || []; 
+    return Array.isArray(data) ? data : (data?.data || []);
   } catch (error) {
     console.error(error);
     return [];
