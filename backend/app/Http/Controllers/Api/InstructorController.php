@@ -238,10 +238,58 @@ public function update(Request $request, $id)
         ]);
     }
 
+    private function mapInstructorClasses($instructor)
+    {
+        $classes = [];
+
+        // 1. Fixed classes
+        if ($instructor->fixed_classes) {
+            foreach ($instructor->fixed_classes as $class) {
+                $classes[] = [
+                    'start_time'    => $class->start_time instanceof \DateTimeInterface ? $class->start_time->format('H:i') : substr($class->start_time, 0, 5),
+                    'end_time'      => $class->end_time instanceof \DateTimeInterface ? $class->end_time->format('H:i') : substr($class->end_time, 0, 5),
+                    'program_title' => $class->program ? $class->program->title : 'Unknown',
+                ];
+            }
+        }
+
+        // 2. Accepted Bookings
+        if ($instructor->bookings) {
+            foreach ($instructor->bookings as $booking) {
+                if ($booking->status !== 'accepted') continue;
+
+                $title = 'Booking: ' . ($booking->program ? $booking->program->title : 'Custom');
+
+                if ($booking->type === 'regular') {
+                    $schedules = $booking->schedules && $booking->schedules->isNotEmpty() ? $booking->schedules : collect([$booking->schedule])->filter();
+                    foreach ($schedules as $s) {
+                        $classes[] = [
+                            'start_time'    => $s->start_time instanceof \DateTimeInterface ? $s->start_time->format('H:i') : substr($s->start_time, 0, 5),
+                            'end_time'      => $s->end_time instanceof \DateTimeInterface ? $s->end_time->format('H:i') : substr($s->end_time, 0, 5),
+                            'program_title' => $title,
+                        ];
+                    }
+                } else {
+                    if ($booking->custom_start_time && $booking->custom_end_time) {
+                        $classes[] = [
+                            'start_time'    => $booking->custom_start_time instanceof \DateTimeInterface ? $booking->custom_start_time->format('H:i') : substr($booking->custom_start_time, 0, 5),
+                            'end_time'      => $booking->custom_end_time instanceof \DateTimeInterface ? $booking->custom_end_time->format('H:i') : substr($booking->custom_end_time, 0, 5),
+                            'program_title' => $title . ' (Custom)',
+                        ];
+                    }
+                }
+            }
+        }
+
+        return collect($classes)->unique(function ($item) {
+            return $item['start_time'] . '-' . $item['end_time'] . '-' . $item['program_title'];
+        })->values();
+    }
+
     // GET /api/admin/instructors/{id}/schedule
     public function fullSchedule($id)
     {
-        $instructor = Instructor::with(['availabilities', 'fixed_classes.program'])->find($id);
+        $instructor = Instructor::with(['availabilities', 'fixed_classes.program', 'bookings.program', 'bookings.schedules', 'bookings.schedule'])->find($id);
 
         if (!$instructor) {
             return response()->json([
@@ -260,20 +308,14 @@ public function update(Request $request, $id)
                     'image' => $instructor->image,
                 ],
                 'availabilities' => $instructor->availabilities,
-                'classes' => $instructor->fixed_classes->map(function($class) {
-                    return [
-                        'start_time'    => $class->start_time instanceof \DateTimeInterface ? $class->start_time->format('H:i') : substr($class->start_time, 0, 5),
-                        'end_time'      => $class->end_time instanceof \DateTimeInterface ? $class->end_time->format('H:i') : substr($class->end_time, 0, 5),
-                        'program_title' => $class->program ? $class->program->title : 'Unknown',
-                    ];
-                }),
+                'classes' => $this->mapInstructorClasses($instructor),
             ]
         ]);
     }
     // GET /api/admin/instructors-schedules
     public function allSchedules()
     {
-        $instructors = Instructor::with(['availabilities', 'fixed_classes.program'])->latest()->paginate(10);
+        $instructors = Instructor::with(['availabilities', 'fixed_classes.program', 'bookings.program', 'bookings.schedules', 'bookings.schedule'])->latest()->paginate(10);
 
         $instructors->getCollection()->transform(function($instructor) {
             return [
@@ -284,13 +326,7 @@ public function update(Request $request, $id)
                     'image' => $instructor->image,
                 ],
                 'availabilities' => $instructor->availabilities,
-                'classes' => $instructor->fixed_classes->map(function($class) {
-                    return [
-                        'start_time'    => $class->start_time instanceof \DateTimeInterface ? $class->start_time->format('H:i') : substr($class->start_time, 0, 5),
-                        'end_time'      => $class->end_time instanceof \DateTimeInterface ? $class->end_time->format('H:i') : substr($class->end_time, 0, 5),
-                        'program_title' => $class->program ? $class->program->title : 'Unknown',
-                    ];
-                }),
+                'classes' => $this->mapInstructorClasses($instructor),
             ];
         });
 
@@ -333,6 +369,36 @@ public function update(Request $request, $id)
 
         if ($isTeaching->exists()) {
              return response()->json(['conflict' => true, 'message' => 'The teacher is already teaching another program at this time.']);
+        }
+
+        // 3. Booking clash check (day-agnostic — only check time overlap)
+        $hasBookingConflict = \App\Models\Booking::where('instructor_id', $id)
+            ->where('status', 'accepted')
+            ->where(function ($q) use ($startTime, $endTime) {
+                // Regular schedules (pivot relation)
+                $q->whereHas('schedules', function($sq) use ($startTime, $endTime) {
+                     $sq->whereRaw('TIME(start_time) < TIME(?)', [$endTime])
+                        ->whereRaw('TIME(end_time) > TIME(?)', [$startTime]);
+                })
+                // Regular schedules (single relation for strict matching)
+                ->orWhereHas('schedule', function($sq) use ($startTime, $endTime) {
+                     $sq->whereRaw('TIME(start_time) < TIME(?)', [$endTime])
+                        ->whereRaw('TIME(end_time) > TIME(?)', [$startTime]);
+                })
+                // Custom bookings
+                ->orWhere(function($sq) use ($startTime, $endTime) {
+                     $sq->whereNotNull('custom_start_time')
+                        ->whereRaw('TIME(custom_start_time) < TIME(?)', [$endTime])
+                        ->whereRaw('TIME(custom_end_time) > TIME(?)', [$startTime]);
+                });
+            });
+
+        if ($excludeProgramId) {
+            $hasBookingConflict->where('program_id', '!=', $excludeProgramId);
+        }
+
+        if ($hasBookingConflict->exists()) {
+            return response()->json(['conflict' => true, 'message' => 'The teacher already has an accepted booking at this time.']);
         }
 
         return response()->json(['conflict' => false]);

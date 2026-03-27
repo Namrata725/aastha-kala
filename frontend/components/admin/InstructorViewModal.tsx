@@ -120,7 +120,7 @@ const InstructorViewModal: React.FC<Props> = ({
         <Field label="About">
           <div className="max-h-40 overflow-y-auto hide-scrollbar pr-2">
             <p className="whitespace-pre-wrap">
-              {instructor.about || "No description available."}
+              {instructor.about || " "}
             </p>
           </div>
         </Field>

@@ -295,6 +295,28 @@ class BookingController extends Controller
 
                         if ($hasConflict) {
                              $isFullyAvailable = false;
+                        } else {
+                            // 3. Lead instructor conflict check (day-agnostic time overlap check)
+                            $excludeScheduleIds = [];
+                            if ($booking->type === 'regular') {
+                                if ($booking->schedules && $booking->schedules->isNotEmpty()) {
+                                    $excludeScheduleIds = $booking->schedules->pluck('id')->toArray();
+                                } elseif ($booking->schedule_id) {
+                                    $excludeScheduleIds = [$booking->schedule_id];
+                                }
+                            }
+
+                            $hasLeadConflict = \App\Models\ProgramSchedule::where('instructor_id', $instructor->id)
+                                ->when(!empty($excludeScheduleIds), function($q) use ($excludeScheduleIds) {
+                                    $q->whereNotIn('id', $excludeScheduleIds);
+                                })
+                                ->whereRaw('TIME(start_time) < TIME(?)', [$slot['end']])
+                                ->whereRaw('TIME(end_time) > TIME(?)', [$slot['start']])
+                                ->exists();
+
+                            if ($hasLeadConflict) {
+                                $isFullyAvailable = false;
+                            }
                         }
                     }
                 }

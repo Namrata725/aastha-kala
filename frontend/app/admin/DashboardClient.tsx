@@ -32,12 +32,6 @@ const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
       <div>
         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{title}</p>
         <h3 className="text-3xl font-black text-gray-900">{value}</h3>
-        {trend && (
-          <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-green-600 uppercase">
-            <TrendingUp className="w-3 h-3" />
-            {trend} from last month
-          </div>
-        )}
       </div>
       <div className={`p-3 rounded-xl bg-slate-100 border border-gray-100 ${color.replace('bg-', 'text-')}`}>
         <Icon className="w-6 h-6" />

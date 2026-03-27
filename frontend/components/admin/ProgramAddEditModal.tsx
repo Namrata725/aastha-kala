@@ -98,7 +98,16 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
   };
 
   const removeSchedule = (index: number) => {
-    setSchedules(schedules.filter((_, i) => i !== index));
+    const newSchedules = schedules.filter((_, i) => i !== index);
+    setSchedules(newSchedules);
+    
+    // Re-evaluate conflicts for the new set of schedules to fix indexing issues
+    setConflicts({});
+    newSchedules.forEach((s, newIndex) => {
+        if (s.instructor_id && s.start_time && s.end_time) {
+            checkConflict(newIndex, s.instructor_id, s.start_time, s.end_time);
+        }
+    });
   };
 
   const [conflicts, setConflicts] = useState<{[key: number]: string}>({});
@@ -134,6 +143,30 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (Object.keys(conflicts).length > 0) {
+        toast.error("Please resolve any instructor scheduling conflicts before saving.");
+        return;
+    }
+
+    // Check for duplicate/overlapping schedules within the form
+    for (let i = 0; i < schedules.length; i++) {
+        const s1 = schedules[i];
+        if (!s1.instructor_id || !s1.start_time || !s1.end_time) continue;
+        
+        for (let j = i + 1; j < schedules.length; j++) {
+            const s2 = schedules[j];
+            if (!s2.instructor_id || !s2.start_time || !s2.end_time) continue;
+
+            if (s1.instructor_id === s2.instructor_id) {
+                if (s1.start_time < s2.end_time && s2.start_time < s1.end_time) {
+                    toast.error("Multiple slots with overlapping times for the same instructor are not allowed.");
+                    return;
+                }
+            }
+        }
+    }
+
     setLoading(true);
 
     const formData = new FormData();

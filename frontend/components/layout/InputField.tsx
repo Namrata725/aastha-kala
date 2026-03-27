@@ -17,6 +17,7 @@ interface Props {
   options?: Option[];
   imagePreview?: string | null;
   required?: boolean;
+  disabled?: boolean;
 }
 
 const InputField: React.FC<Props> = ({
@@ -28,6 +29,7 @@ const InputField: React.FC<Props> = ({
   type = "text",
   options = [],
   required = false,
+  disabled = false,
 }) => {
   const inputId = label.replace(/\s+/g, "_").toLowerCase();
 
@@ -53,7 +55,8 @@ const InputField: React.FC<Props> = ({
               value={value ?? ""}
               onChange={onChange}
               rows={4}
-              className="w-full bg-transparent outline-none text-white placeholder:text-white/40 resize-none"
+              disabled={disabled}
+              className={`w-full bg-transparent outline-none text-white placeholder:text-white/40 resize-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
               placeholder={`Enter ${label}`}
             />
           ) : isSelect ? (
@@ -61,7 +64,8 @@ const InputField: React.FC<Props> = ({
             <select
               value={value ?? ""}
               onChange={onChange}
-              className="w-full bg-transparent outline-none text-white placeholder:text-white/40"
+              disabled={disabled}
+              className={`w-full bg-transparent outline-none text-white placeholder:text-white/40 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <option value="" className="bg-gray-900 text-white/60">
                 Select {label}
@@ -85,7 +89,8 @@ const InputField: React.FC<Props> = ({
                 type={type}
                 value={value ?? ""}
                 onChange={onChange}
-                className="w-full bg-transparent outline-none text-white placeholder:text-white/40"
+                disabled={disabled}
+                className={`w-full bg-transparent outline-none text-white placeholder:text-white/40 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                 placeholder={`Enter ${label}`}
               />
             </div>

@@ -83,17 +83,26 @@ const InstructorAvailabilityModal: React.FC<InstructorAvailabilityModalProps> = 
   if (!isOpen || !instructor) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer" onClick={onClose} />
-      <div className="relative bg-[#1a1a1a] border border-white/10 rounded-3xl w-full max-w-3xl max-h-[85vh] overflow-y-auto p-8 shadow-3xl">
-        <div className="flex justify-between items-center mb-10 border-b border-white/5 pb-6">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg cursor-pointer"
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-2xl p-8 bg-white/50 relative cursor-default"
+        style={{
+          backdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.1)",
+        }}
+      >
+        <div className="flex justify-between items-center mb-10 border-b border-primary/20 pb-6">
           <div className="space-y-1">
-             <h2 className="text-xl font-bold text-white flex items-center gap-3 italic">
-                <Calendar className="w-5 h-5 text-secondary" /> {instructor.name}'s Free Hours
+             <h2 className="text-xl font-bold text-primary flex items-center gap-3 italic">
+                <Calendar className="w-5 h-5 text-primary" /> {instructor.name}'s Free Hours
              </h2>
-             <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Define slots for private class bookings</p>
+             <p className="text-[10px] text-primary/60 uppercase tracking-widest font-bold italic">Define slots for private class bookings</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white/60 hover:text-white transition group">
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-primary/60 hover:text-primary transition group">
             <X className="w-5 h-5 group-hover:rotate-90 transition duration-300" />
           </button>
         </div>
@@ -101,28 +110,28 @@ const InstructorAvailabilityModal: React.FC<InstructorAvailabilityModalProps> = 
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-4">
             {availabilities.map((s, index) => (
-              <div key={index} className="flex flex-row items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 shadow-inner group hover:border-primary/40 transition">
+              <div key={index} className="flex flex-row items-center gap-4 bg-white/40 p-4 rounded-2xl border border-primary/20 shadow-sm group hover:border-primary/40 transition">
                   <div className="flex-1 space-y-3">
                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <span className="text-[9px] text-white/30 font-bold uppercase ml-1">Start Time</span>
+                          <span className="text-[9px] text-primary/60 font-black uppercase ml-1 italic tracking-wider">Start Time</span>
                           <input 
                             type="time" 
                             value={s.start_time?.substring(0, 5)}
                             onChange={(e) => updateSlot(s.id, 'start_time', e.target.value)}
-                            className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-secondary font-bold focus:outline-none focus:border-secondary/50 transition"
+                            className="w-full bg-white/60 border border-primary/20 rounded-xl px-4 py-3 text-sm text-primary font-bold focus:outline-none focus:border-primary transition"
                           />
-                          <p className="text-[9px] text-white/20 font-medium italic ml-1">{to12h(s.start_time)}</p>
+                          <p className="text-[9px] text-primary/40 font-medium italic ml-1">{to12h(s.start_time)}</p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[9px] text-white/30 font-bold uppercase ml-1">End Time</span>
+                          <span className="text-[9px] text-primary/60 font-black uppercase ml-1 italic tracking-wider">End Time</span>
                           <input 
                             type="time" 
                             value={s.end_time?.substring(0, 5)}
                             onChange={(e) => updateSlot(s.id, 'end_time', e.target.value)}
-                            className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-secondary font-bold focus:outline-none focus:border-secondary/50 transition"
+                            className="w-full bg-white/60 border border-primary/20 rounded-xl px-4 py-3 text-sm text-primary font-bold focus:outline-none focus:border-primary transition"
                           />
-                          <p className="text-[9px] text-white/20 font-medium italic ml-1">{to12h(s.end_time)}</p>
+                          <p className="text-[9px] text-primary/40 font-medium italic ml-1">{to12h(s.end_time)}</p>
                         </div>
                       </div>
                    </div>
@@ -135,25 +144,25 @@ const InstructorAvailabilityModal: React.FC<InstructorAvailabilityModalProps> = 
               </div>
             ))}
             {!availabilities.length && !loading && (
-                <div className="text-center py-10 border-2 border-dashed border-white/10 rounded-3xl">
-                   <p className="text-sm text-white/30 italic">No free slots defined yet. Add hours to allow private bookings.</p>
+                <div className="text-center py-10 border-2 border-dashed border-primary/20 rounded-3xl bg-white/20">
+                   <p className="text-sm text-primary/40 font-bold italic uppercase tracking-widest px-6">No free slots defined yet. Add hours to allow private bookings.</p>
                 </div>
             )}
-            {loading && <div className="text-center py-10 animate-pulse text-xs text-white/20 uppercase font-black uppercase tracking-widest italic">Syncing with server...</div>}
+            {loading && <div className="text-center py-10 animate-pulse text-xs text-primary/40 uppercase font-black tracking-widest italic">Syncing with server...</div>}
           </div>
 
           <button 
             type="button" 
             disabled={loading}
             onClick={addSlot}
-            className="w-full py-4 border-2 border-dashed border-primary/20 text-primary rounded-2xl hover:border-primary/60 hover:bg-primary/5 transition flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-widest shadow-2xl active:scale-95"
+            className="w-full py-4 bg-linear-to-r from-primary to-secondary text-white rounded-2xl hover:opacity-90 hover:scale-[1.01] transition-all flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-widest shadow-2xl active:scale-95 disabled:opacity-50"
           >
             <Plus className="w-5 h-5" /> Add Availability Slot
           </button>
         </div>
 
-        <div className="flex justify-end pt-8 mt-10 border-t border-white/5">
-             <button onClick={onClose} className="px-10 py-3 bg-white/5 text-white/40 rounded-xl hover:bg-white/10 hover:text-white transition duration-300 font-bold uppercase tracking-widest text-[10px]">Close Settings</button>
+        <div className="flex justify-end pt-8 mt-10 border-t border-primary/20">
+             <button onClick={onClose} className="px-10 py-3 bg-white/60 text-primary/60 rounded-xl hover:bg-white/80 hover:text-primary border border-primary/10 transition duration-300 font-bold uppercase tracking-widest text-[10px] italic">Close Settings</button>
         </div>
       </div>
     </div>

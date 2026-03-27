@@ -218,8 +218,8 @@ const InstructorModal: React.FC<Props> = ({
 
   return (
     <div
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg cursor-pointer"
+      onClick={loading ? undefined : onClose}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg ${loading ? "cursor-wait" : "cursor-pointer"}`}
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -238,8 +238,8 @@ const InstructorModal: React.FC<Props> = ({
             {isEdit ? "Edit Instructor" : "Add Instructor"}
           </div>
 
-          <button onClick={onClose}>
-            <X className="text-primary/70 hover:text-white cursor-pointer" />
+          <button disabled={loading} onClick={onClose} className={`p-2 rounded-full transition group ${loading ? "opacity-50 cursor-not-allowed text-primary/30" : "hover:bg-white/10 text-primary/60 hover:text-primary"}`}>
+            <X className="w-5 h-5 group-hover:rotate-90 transition duration-300" />
           </button>
         </div>
 
@@ -255,12 +255,11 @@ const InstructorModal: React.FC<Props> = ({
             </div>
 
             {/* Upload */}
-            <label className="absolute bottom-0 right-0 bg-linear-to-r from-primary to-secondary p-2 rounded-full cursor-pointer">
-              <input type="file" hidden onChange={handleImageChange} />
+            <label className={`absolute bottom-0 right-0 bg-linear-to-r from-primary to-secondary p-2 rounded-full ${loading ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
+              <input type="file" hidden disabled={loading} onChange={handleImageChange} />
               <User className="w-4 h-4 text-white" />
             </label>
 
-            {/* Remove */}
             {preview && (
               <button
                 type="button"
@@ -269,7 +268,8 @@ const InstructorModal: React.FC<Props> = ({
                   setImage(null);
                   setRemoveImage(true);
                 }}
-                className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-full"
+                disabled={loading}
+                className={`absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-full ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 Remove
               </button>
@@ -289,6 +289,7 @@ const InstructorModal: React.FC<Props> = ({
             required
             value={form.name}
             onChange={(e) => handleChange("name", e.target.value)}
+            disabled={loading}
           />
 
           <InputField
@@ -297,6 +298,7 @@ const InstructorModal: React.FC<Props> = ({
             required
             value={form.title}
             onChange={(e) => handleChange("title", e.target.value)}
+            disabled={loading}
           />
 
           <InputField
@@ -305,6 +307,7 @@ const InstructorModal: React.FC<Props> = ({
             required
             value={form.phone}
             onChange={(e) => handleChange("phone", e.target.value)}
+            disabled={loading}
           />
 
           <InputField
@@ -313,6 +316,7 @@ const InstructorModal: React.FC<Props> = ({
             required
             value={form.email}
             onChange={(e) => handleChange("email", e.target.value)}
+            disabled={loading}
           />
 
           <InputField
@@ -320,6 +324,7 @@ const InstructorModal: React.FC<Props> = ({
             icon={Facebook}
             value={form.facebook_url || ""}
             onChange={(e) => handleChange("facebook_url", e.target.value)}
+            disabled={loading}
           />
 
           <InputField
@@ -327,6 +332,7 @@ const InstructorModal: React.FC<Props> = ({
             icon={Instagram}
             value={form.instagram_url || ""}
             onChange={(e) => handleChange("instagram_url", e.target.value)}
+            disabled={loading}
           />
 
           <div className="md:col-span-2">
@@ -337,17 +343,18 @@ const InstructorModal: React.FC<Props> = ({
               required
               value={form.about}
               onChange={(e) => handleChange("about", e.target.value)}
+              disabled={loading}
             />
           </div>
         </div>
 
         {/* Programs Section */}
-        <div className="mt-10 pt-8 border-t border-white/10">
+        <div className="mt-10 pt-8 border-t border-primary/20">
           <div className="flex flex-col mb-6">
             <h3 className="text-lg font-bold text-primary italic flex items-center gap-2">
               Programs Taught
             </h3>
-            <p className="text-[10px] text-black font-black uppercase tracking-widest mt-1">Which programs does this instructor teach?</p>
+            <p className="text-[10px] text-primary/60 font-black uppercase tracking-widest mt-1">Which programs does this instructor teach?</p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -355,43 +362,45 @@ const InstructorModal: React.FC<Props> = ({
               <div 
                 key={program.id}
                 onClick={() => {
+                  if (loading) return;
                   setSelectedPrograms(prev => 
                     prev.includes(program.id) 
                       ? prev.filter(id => id !== program.id)
                       : [...prev, program.id]
                   );
                 }}
-                className={`p-3 rounded-xl border transition cursor-pointer flex items-center gap-3 ${
+                className={`p-3 rounded-xl border transition flex items-center gap-3 ${
                   selectedPrograms.includes(program.id)
-                    ? "bg-primary/20 border-primary text-white shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]"
-                    : "bg-white/5 border-white/10 text-black hover:bg-white/10"
-                }`}
+                    ? "bg-primary/20 border-primary text-primary shadow-lg shadow-primary/10"
+                    : "bg-white/40 border-primary/20 text-primary/60 hover:bg-white/60 hover:border-primary/40"
+                } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
-                <div className={`w-2 h-2 rounded-full ${selectedPrograms.includes(program.id) ? "bg-primary animate-pulse" : "bg-white/20"}`} />
+                <div className={`w-2 h-2 rounded-full ${selectedPrograms.includes(program.id) ? "bg-primary animate-pulse" : "bg-primary/20"}`} />
                 <span className="text-[11px] font-bold uppercase tracking-wider truncate">{program.title}</span>
               </div>
             ))}
           </div>
           {allPrograms.length === 0 && (
-            <div className="py-4 text-center border border-dashed border-white/10 rounded-xl">
-              <span className="text-xs text-white/20 font-bold uppercase tracking-widest">No programs found</span>
+            <div className="py-8 text-center border-2 border-dashed border-primary/20 rounded-2xl bg-white/20">
+              <span className="text-xs text-primary/40 font-bold uppercase tracking-widest italic">No programs found</span>
             </div>
           )}
         </div>
 
         {/* Working Hours Section */}
-        <div className="mt-10 pt-8 border-t border-white/10">
+        <div className="mt-10 pt-8 border-t border-primary/20">
           <div className="flex justify-between items-center mb-6">
             <div className="flex flex-col">
               <h3 className="text-lg font-bold text-primary italic flex items-center gap-2">
                 Working Hours & Availability
               </h3>
-              <p className="text-[10px] text-black font-black uppercase tracking-widest mt-1">When is this instructor available to teach?</p>
+              <p className="text-[10px] text-primary/60 font-black uppercase tracking-widest mt-1">When is this instructor available to teach?</p>
             </div>
             <button 
               type="button" 
               onClick={() => setAvailabilities([...availabilities, { day_of_week: "Monday", start_time: "07:00", end_time: "09:00" }])}
-              className="px-4 py-2 text-[10px] font-black uppercase bg-secondary/20 text-secondary border border-secondary/20 rounded-lg hover:bg-secondary hover:text-white transition"
+              disabled={loading}
+              className={`px-4 py-2 text-[10px] font-black uppercase border border-primary/20 rounded-lg shadow-lg shadow-primary/10 italic ${loading ? 'opacity-50 cursor-not-allowed bg-primary/10 text-primary/60' : 'bg-primary/20 text-primary hover:bg-primary hover:text-white transition cursor-pointer'}`}
             >
               + Add Available Slot
             </button>
@@ -399,57 +408,60 @@ const InstructorModal: React.FC<Props> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {availabilities.map((avail, index) => (
-              <div key={index} className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-3 group">
+              <div key={index} className="bg-white/40 border border-primary/20 rounded-2xl p-4 flex flex-col gap-3 group hover:border-primary/40 transition shadow-sm">
                 <div className="flex justify-between items-center">
-                   <div className="bg-black/40 border border-white/5 rounded-lg px-3 py-1 text-[10px] font-bold text-white/50 uppercase tracking-widest italic">
-                     Daily
+                   <div className="bg-primary/10 border border-primary/20 rounded-lg px-3 py-1 text-[10px] font-bold text-primary/60 uppercase tracking-widest italic">
+                     Set your time slot
                    </div>
                    <button
                      type="button"
                      onClick={() => setAvailabilities(availabilities.filter((_, i) => i !== index))}
-                     className="p-1.5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition"
+                     disabled={loading}
+                     className={`p-1.5 rounded-lg transition ${loading ? 'text-red-500/20 cursor-not-allowed' : 'text-red-500/40 hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100'}`}
                    >
                      <X className="w-3.5 h-3.5" />
                    </button>
                  </div>
                  <div className="grid grid-cols-2 gap-2 mt-1">
                    <div>
-                     <span className="text-[9px] text-white/30 font-bold uppercase mb-1 block">From</span>
+                     <span className="text-[9px] text-primary/60 font-black uppercase mb-1 block italic tracking-wider">From</span>
                      <input
                         type="time"
                         value={avail.start_time}
+                        disabled={loading}
                         onChange={(e) => {
                           const newA = [...availabilities];
                           newA[index].start_time = e.target.value;
                           setAvailabilities(newA);
                         }}
-                        className="w-full bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white"
+                        className={`w-full bg-white/60 border border-primary/20 rounded-lg px-3 py-1.5 text-xs text-primary font-bold focus:outline-none focus:border-primary transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                      />
                    </div>
                    <div>
-                     <span className="text-[9px] text-white/30 font-bold uppercase mb-1 block">To</span>
+                     <span className="text-[9px] text-primary/60 font-black uppercase mb-1 block italic tracking-wider">To</span>
                      <input
                         type="time"
                         value={avail.end_time}
+                        disabled={loading}
                         onChange={(e) => {
                           const newA = [...availabilities];
                           newA[index].end_time = e.target.value;
                           setAvailabilities(newA);
                         }}
-                        className="w-full bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white"
+                        className={`w-full bg-white/60 border border-primary/20 rounded-lg px-3 py-1.5 text-xs text-primary font-bold focus:outline-none focus:border-primary transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                      />
                    </div>
                  </div>
-                 <div className="flex gap-3 justify-center border-t border-white/5 pt-2">
-                    <span className="text-[9px] text-secondary font-black italic uppercase tracking-widest">{to12h(avail.start_time)}</span>
-                    <span className="text-[9px] text-secondary italic">—</span>
-                    <span className="text-[9px] text-secondary font-black italic uppercase tracking-widest">{to12h(avail.end_time)}</span>
+                 <div className="flex gap-3 justify-center border-t border-primary/10 pt-2">
+                    <span className="text-[9px] text-primary font-black italic uppercase tracking-widest">{to12h(avail.start_time)}</span>
+                    <span className="text-[9px] text-primary/30 italic">—</span>
+                    <span className="text-[9px] text-primary font-black italic uppercase tracking-widest">{to12h(avail.end_time)}</span>
                  </div>
                </div>
             ))}
             {availabilities.length === 0 && (
-              <div className="col-span-full py-8 border-2 border-dashed border-white/5 rounded-2xl flex items-center justify-center bg-white/[0.02]">
-                 <span className="text-xs font-bold text-secondary uppercase tracking-widest">No working hours defined yet</span>
+              <div className="col-span-full py-10 border-2 border-dashed border-primary/20 rounded-3xl flex items-center justify-center bg-white/20">
+                 <span className="text-xs font-bold text-primary/30 uppercase tracking-widest italic">No working hours defined yet</span>
               </div>
             )}
           </div>
@@ -459,7 +471,8 @@ const InstructorModal: React.FC<Props> = ({
         <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-white/10">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-lg text-primary/80 border bg-white/5 hover:bg-white/10 cursor-pointer"
+            disabled={loading}
+            className={`px-5 py-2 rounded-lg text-primary/80 border bg-white/5 ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-white/10 cursor-pointer"}`}
           >
             Cancel
           </button>
@@ -467,7 +480,7 @@ const InstructorModal: React.FC<Props> = ({
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-5 py-2 rounded-lg text-white bg-linear-to-r from-primary to-secondary cursor-pointer"
+            className={`px-5 py-2 rounded-lg text-white bg-linear-to-r from-primary to-secondary ${loading ? "opacity-70 cursor-wait" : "cursor-pointer"}`}
           >
             {loading ? "Saving..." : isEdit ? "Update" : "Create"}
           </button>

@@ -149,7 +149,7 @@ const GalleryViewModal = ({
 
               {/* Description (normal text for readability) */}
               <p className="text-base md:text-lg text-primary gray-700 leading-relaxed max-w-prose mt-3">
-                {item.description || "No description available."}
+                {item.description || " "}
               </p>
             </div>
           )}

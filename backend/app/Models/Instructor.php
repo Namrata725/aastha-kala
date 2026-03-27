@@ -34,4 +34,9 @@ class Instructor extends Model
     {
         return $this->hasMany(ProgramSchedule::class);
     }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'instructor_id');
+    }
 }
