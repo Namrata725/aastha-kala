@@ -48,19 +48,19 @@ const GalleryViewModal: React.FC<GalleryViewModalProps> = ({
           {/* Title */}
           <div>
             <p className="text-sm text-primary font-bold">Title</p>
-            <p className="font-medium text-white">{data.title}</p>
+            <p className="font-medium text-black">{data.title}</p>
           </div>
 
           {/* Type */}
           <div>
             <p className="text-sm text-primary font-bold">Type</p>
-            <p className="font-medium capitalize text-white">{data.type}</p>
+            <p className="font-medium capitalize text-black">{data.type}</p>
           </div>
 
           {/* Category */}
           <div>
             <p className="text-sm text-primary font-bold">Category</p>
-            <p className="font-medium text-white">
+            <p className="font-medium text-black">
               {data.category?.name || "-"}
             </p>
           </div>
@@ -68,7 +68,7 @@ const GalleryViewModal: React.FC<GalleryViewModalProps> = ({
           {/* Position */}
           <div>
             <p className="text-sm text-primary font-bold">CategoryPosition</p>
-            <p className="font-medium text-white">{data.position || "-"}</p>
+            <p className="font-medium text-black">{data.position || "-"}</p>
           </div>
 
           {/* Video */}

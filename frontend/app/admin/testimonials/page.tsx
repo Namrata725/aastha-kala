@@ -210,30 +210,32 @@ const Page = () => {
             setEditingItem(null);
             setFormModalOpen(true);
           }}
-          className="px-6 py-2 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center"
+          className="px-6 py-2 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           Add Testimonial
         </button>
       </div>
 
-      <Table
-        columns={columns}
-        data={formattedData}
-        loading={loading}
-        actions={actions}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
-        emptyMessage="No testimonials found"
-      />
+      <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-sm transition duration-500 mt-6">
+        <Table
+          columns={columns}
+          data={formattedData}
+          loading={loading}
+          actions={actions}
+          onEdit={handleEdit}
+          onDelete={handleDeleteClick}
+          emptyMessage="No testimonials found"
+        />
 
-      <Pagination
+        <Pagination
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}
           totalItems={pagination.totalItems}
           itemsPerPage={pagination.itemsPerPage}
           onPageChange={(page) => fetchData(page)}
-      />
+        />
+      </div>
 
       {/* Add/Edit Modal */}
       <TestimonialAddEdit

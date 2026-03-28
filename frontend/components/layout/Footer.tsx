@@ -45,7 +45,7 @@ const Footer = async () => {
     <footer className="bg-white border-t border-blue-100 mt-10">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          
+
           {/* Logo & Description */}
           <div>
             <Link href="/" className="flex items-center space-x-2">
@@ -136,7 +136,10 @@ const Footer = async () => {
         {/* Footer Bottom */}
         <div className="border-t-4 mt-10 pt-6 text-center text-sm text-blue-600">
           © {new Date().getFullYear()}{" "}
-          {setting?.company_name || "Aastha Kala Kendra"}, All rights reserved.
+          {setting?.company_name || "Aastha Kala Kendra"}, All rights reserved. | Designed & Developed by{" "}
+          <Link href="https://shaktatechnology.com/" target="_blank" className="font-bold hover:underline">
+            Shakta Technology
+          </Link>
         </div>
       </div>
     </footer>

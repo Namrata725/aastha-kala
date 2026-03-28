@@ -267,13 +267,13 @@ const [galleries, setGalleries] = useState<Gallery[]>([]);
         {/* Right group: Buttons (Categories + Add Gallery rightmost) */}
         <div className="flex flex-col sm:flex-row gap-2 shrink-0">
           <Link href="/admin/gallery/category">
-            <button className="px-6 py-2 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center flex-1 sm:flex-none">
+            <button className="px-6 py-2 text-sm bg-gradient-to-r cursor-pointer from-primary to-secondary text-white rounded-lg flex gap-2 items-center flex-1 sm:flex-none">
               <Tag className="h-4 w-4" /> Categories
             </button>
           </Link>
           <button
             onClick={handleAddClick}
-            className="px-6 py-2 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center flex-1 sm:flex-none"
+            className="px-6 py-2 text-sm cursor-pointer  bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center flex-1 sm:flex-none"
           >
             <Plus className="h-4 w-4" /> Add Gallery
           </button>

@@ -76,6 +76,7 @@ const Settings: React.FC = () => {
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [initialData, setInitialData] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
 
   // GENERAL
   const [setting, setSetting] = useState<Setting>({
@@ -231,6 +232,7 @@ const Settings: React.FC = () => {
     }
 
     setIsSaving(true);
+    setErrors({});
     const formData = new FormData();
 
     // GENERAL
@@ -284,15 +286,14 @@ const Settings: React.FC = () => {
         setInitialData(currentData);
         setLogoFile(null);
         setBannerFile(null);
+        setErrors({});
         toast.success("Settings saved successfully");
       } else {
         if (data.errors) {
-          // Show specific validation errors
-          Object.values(data.errors).flat().forEach((msg: any) => {
-            toast.error(msg as string);
-          });
+          setErrors(data.errors);
+          const firstError = Object.values(data.errors).flat()[0] as string;
+          toast.error(firstError || "Validation failed");
         } else {
-          // Show general message or detailed error
           toast.error(data.message || data.error || "Failed to save settings");
         }
       }
@@ -347,7 +348,7 @@ const Settings: React.FC = () => {
         <div className="space-y-6">
           {/* GENERAL */}
           {activeTab === "general" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
               <InputField
                 label="Company Name"
                 icon={Building2}
@@ -356,6 +357,8 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setSetting({ ...setting, company_name: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors.company_name}
               />
               <InputField
                 label="Address"
@@ -364,6 +367,8 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setSetting({ ...setting, address: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors.address}
               />
               <InputField
                 label="Map Address"
@@ -372,6 +377,8 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setSetting({ ...setting, location: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors.location_map}
               />
               <InputField
                 label="Phone"
@@ -380,6 +387,8 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setSetting({ ...setting, phone: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors.phone}
               />
               <InputField
                 label="Email"
@@ -389,6 +398,8 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setSetting({ ...setting, email: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors.email}
               />
               <InputField
                 label="Short About"
@@ -397,17 +408,19 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setSetting({ ...setting, about_short: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors.about_short}
               />
               {/* LOGO */}
               <div>
-                <label className="flex items-center text-sm mb-1 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent font-medium gap-2">
-                  {<Image className="w-4 h-4 text-primary" />}
+                <label className="flex items-center text-[11px] mb-0.5 font-bold uppercase tracking-wider bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent italic gap-2">
+                  {<Image className="w-3.5 h-3.5 text-primary" />}
                   Logo
                 </label>
 
                 <div
-                  className="w-full cursor-pointer rounded-lg border border-white/10 bg-linear-to-r from-primary/20 to-secondary/20 transition flex flex-col items-center justify-center p-4 relative"
-                  onClick={() => document.getElementById("logoInput")?.click()}
+                  className={`w-full rounded-lg border border-white/10 bg-linear-to-r from-primary/20 to-secondary/20 transition flex flex-col items-center justify-center p-4 relative ${isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-white/5"}`}
+                  onClick={() => !isSaving && document.getElementById("logoInput")?.click()}
                 >
                   {logoPreview ? (
                     <div className="relative w-full">
@@ -435,6 +448,7 @@ const Settings: React.FC = () => {
                     type="file"
                     className="hidden"
                     accept="image/*"
+                    disabled={isSaving}
                     onChange={(e: any) => {
                       const file = e.target.files?.[0];
                       if (file) {
@@ -449,15 +463,15 @@ const Settings: React.FC = () => {
               {/* BANNER */}
 
               <div>
-                <label className="flex items-center text-sm mb-1 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent font-medium gap-2">
-                  <Image className="w-4 h-4 text-primary" />
+                <label className="flex items-center text-[11px] mb-0.5 font-bold uppercase tracking-wider bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent italic gap-2">
+                  <Image className="w-3.5 h-3.5 text-primary" />
                   Banner
                 </label>
 
                 <div
-                  className="w-full cursor-pointer rounded-lg border border-white/10 bg-linear-to-r from-primary/20 to-secondary/20 transition flex flex-col items-center justify-center p-4 relative"
+                  className={`w-full rounded-lg border border-white/10 bg-linear-to-r from-primary/20 to-secondary/20 transition flex flex-col items-center justify-center p-4 relative ${isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-white/5"}`}
                   onClick={() =>
-                    document.getElementById("bannerInput")?.click()
+                    !isSaving && document.getElementById("bannerInput")?.click()
                   }
                 >
                   {bannerPreview ? (
@@ -486,6 +500,7 @@ const Settings: React.FC = () => {
                     type="file"
                     className="hidden"
                     accept="image/*"
+                    disabled={isSaving}
                     onChange={(e: any) => {
                       const file = e.target.files?.[0];
                       if (file) {
@@ -497,15 +512,19 @@ const Settings: React.FC = () => {
                 </div>
               </div>
 
-              <InputField
-                label="About"
-                textarea
-                icon={FileText}
-                value={setting.about}
-                onChange={(e) =>
-                  setSetting({ ...setting, about: e.target.value })
-                }
-              />
+              <div className="md:col-span-2">
+                <InputField
+                    label="About"
+                    textarea
+                    icon={FileText}
+                    value={setting.about}
+                    onChange={(e) =>
+                    setSetting({ ...setting, about: e.target.value })
+                    }
+                    disabled={isSaving}
+                    error={errors.about}
+                />
+              </div>
             </div>
           )}
 
@@ -519,6 +538,8 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setSocial({ ...social, facebook: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors["social_links.facebook"]}
               />
               <InputField
                 label="Instagram"
@@ -527,6 +548,8 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setSocial({ ...social, instagram: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors["social_links.instagram"]}
               />
               <InputField
                 label="TikTok"
@@ -535,6 +558,8 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setSocial({ ...social, tiktok: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors["social_links.tiktok"]}
               />
               <InputField
                 label="X (Twitter)"
@@ -543,6 +568,8 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setSocial({ ...social, twitter: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors["social_links.x"]}
               />
             </div>
           )}
@@ -557,12 +584,16 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setStats({ ...stats, experience: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors.years_of_experience}
               />
               <InputField
                 label="Awards & Recognition"
                 icon={Award}
                 value={stats.awards}
                 onChange={(e) => setStats({ ...stats, awards: e.target.value })}
+                disabled={isSaving}
+                error={errors.awards}
               />
               <InputField
                 label="Expert Instructors"
@@ -571,6 +602,8 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setStats({ ...stats, instructors: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors.number_of_instructors}
               />
               <InputField
                 label="Students Trained"
@@ -579,6 +612,8 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setStats({ ...stats, students: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors.number_of_students}
               />
               <InputField
                 label="Success Rate (%)"
@@ -587,6 +622,8 @@ const Settings: React.FC = () => {
                 onChange={(e) =>
                   setStats({ ...stats, success_rate: e.target.value })
                 }
+                disabled={isSaving}
+                error={errors.success_rate}
               />
             </div>
           )}
@@ -601,7 +638,8 @@ const Settings: React.FC = () => {
                 >
                   <button
                     type="button"
-                    className="absolute top-4 right-4 text-red-500 hover:text-red-700 transition"
+                    disabled={isSaving}
+                    className={`absolute top-4 right-4 text-red-500 hover:text-red-700 transition ${isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                     onClick={() => {
                       const updated = whyUsItems.filter((_, i) => i !== idx);
                       setWhyUsItems(updated);
@@ -618,6 +656,7 @@ const Settings: React.FC = () => {
                       updated[idx].title = e.target.value;
                       setWhyUsItems(updated);
                     }}
+                    disabled={isSaving}
                   />
                   <InputField
                     label={`Description #${idx + 1}`}
@@ -629,12 +668,14 @@ const Settings: React.FC = () => {
                       updated[idx].desc = e.target.value;
                       setWhyUsItems(updated);
                     }}
+                    disabled={isSaving}
                   />
                 </div>
               ))}
               <button
                 type="button"
-                className="px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg"
+                disabled={isSaving}
+                className={`px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg transition ${isSaving ? "opacity-50 cursor-not-allowed" : "hover:opacity-90 active:scale-95 cursor-pointer"}`}
                 onClick={() =>
                   setWhyUsItems([...whyUsItems, { title: "", desc: "" }])
                 }
@@ -654,7 +695,8 @@ const Settings: React.FC = () => {
                 >
                   <button
                     type="button"
-                    className="absolute top-4 right-4 text-red-500 hover:text-red-700 transition"
+                    disabled={isSaving}
+                    className={`absolute top-4 right-4 text-red-500 hover:text-red-700 transition ${isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                     onClick={() => {
                       const updated = missionItems.filter((_, i) => i !== idx);
                       setMissionItems(updated);
@@ -663,7 +705,7 @@ const Settings: React.FC = () => {
                     <Trash2 className="w-5 h-5" />
                   </button>
                   <InputField
-                    label={`Misiion ${idx + 1}`}
+                    label={`Mission ${idx + 1}`}
                     icon={Type}
                     value={item.title}
                     onChange={(e) => {
@@ -671,12 +713,14 @@ const Settings: React.FC = () => {
                       updated[idx].title = e.target.value;
                       setMissionItems(updated);
                     }}
+                    disabled={isSaving}
                   />
                 </div>
               ))}
               <button
                 type="button"
-                className="px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg"
+                disabled={isSaving}
+                className={`px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg transition ${isSaving ? "opacity-50 cursor-not-allowed" : "hover:opacity-90 active:scale-95 cursor-pointer"}`}
                 onClick={() =>
                   setMissionItems([...missionItems, { title: "", desc: "" }])
                 }
@@ -692,7 +736,7 @@ const Settings: React.FC = () => {
           <button
             onClick={saveSettings}
             disabled={isSaving}
-            className="px-8 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px]"
+            className="px-8 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px] cursor-pointer"
           >
             {isSaving ? (
               <div className="flex items-center justify-center gap-2">

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Home,
   Settings,
@@ -40,9 +40,11 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
 
   const pathname = usePathname();
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
     try {
+      setIsLoggingOut(true);
       const token = localStorage.getItem("token");
 
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/logout`, {
@@ -62,6 +64,8 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       router.push("/login");
+    } finally {
+      setIsLoggingOut(false);
     }
   };
   return (
@@ -139,10 +143,22 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
             <>
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center gap-2 p-2.5 rounded-xl font-bold text-sm bg-white/30 border border-white/10 transition-all duration-300 hover:bg-white/50 text-gray-900 shadow-sm"
+                disabled={isLoggingOut}
+                className={`flex items-center justify-center gap-2 p-2.5 rounded-xl font-bold text-sm bg-white/30 border border-white/10 transition-all duration-300 shadow-sm ${
+                  isLoggingOut ? "opacity-70 cursor-not-allowed" : "hover:bg-white/50 text-gray-900 cursor-pointer"
+                }`}
               >
-                <LogOut className="w-5 h-5 stroke-primary cursor-pointer" />
-                Logout
+                {isLoggingOut ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    <span>Logging out...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="w-5 h-5 stroke-primary" />
+                    Logout
+                  </>
+                )}
               </button>
             </>
           )}
@@ -150,9 +166,16 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
           {collapsed && (
             <button
               onClick={handleLogout}
-              className="flex items-center justify-center p-2.5 rounded-xl hover:bg-white/40 border border-transparent hover:border-white/20 transition-all duration-300 text-gray-900"
+              disabled={isLoggingOut}
+              className={`flex items-center justify-center p-2.5 rounded-xl transition-all duration-300 ${
+                isLoggingOut ? "opacity-70 cursor-not-allowed" : "hover:bg-white/40 border border-transparent hover:border-white/20 text-gray-900 cursor-pointer"
+              }`}
             >
-              <LogOut className="w-5 h-5 stroke-primary" />
+              {isLoggingOut ? (
+                <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              ) : (
+                <LogOut className="w-5 h-5 stroke-primary" />
+              )}
             </button>
           )}
         </div>

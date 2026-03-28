@@ -58,7 +58,7 @@ const InstructorViewModal: React.FC<Props> = ({
     <div className="p-px rounded-xl bg-linear-to-r from-primary/20 to-secondary/20">
       <div className="rounded-xl px-4 py-3 bg-primary/10 backdrop-blur-md border border-primary/10 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
         <p className="text-sm text-primary font-semibold mb-1">{label}</p>
-        <div className="text-white/90">{children}</div>
+        <div className="text-black/90 font-medium">{children}</div>
       </div>
     </div>
   );
@@ -73,7 +73,7 @@ const InstructorViewModal: React.FC<Props> = ({
         className=" border border-primary/20 backdrop-blur-md w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-xl p-6 relative space-y-4 bg-white/40 cursor-default"
       >
         {/* Close Button */}
-        <button onClick={onClose} className="absolute right-4 top-4 text-white">
+        <button onClick={onClose} className="absolute right-4 top-4 text-primary hover:text-black transition-colors">
           <X />
         </button>
 

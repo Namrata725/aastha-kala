@@ -169,7 +169,7 @@ const BookingManagementPage = () => {
                   <select 
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value as "all" | "pending" | "accepted" | "rejected")}
-                    className="px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition shadow-sm min-w-[120px]"
+                    className="px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition shadow-sm min-w-[120px] cursor-pointer"
                   >
                     <option value="all">All Status</option>
                     <option value="pending">Pending</option>
@@ -180,7 +180,7 @@ const BookingManagementPage = () => {
             </div>
 
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4 p-2">
+                <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4 p-2 cursor-pointer">
                   {filteredBookings.length} / {bookings.length} bookings ({statusFilter !== "all" ? statusFilter : "all statuses"})
                 </div>
                 <Table

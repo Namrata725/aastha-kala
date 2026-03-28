@@ -18,6 +18,7 @@ interface Props {
   imagePreview?: string | null;
   required?: boolean;
   disabled?: boolean;
+  error?: string | string[];
 }
 
 const InputField: React.FC<Props> = ({
@@ -30,25 +31,28 @@ const InputField: React.FC<Props> = ({
   options = [],
   required = false,
   disabled = false,
+  error,
 }) => {
   const inputId = label.replace(/\s+/g, "_").toLowerCase();
-
   const isSelect = type === "select";
+  
+  // Normalize error to string
+  const errorMessage = Array.isArray(error) ? error[0] : error;
 
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col gap-0.5">
       {/* Label */}
-      <label className="flex items-center text-sm mb-1 font-medium gap-2">
-        <div className="flex items-center gap-2 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
-          {Icon && <Icon className="w-4 h-4 text-primary" />}
+      <label className="flex items-center text-[11px] mb-0.5 font-bold uppercase tracking-wider gap-2">
+        <div className="flex items-center gap-2 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent italic">
+          {Icon && <Icon className="w-3.5 h-3.5 text-primary" />}
           {label}
         </div>
         {required && <span className="text-red-500 ml-0.5 font-bold">*</span>}
       </label>
 
       {/* Container */}
-      <div className="p-1px rounded-xl bg-linear-to-r from-primary/20 to-secondary/20">
-        <div className="rounded-xl px-3 py-1 bg-primary/10 backdrop-blur-md border border-primary/10 shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition duration-300 focus-within:bg-primary/15 focus-within:border-primary/20">
+      <div className={`p-0.5 rounded-xl bg-linear-to-r ${errorMessage ? 'from-red-500/40 to-red-500/40' : 'from-primary/20 to-secondary/20'}`}>
+        <div className={`rounded-xl px-3 py-1.5 bg-primary/10 backdrop-blur-md border ${errorMessage ? 'border-red-500/40' : 'border-primary/10'} shadow-sm transition-all duration-300 focus-within:bg-primary/15 ${errorMessage ? 'focus-within:border-red-500' : 'focus-within:border-primary/20 hover:border-primary/30'}`}>
           {/* TEXTAREA */}
           {textarea ? (
             <textarea
@@ -56,8 +60,8 @@ const InputField: React.FC<Props> = ({
               onChange={onChange}
               rows={4}
               disabled={disabled}
-              className={`w-full bg-transparent outline-none text-white placeholder:text-white/40 resize-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-              placeholder={`Enter ${label}`}
+              className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 resize-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              placeholder={`Enter ${label}...`}
             />
           ) : isSelect ? (
             // DROPDOWN
@@ -65,16 +69,16 @@ const InputField: React.FC<Props> = ({
               value={value ?? ""}
               onChange={onChange}
               disabled={disabled}
-              className={`w-full bg-transparent outline-none text-white placeholder:text-white/40 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <option value="" className="bg-gray-900 text-white/60">
+              <option value="" className="bg-white text-black/60">
                 Select {label}
               </option>
               {options.map((opt, idx) => (
                 <option
                   key={idx}
                   value={opt.value}
-                  className="bg-gray-900 text-white"
+                  className="bg-white text-black"
                 >
                   {opt.label}
                 </option>
@@ -83,19 +87,28 @@ const InputField: React.FC<Props> = ({
           ) : (
             // NORMAL INPUT
             <div className="flex items-center gap-2">
-              {Icon && <Icon className="w-4 h-4 text-white/60 shrink-0" />}
+              {Icon && <Icon className="w-3.5 h-3.5 text-black/40 shrink-0" />}
 
               <input
                 type={type}
                 value={value ?? ""}
                 onChange={onChange}
                 disabled={disabled}
-                className={`w-full bg-transparent outline-none text-white placeholder:text-white/40 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                placeholder={`Enter ${label}`}
+                className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                placeholder={`Enter ${label}...`}
               />
             </div>
           )}
         </div>
+      </div>
+
+      {/* ERROR MESSAGE (Reserved space) */}
+      <div className="min-h-[14px] px-1 overflow-hidden">
+        {errorMessage && (
+          <p className="text-red-500 text-[10px] font-bold leading-none mt-1 transition-all duration-200">
+            {errorMessage}
+          </p>
+        )}
       </div>
     </div>
   );

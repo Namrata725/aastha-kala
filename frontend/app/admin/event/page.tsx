@@ -235,7 +235,7 @@ const Page = () => {
           <select 
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "all" | "draft" | "published")}
-            className="px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition shadow-sm min-w-[120px]"
+            className="px-4 py-2.5 text-sm bg-white cursor-pointer border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition shadow-sm min-w-[120px]"
           >
             <option value="all">All Status</option>
             <option value="draft">Draft</option>
@@ -246,7 +246,7 @@ const Page = () => {
               setEditingEvent(null);
               setFormModalOpen(true);
             }}
-            className="px-6 py-2.5 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 flex items-center gap-2 transition-all"
+            className="px-6 py-2.5 text-sm bg-gradient-to-r cursor-pointer from-primary to-secondary text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 flex items-center gap-2 transition-all"
           >
             <Plus className="h-4 w-4" />
             Add Event

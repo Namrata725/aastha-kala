@@ -113,6 +113,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
   const [conflicts, setConflicts] = useState<{[key: number]: string}>({});
 
   const checkConflict = async (index: number, instructorId: string | number, start: string, end: string) => {
+    if (loading) return;
     if (!instructorId || !start || !end) {
         setConflicts(prev => {
             const newConflicts = {...prev};
@@ -121,6 +122,8 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
         });
         return;
     }
+    
+
     
     try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructors/${instructorId}/check-conflict?start_time=${start}&end_time=${end}${program?.id ? `&exclude_program_id=${program.id}` : ""}`, {
@@ -241,14 +244,16 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-primary mb-1 italic">Program Title<span className="text-red-500 ml-1">*</span></label>
-                <input
+                  <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-white/40 border border-primary/20 rounded-lg px-4 py-2 text-primary focus:outline-none focus:border-primary transition"
+                  disabled={loading}
+                  className="w-full bg-white/40 border border-primary/20 rounded-lg px-4 py-2 text-primary focus:outline-none focus:border-primary transition disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="e.g. Vocal Training"
                 />
+
               </div>
 
               <div>
@@ -256,9 +261,11 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-white/40 border border-primary/20 rounded-lg px-4 py-2 text-primary h-32 focus:outline-none focus:border-primary transition resize-none font-light italic"
+                  disabled={loading}
+                  className="w-full bg-white/40 border border-primary/20 rounded-lg px-4 py-2 text-primary h-32 focus:outline-none focus:border-primary transition resize-none font-light italic disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="Describe the program highlights..."
                 />
+
               </div>
 
               <div>
@@ -282,7 +289,8 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                         setImagePreview(URL.createObjectURL(file));
                       }
                     }}
-                    className="text-xs text-primary/40 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-primary/20 file:text-primary hover:file:bg-primary/30 transition cursor-pointer"
+                    className="text-xs text-primary/40 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-primary/20 file:text-primary hover:file:bg-primary/30 transition cursor-pointer \${loading ? 'cursor-not-allowed opacity-50' : ''}"
+
                   />
                 </div>
               </div>
@@ -292,9 +300,10 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-xs font-bold text-primary/60 uppercase tracking-widest italic">Key Specialities</label>
-                  <button type="button" onClick={addSpeciality} className="text-[10px] bg-primary/20 text-primary px-3 py-1 rounded-full font-black uppercase hover:bg-primary/30 transition shadow-lg shadow-primary/10 tracking-tighter italic">
-                    + Add Detail
+                    <button type="button" onClick={loading ? undefined : addSpeciality} disabled={loading} className="text-[10px] bg-primary/20 text-primary px-3 py-1 rounded-full font-black uppercase hover:bg-primary/30 transition shadow-lg shadow-primary/10 tracking-tighter italic disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                    {loading ? '+ ...' : '+ Add Detail'}
                   </button>
+
                 </div>
                 <div className="space-y-2 max-h-80 overflow-y-auto pr-2 hide-scrollbar">
                   {speciality.map((s, index) => (
@@ -303,28 +312,33 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                         type="text"
                         value={s}
                         onChange={(e) => {
-                          const newSpec = [...speciality];
-                          newSpec[index] = e.target.value;
-                          setSpeciality(newSpec);
-                        }}
-                        className="flex-1 bg-white/40 border border-primary/20 rounded-lg px-4 py-2 text-primary text-sm focus:outline-none focus:border-primary transition font-medium italic"
-                        placeholder="e.g. Stage Performance Skills"
-                      />
-                      <button type="button" onClick={() => removeSpeciality(index)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition opacity-60 hover:opacity-100">
+                        const newSpec = [...speciality];
+                        newSpec[index] = e.target.value;
+                        setSpeciality(newSpec);
+                      }}
+                      disabled={loading}
+                      className="flex-1 bg-white/40 border border-primary/20 rounded-lg px-4 py-2 text-primary text-sm focus:outline-none focus:border-primary transition font-medium italic disabled:opacity-50 disabled:cursor-not-allowed"
+                      placeholder="e.g. Stage Performance Skills"
+                    />
+
+<button type="button" onClick={loading ? undefined : () => removeSpeciality(index)} disabled={loading} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition opacity-60 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed">
                         <Trash2 className="w-4 h-4" />
                       </button>
+
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 bg-white/40 p-4 rounded-xl border border-primary/20 group cursor-pointer hover:border-primary transition shadow-sm" onClick={() => setIsActive(!isActive)}>
+              <div className="flex items-center gap-3 bg-white/40 p-4 rounded-xl border border-primary/20 group cursor-pointer hover:border-primary transition shadow-sm" onClick={loading ? undefined : () => setIsActive(!isActive)}>
                 <input
                   type="checkbox"
                   checked={isActive}
-                  onChange={(e) => setIsActive(e.target.checked)}
-                  className="w-5 h-5 accent-primary cursor-pointer"
+                  onChange={(e) => { if (!loading) setIsActive(e.target.checked); }}
+                  disabled={loading}
+                  className="w-5 h-5 accent-primary cursor-pointer disabled:cursor-not-allowed"
                 />
+
                 <div className="flex flex-col">
                    <label className="text-sm font-bold text-primary cursor-pointer italic">Live / Active</label>
                    {/* <span className="text-[10px] text-primary/60 uppercase font-medium italic">Allow students to see and book this program</span> */}
@@ -341,9 +355,10 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                   </h3>
                   {/* <span className="text-[10px] text-primary/60 uppercase font-black tracking-widest italic">Assign specific slots to specific teachers</span> */}
                </div>
-              <button type="button" onClick={addSchedule} className="flex items-center gap-2 text-[10px] bg-linear-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg font-black uppercase hover:opacity-90 transition active:scale-95 shadow-xl shadow-primary/10 tracking-widest italic">
-                <Plus className="w-4 h-4" /> Add Slot
-              </button>
+                <button type="button" onClick={loading ? undefined : addSchedule} disabled={loading} className="flex items-center gap-2 text-[10px] bg-linear-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg font-black uppercase hover:opacity-90 transition active:scale-95 shadow-xl shadow-primary/10 tracking-widest italic cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                  <Plus className="w-4 h-4 " /> {loading ? '...' : 'Add Slot'}
+               </button>
+
             </div>
 
             <div className="space-y-4">
@@ -355,13 +370,16 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                       type="time"
                       value={s.start_time}
                       onChange={(e) => {
+                        if (loading) return;
                         const newS = [...schedules];
                         newS[index].start_time = e.target.value;
                         setSchedules(newS);
                         checkConflict(index, newS[index].instructor_id, e.target.value, s.end_time);
                       }}
-                      className="w-full bg-white/60 border border-primary/20 rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition font-bold"
+                      disabled={loading}
+                      className="w-full bg-white/60 border border-primary/20 rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                     />
+
                   </div>
                   <div className="sm:col-span-2">
                     <label className="text-[10px] font-black uppercase text-primary/40 block mb-2 tracking-widest italic">End Time</label>
@@ -369,13 +387,16 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                       type="time"
                       value={s.end_time}
                       onChange={(e) => {
+                        if (loading) return;
                         const newS = [...schedules];
                         newS[index].end_time = e.target.value;
                         setSchedules(newS);
                         checkConflict(index, newS[index].instructor_id, s.start_time, e.target.value);
                       }}
-                      className="w-full bg-white/60 border border-primary/20 rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition font-bold"
+                      disabled={loading}
+                      className="w-full bg-white/60 border border-primary/20 rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                     />
+
                   </div>
                   <div className="sm:col-span-3 flex items-end gap-3">
                     <div className="flex-1">
@@ -383,21 +404,25 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                       <select
                         value={s.instructor_id}
                         onChange={(e) => {
+                          if (loading) return;
                           const newS = [...schedules];
                           newS[index].instructor_id = e.target.value;
                           setSchedules(newS);
                           checkConflict(index, e.target.value, s.start_time, s.end_time);
                         }}
-                        className={`w-full bg-white/60 border rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition cursor-pointer appearance-none font-bold italic ${conflicts[index] ? 'border-red-500/50' : 'border-primary/20'}`}
+                        disabled={loading}
+                        className={`w-full bg-white/60 border rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition cursor-pointer appearance-none font-bold italic disabled:opacity-50 disabled:cursor-not-allowed ${conflicts[index] ? 'border-red-500/50' : 'border-primary/20'}`}
                       >
+
                         <option value="">Select Instructor</option>
                         {instructors.map(inst => <option key={inst.id} value={inst.id}>{inst.name}</option>)}
                       </select>
                       {conflicts[index] && <p className="text-[9px] text-red-500 mt-1 font-medium">{conflicts[index]}</p>}
                     </div>
-                    <button type="button" onClick={() => removeSchedule(index)} className="p-2 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition group-hover:opacity-100">
-                        <Trash2 className="w-5 h-5 px-1" />
-                    </button>
+                    <button type="button" onClick={loading ? undefined : () => removeSchedule(index)} disabled={loading} className="p-2 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition group-hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed">
+                        <Trash2 className="w-5 h-5 px-1 cursor-pointer" />
+                      </button>
+
                   </div>
                 </div>
               ))}
@@ -410,11 +435,11 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
           </div>
 
           <div className="flex justify-end gap-4 pt-10 border-t border-primary/20 mt-6">
-            <button type="button" onClick={onClose} className="px-8 py-3 rounded-xl text-primary/60 hover:text-primary hover:bg-white/40 border border-primary/10 transition font-bold uppercase tracking-widest text-[10px] italic">Cancel</button>
+            <button type="button" onClick={onClose} className="px-8 py-3 rounded-xl text-primary/60 hover:text-primary hover:bg-white/40 border border-primary/10 transition font-bold uppercase tracking-widest text-[10px] italic cursor-pointer">Cancel</button>
             <button
               type="submit"
               disabled={loading}
-              className="px-10 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:opacity-90 transition active:scale-95 disabled:opacity-50 shadow-2xl shadow-primary/20 italic"
+              className="px-10 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:opacity-90 transition active:scale-95 disabled:opacity-50 shadow-2xl shadow-primary/20 italic cursor-pointer"
             >
               {loading ? "Processing..." : (program ? "Update" : "Create")}
             </button>

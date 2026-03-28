@@ -7,7 +7,7 @@ const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL;
 const fetchHero = async (): Promise<string[]> => {
   try {
     const res = await fetch(`${API_URL}/galleries/position/slider-home`, {
-      cache: "no-store",
+      next: { revalidate: 3600 },
     });
     const data = await res.json();
     if (

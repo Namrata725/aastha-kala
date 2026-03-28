@@ -95,19 +95,24 @@ const GalleryAddEditModal: React.FC<Props> = ({
   if (!isOpen) return null;
 
   const handleChange = (key: string, value: any) => {
+    if (loading) return;
     setForm((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
+
   const handleFileChange = (files: File[]) => {
+    if (loading) return;
     handleChange("images", files);
     const previews = files.map((file) => URL.createObjectURL(file));
     setPreviewImages(previews);
   };
 
+
   const handleRemoveImage = (img: string) => {
+    if (loading) return;
     setPreviewImages((prev) => prev.filter((i) => i !== img));
 
     if (typeof img === "string") {
@@ -118,6 +123,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
       setRemovedImages((prev) => [...prev, relativePath]);
     }
   };
+
 
   const handleSubmit = async () => {
     try {
@@ -210,7 +216,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
 
         <h2 className="text-xl font-bold mb-6 text-primary uppercase italic tracking-tight border-b border-gray-200 pb-4 flex justify-between items-center">
           {editData ? "Edit Gallery" : "Add Gallery"}
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors">
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer">
             <X className="w-5 h-5 text-gray-500 hover:text-black" />
           </button>
         </h2>
@@ -221,7 +227,9 @@ const GalleryAddEditModal: React.FC<Props> = ({
               label="Title"
               value={form.title}
               onChange={(e) => handleChange("title", e.target.value)}
+              disabled={loading}
             />
+
 
             <InputField
               label="Type"
@@ -302,7 +310,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
                 onChange={(e: any) =>
                   handleFileChange(Array.from(e.target.files))
                 }
-                className="text-gray-900 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                className="text-gray-900 text-sm cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
               />
 
               {previewImages.length > 0 && (
@@ -332,7 +340,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full py-3.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-black uppercase tracking-widest text-xs italic shadow-lg shadow-primary/20 transition-all hover:scale-[1.01] active:scale-[0.99]"
+            className="w-full py-3.5 cursor-pointer bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-black uppercase tracking-widest text-xs italic shadow-lg shadow-primary/20 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
           >
             {loading ? "Saving..." : editData ? "Update Gallery Entry" : "Create Gallery Entry"}
           </button>

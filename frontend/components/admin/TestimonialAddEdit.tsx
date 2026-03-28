@@ -185,10 +185,10 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
         <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
           <div className="flex items-center gap-2 font-bold text-xl text-primary uppercase italic tracking-tight">
             {isEdit ? <Pencil /> : <Plus />}
-            {isEdit ? "Edit Testimonial" : "Add Testimonial"}
+            {loading ? (isEdit ? "Updating..." : "Adding...") : (isEdit ? "Edit Testimonial" : "Add Testimonial")}
           </div>
 
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors">
+          <button onClick={onClose} disabled={loading} className={`p-1.5 hover:bg-gray-200 rounded-lg transition-colors ${loading ? "opacity-50 cursor-not-allowed" : ""}`}>
             <X className="text-gray-500 hover:text-black" />
           </button>
         </div>
@@ -210,8 +210,8 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             </div>
 
             {/* Upload */}
-            <label className="absolute bottom-0 right-0 bg-gradient-to-r from-primary to-secondary p-2 rounded-full cursor-pointer shadow-lg hover:scale-110 transition">
-              <input type="file" hidden onChange={handleImageChange} />
+            <label className={`absolute bottom-0 right-0 bg-gradient-to-r from-primary to-secondary p-2 rounded-full shadow-lg transition ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:scale-110"}`}>
+              <input type="file" hidden onChange={handleImageChange} disabled={loading} />
               <ImageIcon className="w-4 h-4 text-white" />
             </label>
 
@@ -219,12 +219,13 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             {preview && (
               <button
                 type="button"
+                disabled={loading}
                 onClick={() => {
                   setPreview(null);
                   setImageFile(null);
                   setRemoveImage(true);
                 }}
-                className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-full"
+                className={`absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-full ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 Remove
               </button>
@@ -242,14 +243,16 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             required={true}
             value={form.name}
             onChange={(e) => handleChange("name", e.target.value)}
+            disabled={loading}
+            error={errors.name}
           />
-          {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name[0]}</p>}
 
           <InputField
             label="Title"
             icon={FileText}
             value={form.title}
             onChange={(e) => handleChange("title", e.target.value)}
+            disabled={loading}
           />
 
           <InputField
@@ -259,8 +262,9 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             required={true}
             value={form.rating}
             onChange={(e) => handleChange("rating", e.target.value)}
+            disabled={loading}
+            error={errors.rating}
           />
-          {errors.rating && <p className="text-red-500 text-xs mt-1">{errors.rating[0]}</p>}
 
           <InputField
             label="Order"
@@ -269,8 +273,9 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             required={true}
             value={form.order}
             onChange={(e) => handleChange("order", e.target.value)}
+            disabled={loading}
+            error={errors.order}
           />
-          {errors.order && <p className="text-red-500 text-xs mt-1">{errors.order[0]}</p>}
 
           <div className="md:col-span-2">
             <InputField
@@ -280,8 +285,9 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
               textarea
               value={form.description}
               onChange={(e) => handleChange("description", e.target.value)}
+              disabled={loading}
+              error={errors.description}
             />
-            {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description[0]}</p>}
           </div>
         </div>
 
@@ -290,7 +296,8 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
         <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-white/10">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 font-bold transition-all"
+            disabled={loading}
+            className={`px-5 py-2 rounded-lg text-gray-700 bg-gray-100 font-bold transition-all ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200 cursor-pointer"}`}
           >
             Cancel
           </button>
@@ -298,9 +305,18 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-5 py-2 rounded-lg text-white bg-gradient-to-r from-primary to-secondary"
+            className={`px-5 py-2 rounded-lg text-white bg-gradient-to-r from-primary to-secondary flex items-center gap-2 transition-all ${
+              loading ? "opacity-70 cursor-not-allowed" : "hover:scale-105 active:scale-95 cursor-pointer"
+            }`}
           >
-            {loading ? "Saving..." : isEdit ? "Update" : "Create"}
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                {isEdit ? "Updating..." : "Adding..."}
+              </>
+            ) : (
+              isEdit ? "Update" : "Create"
+            )}
           </button>
         </div>
       </div>

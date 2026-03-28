@@ -269,7 +269,7 @@ const InstructorModal: React.FC<Props> = ({
                   setRemoveImage(true);
                 }}
                 disabled={loading}
-                className={`absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-full ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ${loading ? "opacity-50 cursor-not-allowed" : "hover:scale-110 active:scale-95 transition-all shadow-lg shadow-red-500/20"}`}
               >
                 Remove
               </button>
@@ -472,7 +472,7 @@ const InstructorModal: React.FC<Props> = ({
           <button
             onClick={onClose}
             disabled={loading}
-            className={`px-5 py-2 rounded-lg text-primary/80 border bg-white/5 ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-white/10 cursor-pointer"}`}
+            className={`px-5 py-2 rounded-lg text-black font-bold border border-black/10 bg-black/5 hover:bg-black/10 transition-all ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-95"}`}
           >
             Cancel
           </button>

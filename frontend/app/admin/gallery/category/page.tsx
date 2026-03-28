@@ -3,14 +3,17 @@
 import React, { useEffect, useState } from "react";
 import InputField from "@/components/layout/InputField";
 import Table from "@/components/layout/Table";
-import { Tag } from "lucide-react";
+import { Tag, ArrowLeft } from "lucide-react";
 import { Pagination } from "@/components/global/Pagination";
+import toast from "react-hot-toast";
+import Link from "next/link";
 
 const CategoryPage = () => {
   const API = `${process.env.NEXT_PUBLIC_API_URL}/admin/gallery-categories`;
 
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [form, setForm] = useState({
     id: null as number | null,
@@ -60,8 +63,9 @@ const CategoryPage = () => {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fetch error:", error);
+      toast.error(error.message || "Failed to fetch categories");
     } finally {
       setLoading(false);
     }
@@ -78,13 +82,17 @@ const CategoryPage = () => {
 
   // CREATE / UPDATE
   const handleSubmit = async () => {
-    if (!form.name.trim()) return;
+    if (!form.name.trim()) {
+      toast.error("Category name is required");
+      return;
+    }
 
     try {
+      setIsSubmitting(true);
       const method = form.id ? "PUT" : "POST";
       const url = form.id ? `${API}/${form.id}` : API;
 
-      await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
@@ -93,13 +101,24 @@ const CategoryPage = () => {
         body: JSON.stringify({ name: form.name }),
       });
 
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.message || "Something went wrong");
+      }
+
+      toast.success(form.id ? "Category updated successfully" : "Category added successfully");
+
       // reset form
       setForm({ id: null, name: "" });
 
       // refresh
-      fetchCategories();
-    } catch (error) {
+      fetchCategories(pagination.currentPage);
+    } catch (error: any) {
       console.error("Save error:", error);
+      toast.error(error.message || "Failed to save category");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -116,26 +135,41 @@ const CategoryPage = () => {
     if (!confirm("Delete this category?")) return;
 
     try {
-      await fetch(`${API}/${row.id}`, {
+      const res = await fetch(`${API}/${row.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${getToken()}`,
         },
       });
 
-      fetchCategories();
-    } catch (error) {
+      if (!res.ok) {
+        const result = await res.json();
+        throw new Error(result.message || "Failed to delete");
+      }
+
+      toast.success("Category deleted successfully");
+      fetchCategories(pagination.currentPage);
+    } catch (error: any) {
       console.error("Delete error:", error);
+      toast.error(error.message || "Failed to delete category");
     }
   };
 
   return (
     <div>
-      <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary p-6">
-        Gallery Categories
-      </span>
+      <div className="flex items-center gap-4 p-6">
+        <Link 
+          href="/admin/gallery" 
+          className="p-2 bg-white border border-gray-200 rounded-xl text-primary hover:bg-primary hover:text-white transition-all shadow-sm cursor-pointer"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+          Gallery Categories
+        </span>
+      </div>
       <div className="grid grid-cols-2 gap-6 p-6 max-w-7xl mx-auto">
-        <div>
+        <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-sm transition duration-500">
           <Table
             columns={[
               { key: "sn", label: "SN" },
@@ -148,41 +182,56 @@ const CategoryPage = () => {
             onDelete={handleDelete}
           />
           <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              itemsPerPage={pagination.itemsPerPage}
-              onPageChange={(page) => {
-                  fetchCategories(page);
-              }}
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={(page) => {
+              fetchCategories(page);
+            }}
           />
         </div>
 
         <div className="bg-primary/10 p-6 rounded-xl border border-primary/20 h-fit">
-          <h2 className="flex  items-center gap-1 font-bold bg-clip-text py-4 text-transparent bg-gradient-to-r from-primary to-secondary ">
+          <h2 className="flex items-center gap-1 font-bold bg-clip-text py-4 text-transparent bg-gradient-to-r from-primary to-secondary">
             <Tag className=" text-purple-800 h-4 w-4" />
-            {form.id ? "Edit Category" : "Add Category"}
+            {form.id ? (isSubmitting ? "Updating..." : "Edit Category") : (isSubmitting ? "Adding..." : "Add Category")}
           </h2>
 
           <InputField
             label="Category Name"
             value={form.name}
             onChange={handleChange}
+            disabled={isSubmitting}
+            required
           />
 
           {/* SUBMIT */}
           <button
             onClick={handleSubmit}
-            className="mt-4 w-full py-2 bg-gradient-to-r from-primary to-secondary rounded-lg text-white font-semibold"
+            disabled={isSubmitting}
+            className={`mt-4 w-full py-2 bg-gradient-to-r from-primary to-secondary rounded-lg text-white font-semibold flex items-center justify-center gap-2 ${
+              isSubmitting ? "opacity-70 cursor-not-allowed" : "cursor-pointer hover:scale-[1.02] transition-transform active:scale-95"
+            }`}
           >
-            {form.id ? "Update Category" : "Add Category"}
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                {form.id ? "Updating..." : "Adding..."}
+              </>
+            ) : (
+              form.id ? "Update Category" : "Add Category"
+            )}
           </button>
 
           {/* CANCEL */}
           {form.id && (
             <button
               onClick={() => setForm({ id: null, name: "" })}
-              className="mt-2 w-full py-2 border border-white/20 rounded-lg text-white"
+              disabled={isSubmitting}
+              className={`mt-2 w-full py-2 border border-black/10 rounded-lg text-black hover:bg-black/5 transition-all font-semibold ${
+                isSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+              }`}
             >
               Cancel Edit
             </button>

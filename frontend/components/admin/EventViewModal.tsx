@@ -48,7 +48,7 @@ const EventViewModal: React.FC<Props> = ({ isOpen, onClose, event }) => {
     <div className="p-px rounded-xl bg-linear-to-r from-primary/20 to-secondary/20">
       <div className="rounded-xl px-4 py-3 bg-primary/10 backdrop-blur-md border border-primary/10 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
         <p className="text-sm text-primary font-semibold mb-1">{label}</p>
-        <div className="text-white/90">{children}</div>
+        <div className="text-black/90 font-medium">{children}</div>
       </div>
     </div>
   );
@@ -62,7 +62,7 @@ const EventViewModal: React.FC<Props> = ({ isOpen, onClose, event }) => {
         onClick={(e) => e.stopPropagation()}
         className="bg-white/40 border border-primary/20 backdrop-blur-md w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-xl p-6 relative space-y-4 cursor-default"
       >
-        <button onClick={onClose} className="absolute right-4 top-4 text-white">
+        <button onClick={onClose} className="absolute right-4 top-4 text-primary hover:text-black transition-colors">
           <X />
         </button>
 
@@ -106,7 +106,7 @@ const EventViewModal: React.FC<Props> = ({ isOpen, onClose, event }) => {
               className="w-full max-h-64 object-cover rounded-lg"
             />
           ) : (
-            <p className="text-white/50">No banner available</p>
+            <p className="text-primary/40 font-medium">No banner available</p>
           )}
         </Field>
       </div>

@@ -228,14 +228,14 @@ const BookingViewModal: React.FC<BookingViewModalProps> = ({
                             }`}
                           >
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center border transition-colors ${
-                              selectedInstructorId === instructor.id ? "bg-white/20 border-white/30 text-white" : "bg-primary/10 border-primary/20 text-primary"
+                              selectedInstructorId === instructor.id ? "bg-primary/20 border-primary/40 text-primary" : "bg-primary/5 border-primary/10 text-primary/40"
                             }`}>
                               <User className="w-4 h-4" />
                             </div>
                             <div className="flex-1">
                               <p className="line-clamp-1">{instructor.name}</p>
                               <p className={`text-[9px] font-medium uppercase tracking-tighter ${
-                                selectedInstructorId === instructor.id ? "text-white/80" : "text-primary/60"
+                                selectedInstructorId === instructor.id ? "text-primary/70" : "text-primary/30"
                               }`}>Assigned to class schedule</p>
                             </div>
                             {selectedInstructorId === instructor.id && (
@@ -292,23 +292,23 @@ const BookingViewModal: React.FC<BookingViewModalProps> = ({
            <button 
              onClick={() => onStatusUpdate('accepted', selectedInstructorId ? Number(selectedInstructorId) : undefined)}
              disabled={booking.status === 'pending' && !selectedInstructorId}
-             className={`flex-1 px-6 py-3.5 rounded-xl transition duration-300 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 italic shadow-md active:scale-95 ${
+             className={`flex-1 px-6 py-3.5 rounded-xl transition duration-300 font-black uppercase tracking-widest text-[10px] flex items-center cursor-pointer justify-center gap-2 italic shadow-md active:scale-95 ${
                booking.status === 'pending' && !selectedInstructorId 
                ? 'bg-white/40 text-primary/30 border border-primary/10 cursor-not-allowed shadow-none' 
                : 'bg-green-500/10 text-green-600 border border-green-500/20 hover:bg-green-500 hover:text-white shadow-green-500/10'
              }`}
            >
-             <CheckCircle2 className="w-4 h-4" /> Approve Booking
+             <CheckCircle2 className="w-4 h-4 " /> Approve Booking
            </button>
            <button 
              onClick={() => onStatusUpdate('rejected')}
-             className="flex-1 px-6 py-3.5 bg-red-500/10 text-red-600 border border-red-500/20 rounded-xl hover:bg-red-500 hover:text-white transition duration-300 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 italic shadow-md shadow-red-500/10 active:scale-95"
+             className="flex-1 px-6 py-3.5 bg-red-500/10 text-red-600 border border-red-500/20 rounded-xl hover:bg-red-500 hover:text-white transition duration-300 font-black uppercase tracking-widest text-[10px] flex items-center cursor-pointer justify-center gap-2 italic shadow-md shadow-red-500/10 active:scale-95"
            >
              <XCircle className="w-4 h-4" /> Reject Request
            </button>
            <button 
              onClick={onClose}
-             className="px-8 py-3.5 bg-white/40 text-primary/60 border border-primary/10 rounded-xl hover:bg-white/60 hover:text-primary transition duration-300 font-black uppercase tracking-widest text-[10px] italic shadow-sm active:scale-95"
+             className="px-8 py-3.5 bg-white/40 cursor-pointer text-primary/60 border border-primary/10 rounded-xl hover:bg-white/60 hover:text-primary transition duration-300 font-black uppercase tracking-widest text-[10px] italic shadow-sm active:scale-95"
            >
              Close
            </button>

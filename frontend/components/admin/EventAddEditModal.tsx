@@ -89,13 +89,16 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
   if (!isOpen) return null;
 
   const handleChange = (key: string, value: any) => {
+    if (loading) return;
     setForm((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
+
   const handleBannerChange = (file: File | null) => {
+    if (loading) return;
     handleChange("banner", file);
 
     if (file) {
@@ -103,14 +106,17 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
     }
   };
 
+
   // REMOVE BANNER
   const handleRemoveBanner = () => {
+    if (loading) return;
     setForm((prev) => ({
       ...prev,
       banner: null,
     }));
     setPreviewBanner(null);
   };
+
 
   const handleSubmit = async () => {
     try {
@@ -191,8 +197,8 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
         className="bg-primary/10 border border-primary/20 backdrop-blur-md w-full max-w-2xl rounded-xl p-6 relative overflow-y-auto max-h-[90vh] cursor-default"
       >
         {/* Close Modal */}
-        <button onClick={onClose} className="absolute right-4 top-4 text-white">
-          <X />
+        <button onClick={onClose} className="absolute right-4 top-4 text-primary hover:text-black transition-colors">
+          <X className="w-5 h-5" />
         </button>
 
         <h2 className="text-xl font-bold mb-6 text-primary">
@@ -201,34 +207,40 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
 
         <div className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
-            <InputField
+<InputField
               label="Title"
               required={true}
               value={form.title}
               onChange={(e) => handleChange("title", e.target.value)}
+              disabled={loading}
             />
+
             {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title[0]}</p>}
 
-            <InputField
+<InputField
               label="Location"
               required={true}
               value={form.location}
               onChange={(e) => handleChange("location", e.target.value)}
+              disabled={loading}
             />
+
             {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location[0]}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <InputField
+<InputField
               label="Event Date"
               type="datetime-local"
               required={true}
               value={form.event_date}
               onChange={(e) => handleChange("event_date", e.target.value)}
+              disabled={loading}
             />
+
             {errors.event_date && <p className="text-red-500 text-xs mt-1">{errors.event_date[0]}</p>}
 
-            <InputField
+<InputField
               label="Status"
               type="select"
               value={form.status}
@@ -237,19 +249,22 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
                 { label: "Draft", value: "draft" },
                 { label: "Published", value: "published" },
               ]}
+              disabled={loading}
             />
+
           </div>
 
           <EditorComponent
             label="Description"
             icon={AlignLeft}
             value={form.description || ""}
-            onChange={(val) => handleChange("description", val)}
+            onChange={(val: string) => handleChange("description", val)}
           />
+
 
           {/* Banner Upload */}
           <div>
-            <label className="text-sm text-white mb-1 block">
+            <label className="text-sm text-primary font-bold mb-1 block uppercase tracking-wider italic">
               Banner Image
             </label>
 
@@ -259,8 +274,10 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
               onChange={(e: any) =>
                 handleBannerChange(e.target.files?.[0] || null)
               }
-              className="text-white"
+              disabled={loading}
+              className="text-black/60 file:mr-4 cursor-pointer file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
+
 
             {previewBanner && (
               <div className="mt-3 relative w-32 h-20">
@@ -273,10 +290,12 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
                 <button
                   type="button"
                   onClick={handleRemoveBanner}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow"
+                  disabled={loading}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   ✕
                 </button>
+
               </div>
             )}
           </div>
@@ -284,7 +303,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-lg"
+            className="w-full py-2 bg-gradient-to-r cursor-pointer from-primary to-secondary text-white rounded-lg"
           >
             {loading ? "Saving..." : event ? "Update" : "Create"}
           </button>
