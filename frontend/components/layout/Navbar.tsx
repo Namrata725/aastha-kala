@@ -30,12 +30,12 @@ const Navbar: React.FC = () => {
     { name: "Instructors", path: "/instructors" },
     { name: "Events", path: "/events" },
     { name: "Gallery", path: "/gallery" },
+    { name: "Dress Hire", path: "/dress-hire" },
   ];
 
   return (
     <nav className="w-full bg-blue-700 text-white">
       <div className="px-6 py-2 flex items-center max-w-7xl mx-auto">
-
         {/* Logo — far left, fixed width */}
         <div className="flex items-center shrink-0">
           <Link href="/">
@@ -51,8 +51,9 @@ const Navbar: React.FC = () => {
               <Link
                 key={item.name}
                 href={item.path}
-                className={`whitespace-nowrap transition hover:text-gray-200 ${isActive ? "font-semibold underline underline-offset-4" : ""
-                  }`}
+                className={`whitespace-nowrap transition hover:text-gray-200 ${
+                  isActive ? "font-semibold underline underline-offset-4" : ""
+                }`}
               >
                 {item.name}
               </Link>
@@ -65,7 +66,6 @@ const Navbar: React.FC = () => {
             </button>
           </Link>
         </div>
-
       </div>
     </nav>
   );

@@ -40,6 +40,8 @@ Route::get('/programs/{id}/available-instructors', [ProgramController::class, 'a
 
 Route::post('/bookings', [BookingController::class, 'store']);
 
+Route::get('/dress-hire', [DressHireController::class, 'index']);
+
 // Admin Routes
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
