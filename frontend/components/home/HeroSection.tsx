@@ -49,8 +49,8 @@ const HeroSection = async () => {
         <HeroSlider heroImages={heroImages} />
       </div>
 
-      {/* ── Simple Gradient Blend (Removes crisp line) ───────────────── */}
-      <div className="absolute inset-x-0 bottom-0 h-32 md:h-48 bg-gradient-to-b from-transparent to-white pointer-events-none z-20" />
+      {/* ── Simple linear Blend (Removes crisp line) ───────────────── */}
+      <div className="absolute inset-x-0 bottom-0 h-32 md:h-48 bg-linear-to-b from-transparent to-white pointer-events-none z-20" />
     </section>
   );
 };

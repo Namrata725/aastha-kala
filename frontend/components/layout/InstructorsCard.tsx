@@ -25,9 +25,9 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-stretch hover:shadow-md transition">
+    <div className="bg-white rounded-2xl shadow-sm p-4 flex flex-col md:flex-row gap-4 items-stretch hover:shadow-md transition">
       {/* Left Image */}
-      <div className="w-60 h-60 shrink-0 rounded-xl overflow-hidden bg-gray-100">
+      <div className="w-full md:w-60 h-60 shrink-0 rounded-xl overflow-hidden bg-gray-100">
         {instructor.image ? (
           <img
             src={instructor.image}
@@ -46,7 +46,7 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
         {/* Top Content */}
         <div>
           {/* Name */}
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-gray-800 mt-2 md:mt-0">
             {instructor.name}
           </h3>
 
@@ -69,7 +69,7 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
               {instructor.about.length > 150 && (
                 <button
                   onClick={() => setExpanded(!expanded)}
-                  className="text-blue-500 text-lg hover:underline"
+                  className="text-blue-500 text-sm hover:underline"
                 >
                   {expanded ? "See less" : "See more"}
                 </button>
@@ -97,7 +97,7 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
               href={ensureAbsoluteUrl(instructor.instagram_url)}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-1.5 rounded-full bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white hover:scale-110 hover:shadow-lg transition-all duration-300"
+              className="p-1.5 rounded-full bg-linear-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white hover:scale-110 hover:shadow-lg transition-all duration-300"
               title="Instagram"
             >
               <Instagram className="p-1.5 w-8 h-8 rounded-full bg-pink-100 text-pink-500 hover:bg-pink-200 transition" />

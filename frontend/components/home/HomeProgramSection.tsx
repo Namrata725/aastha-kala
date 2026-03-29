@@ -31,7 +31,8 @@ const HomeProgramSection = async () => {
             Our Program
           </h2>
           <h4 className="text-lg md:text-lg text-secondary font-semibold  mx-auto leading-relaxed">
-            Comprehensive training programs designed to nurture talent and inspire excellence
+            Comprehensive training programs designed to nurture talent and
+            inspire excellence
           </h4>
         </div>
 
@@ -49,15 +50,16 @@ const HomeProgramSection = async () => {
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
 
-              {/* Sophisticated Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-secondary/90 via-secondary/20 to-transparent opacity-90 transition-opacity duration-500" />
+              {/* Sophisticated linear Overlay */}
+              <div className="absolute inset-0 bg-linear-to-t from-secondary/90 via-secondary/20 to-transparent opacity-90 transition-opacity duration-500" />
 
               {/* Secondary Glow on Hover */}
               <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
               {/* Content Overlay */}
-              <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-10 space-y-4">
-                <div className="flex items-center justify-between gap-4">
+
+              <div className="absolute inset-0 p-8 md:p-10 flex flex-col justify-end">
+                <div className="flex items-center justify-between">
                   <h5 className="text-lg md:text-md font-bold text-white leading-tight font-poppins uppercase tracking-wide">
                     {program.title}
                   </h5>
