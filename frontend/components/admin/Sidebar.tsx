@@ -11,6 +11,7 @@ import {
   Image,
   LogOut,
   Mic,
+  Shirt,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -25,10 +26,15 @@ interface SidebarProps {
 const menuItems = [
   { name: "Dashboard", icon: Home, href: "/admin" },
   { name: "Instructor", icon: User, href: "/admin/instructor" },
-  { name: "Instructor Schedule", icon: Calendar, href: "/admin/instructor/schedule" },
+  {
+    name: "Instructor Schedule",
+    icon: Calendar,
+    href: "/admin/instructor/schedule",
+  },
   { name: "Programs", icon: Book, href: "/admin/programs" },
   { name: "Booking", icon: Calendar, href: "/admin/booking" },
   { name: "Event", icon: Flag, href: "/admin/event" },
+  { name: "Dress Hire", icon: Shirt, href: "/admin/dress-hire" },
   { name: "Gallery", icon: Image, href: "/admin/gallery" },
   { name: "Testimonials", icon: Mic, href: "/admin/testimonials" },
   { name: "Contact Us", icon: Mail, href: "/admin/contact" },
@@ -75,7 +81,7 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
       }`}
       style={{
         borderRight: "1px solid #e2e8f0",
-        boxShadow: "4px 0 15px rgba(0,0,0,0.03)"
+        boxShadow: "4px 0 15px rgba(0,0,0,0.03)",
       }}
     >
       {/* Sidebar content */}
@@ -122,9 +128,7 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
                     {!collapsed && (
                       <span
                         className={`ml-2 font-bold ${
-                          isActive
-                            ? "text-primary"
-                            : "text-gray-900"
+                          isActive ? "text-primary" : "text-gray-900"
                         }`}
                       >
                         {item.name}
@@ -145,7 +149,9 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
                 onClick={handleLogout}
                 disabled={isLoggingOut}
                 className={`flex items-center justify-center gap-2 p-2.5 rounded-xl font-bold text-sm bg-white/30 border border-white/10 transition-all duration-300 shadow-sm ${
-                  isLoggingOut ? "opacity-70 cursor-not-allowed" : "hover:bg-white/50 text-gray-900 cursor-pointer"
+                  isLoggingOut
+                    ? "opacity-70 cursor-not-allowed"
+                    : "hover:bg-white/50 text-gray-900 cursor-pointer"
                 }`}
               >
                 {isLoggingOut ? (
@@ -168,7 +174,9 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
               onClick={handleLogout}
               disabled={isLoggingOut}
               className={`flex items-center justify-center p-2.5 rounded-xl transition-all duration-300 ${
-                isLoggingOut ? "opacity-70 cursor-not-allowed" : "hover:bg-white/40 border border-transparent hover:border-white/20 text-gray-900 cursor-pointer"
+                isLoggingOut
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:bg-white/40 border border-transparent hover:border-white/20 text-gray-900 cursor-pointer"
               }`}
             >
               {isLoggingOut ? (

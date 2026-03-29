@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ProgramController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\InstructorAvailabilityController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DressHireController;
 
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -74,6 +75,13 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         Route::post('/', [InstructorAvailabilityController::class, 'store']);
         Route::put('/{id}', [InstructorAvailabilityController::class, 'update']);
         Route::delete('/{id}', [InstructorAvailabilityController::class, 'destroy']);
+    });
+
+    Route::prefix('dress-hire')->group(function () {
+        Route::get('/', [DressHireController::class, 'index']);
+        Route::post('/', [DressHireController::class, 'store']);
+        Route::put('/{id}', [DressHireController::class, 'update']);
+        Route::delete('/{id}', [DressHireController::class, 'destroy']);
     });
 });
 
