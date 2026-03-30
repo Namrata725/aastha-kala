@@ -63,14 +63,14 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
   };
 
   return (
-    <>
+    <section className="max-w-7xl mx-auto">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
         {dresses.map((dress) => {
           const imageUrl = getImageUrl(dress.images);
           return (
             <div
               key={dress.id}
-              className="border border-primary  overflow-hidden shadow hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+              className="border border-primary overflow-hidden shadow hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
               onClick={() => openModal(dress.images)}
             >
               <div className="h-70 w-full bg-gray-100 flex items-center justify-center overflow-hidden relative">
@@ -78,7 +78,7 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
                   <img
                     src={imageUrl}
                     alt={dress.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-105"
                   />
                 ) : (
                   <ImageIcon className="w-12 h-12 text-gray-400" />
@@ -135,7 +135,7 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
           )}
         </div>
       )}
-    </>
+    </section>
   );
 };
 

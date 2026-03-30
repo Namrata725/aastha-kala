@@ -45,7 +45,7 @@ const fetchGallery = async (): Promise<GalleryItem[]> => {
     if (!res.ok) throw new Error("Failed to fetch gallery");
 
     const data = await res.json();
-    return Array.isArray(data) ? data : (data?.data || []);
+    return Array.isArray(data) ? data : data?.data || [];
   } catch (error) {
     console.error(error);
     return [];
@@ -61,7 +61,7 @@ const fetchCategories = async (): Promise<Category[]> => {
     if (!res.ok) throw new Error("Failed to fetch categories");
 
     const data = await res.json();
-    return Array.isArray(data) ? data : (data?.data || []);
+    return Array.isArray(data) ? data : data?.data || [];
   } catch (error) {
     console.error(error);
     return [];
@@ -92,7 +92,11 @@ const formatUrl = (url?: string) =>
 
 /* -------------------- COMPONENT -------------------- */
 
-const HomeGallery = async ({ socialLinks }: { socialLinks: SocialLinks | null }) => {
+const HomeGallery = async ({
+  socialLinks,
+}: {
+  socialLinks: SocialLinks | null;
+}) => {
   const gallery = await fetchGallery();
   const categories = await fetchCategories();
 
@@ -117,7 +121,7 @@ const HomeGallery = async ({ socialLinks }: { socialLinks: SocialLinks | null })
         <ClientGallery gallery={limitedGallery} categories={categories} />
 
         {/* SOCIAL LINKS */}
-        {socialLinks && (
+        {/* {socialLinks && (
           <div className="flex justify-center gap-4 mt-8">
             {socialLinks.facebook && (
               <a
@@ -149,7 +153,7 @@ const HomeGallery = async ({ socialLinks }: { socialLinks: SocialLinks | null })
               </a>
             )}
           </div>
-        )}
+        )} */}
       </div>
     </section>
   );

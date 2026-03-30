@@ -42,7 +42,7 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
       </div>
 
       {/* Right Content */}
-      <div className="flex-1 flex flex-col h-full min-h-60">
+      <div className="flex-1 flex flex-col h-full min-h-45">
         {/* Top Content */}
         <div>
           {/* Name */}

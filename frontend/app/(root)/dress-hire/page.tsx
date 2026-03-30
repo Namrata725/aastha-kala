@@ -53,7 +53,7 @@ export default async function DressHirePage() {
   ]);
 
   return (
-    <section className="max-w-7xl mx-auto p-4">
+    <section className="">
       <Heading
         title="Dress Hire"
         image={settings?.banner || "/logo.jpg"}
