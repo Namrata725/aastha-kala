@@ -28,12 +28,16 @@ const GalleryViewModal = ({
   getYouTubeEmbedUrl,
 }: Props) => {
   const getTotalSlides = () => {
-    if (item?.type === "images" && item.images) {
+    if (!item) return 0;
+
+    if (item.type === "images" && item.images) {
       return 1 + item.images.length;
     }
-    if (item?.type === "video") {
+
+    if (item.type === "video") {
       return 2;
     }
+
     return 1;
   };
 
@@ -65,8 +69,8 @@ const GalleryViewModal = ({
   const maxSlide = getTotalSlides() - 1;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/10 flex items-center justify-center">
-      <div className="bg-primary/10 border border-primary/20 backdrop-blur-xl w-full max-w-3xl rounded-xl p-2 relative overflow-y-auto max-h-[90vh] min-h-120">
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+      <div className="bg-white/90 border border-primary/20 backdrop-blur-xl w-full max-w-3xl rounded-xl relative overflow-y-auto max-h-[90vh] min-h-120">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -99,31 +103,44 @@ const GalleryViewModal = ({
 
         {/* Content */}
         <div className="p-6">
-          {/* Media Slides (First) */}
-          {currentSlide < maxSlide && (
+          {currentSlide === 0 && (
+            <div className="space-y-4 hover:text-white transition-colors duration-200">
+              <span className="text-3xl md:text-4xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+                {item.title}
+              </span>
+              <p className="text-base md:text-lg text-primary gray-700 leading-relaxed max-w-prose mt-3">
+                {item.description || "No description available"}
+              </p>
+            </div>
+          )}
+
+          {/* Media Slides */}
+          {currentSlide > 0 && (
             <div className="flex items-center justify-center">
               {(() => {
+                const mediaIndex = currentSlide - 1;
+
                 // Images
                 if (
                   item.type === "images" &&
                   item.images &&
-                  item.images[currentSlide]
+                  item.images[mediaIndex]
                 ) {
                   return (
                     <img
-                      src={item.images[currentSlide]}
-                      className="max-h-[70vh] object-contain"
+                      src={item.images[mediaIndex]}
+                      className="max-h-[80vh] object-contain"
                       alt=""
                     />
                   );
                 }
 
                 // Video
-                if (item.type === "video" && item.video && currentSlide === 0) {
+                if (item.type === "video" && item.video && mediaIndex === 0) {
                   return (
                     <iframe
                       src={getYouTubeEmbedUrl(item.video)}
-                      className="w-full h-[60vh]"
+                      className="w-full h-[80vh]"
                       allowFullScreen
                     />
                   );
@@ -136,21 +153,6 @@ const GalleryViewModal = ({
                   </div>
                 );
               })()}
-            </div>
-          )}
-
-          {/* Title & Description (Last) */}
-          {currentSlide === maxSlide && (
-            <div className="space-y-4">
-              {/* Title with gradient */}
-              <span className="text-3xl md:text-4xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                {item.title}
-              </span>
-
-              {/* Description (normal text for readability) */}
-              <p className="text-base md:text-lg text-primary gray-700 leading-relaxed max-w-prose mt-3">
-                {item.description || " "}
-              </p>
             </div>
           )}
         </div>

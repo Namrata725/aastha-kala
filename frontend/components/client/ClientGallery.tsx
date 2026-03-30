@@ -33,7 +33,6 @@ const ClientGallery = ({ gallery, categories }: Props) => {
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-
   const filteredGallery =
     activeCategory === "all"
       ? gallery
@@ -81,7 +80,7 @@ const ClientGallery = ({ gallery, categories }: Props) => {
             const categoryName =
               item.category?.name ||
               (Array.isArray(categories) ? categories : []).find(
-                (c) => c.id === item.category_id
+                (c) => c.id === item.category_id,
               )?.name;
 
             return (
@@ -130,7 +129,12 @@ const ClientGallery = ({ gallery, categories }: Props) => {
 
                 {/* Hover Title */}
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition duration-300">
-                  <p className="text-white text-center px-3">{item.title}</p>
+                  <p
+                    className="text-primary text-center px-3 text-lg"
+                    style={{ color: "white !important" }}
+                  >
+                    {item.title}
+                  </p>
                 </div>
               </div>
             );
