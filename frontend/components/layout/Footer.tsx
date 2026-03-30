@@ -162,7 +162,7 @@ const Footer = async () => {
           {/* Programs */}
           <div>
             <h3 className="text-lg font-semibold text-blue-600 mb-4">
-              Program
+              Programs
             </h3>
             <ul className="space-y-2 text-gray-600 text-sm">
               {/* Add program items here */}
