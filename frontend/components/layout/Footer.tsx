@@ -23,11 +23,25 @@ const getSettings = async () => {
   }
 };
 
+const fetchPrograms = async () => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/programs`, {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error("Failed to fetch programs");
+    const data = await res.json();
+    return data?.data?.data || data?.data || [];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
+
 const Footer = async () => {
   const data = await getSettings();
   const setting = data?.setting;
   const socialLinks = data?.social_links;
-
+  const programs = await fetchPrograms();
   const socials = [
     {
       id: "facebook",
@@ -165,7 +179,20 @@ const Footer = async () => {
               Programs
             </h3>
             <ul className="space-y-2 text-gray-600 text-sm">
-              {/* Add program items here */}
+              {programs.length > 0 ? (
+                programs.slice(0, 6).map((program: any) => (
+                  <li key={program.id}>
+                    <Link
+                      href={`/programs/${program.slug}`}
+                      className="hover:text-blue-600"
+                    >
+                      {program.title}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <li>No programs available</li>
+              )}
             </ul>
           </div>
 
