@@ -1,9 +1,6 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
 import ClientDressHire from "@/components/client/ClientDressHire";
 import Heading from "@/components/global/Heading";
-import toast from "react-hot-toast";
+import { Shirt } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -14,49 +11,46 @@ type Setting = {
 type DressHireItem = {
   id: number;
   title: string;
-  images: string[]; // <-- use images array
+  images: string[];
 };
 
-export default function DressHirePage() {
-  const [settings, setSettings] = useState<Setting | null>(null);
-  const [dresses, setDresses] = useState<DressHireItem[]>([]);
-  const [loading, setLoading] = useState(true);
+async function getSettings(): Promise<Setting | null> {
+  try {
+    const res = await fetch(`${API_URL}/settings`, {
+      cache: "no-store",
+    });
 
-  const fetchSettings = async () => {
-    try {
-      const res = await fetch(`${API_URL}/settings`, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to fetch settings");
+    if (!res.ok) return null;
 
-      const data = await res.json();
-      setSettings(data?.data?.setting || null);
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.message || "Failed to fetch settings");
-    }
-  };
+    const data = await res.json();
+    return data?.data?.setting || null;
+  } catch {
+    return null;
+  }
+}
 
-  const fetchDressHire = async () => {
-    try {
-      const res = await fetch(`${API_URL}/dress-hire`, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to fetch dress hire items");
+async function getDressHire(): Promise<DressHireItem[]> {
+  try {
+    const res = await fetch(`${API_URL}/dress-hire`, {
+      cache: "no-store",
+    });
 
-      const json = await res.json();
-      const dressHire = json?.data?.data || json?.data;
-      if (!Array.isArray(dressHire)) return;
+    if (!res.ok) return [];
 
-      setDresses(dressHire);
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.message || "Failed to fetch dresses");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const json = await res.json();
+    const dressHire = json?.data?.data || json?.data;
 
-  useEffect(() => {
-    fetchSettings();
-    fetchDressHire();
-  }, []);
+    return Array.isArray(dressHire) ? dressHire : [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function DressHirePage() {
+  const [settings, dresses] = await Promise.all([
+    getSettings(),
+    getDressHire(),
+  ]);
 
   return (
     <section className="max-w-7xl mx-auto p-4">
@@ -66,14 +60,13 @@ export default function DressHirePage() {
         subtitle="Explore our exclusive dress collection"
       />
 
-      {loading ? (
-        <p className="text-center mt-10">Loading dresses...</p>
-      ) : dresses.length > 0 ? (
+      {dresses.length > 0 ? (
         <ClientDressHire dresses={dresses} />
       ) : (
-        <p className="text-center mt-10 text-gray-500">
-          No dresses available for hire at the moment.
-        </p>
+        <div className="col-span-full flex flex-col items-center justify-center py-16 text-gray-500">
+          <Shirt className="w-12 h-12 animate-infinite-bounce" />
+          <p className="mt-3 text-sm">No images or videos in this category</p>
+        </div>
       )}
     </section>
   );
