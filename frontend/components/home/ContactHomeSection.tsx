@@ -79,7 +79,7 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
             {/* Phone */}
             <div className="flex items-center gap-5">
               <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Phone className="w-6 h-6 text-[#9B4DCA]" />
+                <Phone className="w-6 h-6 text-accent" />
               </div>
               <div>
                 <h4 className="font-bold text-gray-800 text-base mb-0.5">
@@ -94,7 +94,7 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
             {/* Email */}
             <div className="flex items-center gap-5">
               <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Mail className="w-6 h-6 text-[#9B4DCA]" />
+                <Mail className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h4 className="font-bold text-gray-800 text-base mb-0.5">
@@ -109,7 +109,7 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
             {/* Location */}
             <div className="flex items-center gap-5">
               <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center flex-shrink-0">
-                <MapPin className="w-6 h-6 text-[#9B4DCA]" />
+                <MapPin className="w-6 h-6 text-accent" />
               </div>
               <div>
                 <h4 className="font-bold text-gray-800 text-base mb-0.5">
@@ -124,7 +124,7 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
 
           {/* Map */}
           {mapUrl && (
-            <div className="rounded-2xl border-2 border-[#9B4DCA] overflow-hidden shadow-lg">
+            <div className="rounded-2xl border-2 border-accent overflow-hidden shadow-lg">
               <div className="w-full h-[340px]">
                 <iframe
                   src={mapUrl}

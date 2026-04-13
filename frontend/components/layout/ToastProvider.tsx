@@ -9,15 +9,15 @@ export default function ToastProvider() {
       toastOptions={{
         duration: 3000,
         style: {
-          background: "#333",
+          background: "var(--primary)",
           color: "#fff",
           fontSize: "14px",
         },
         success: {
-          style: { background: "green" },
+          style: { background: "var(--success)" },
         },
         error: {
-          style: { background: "red" },
+          style: { background: "var(--error)" },
         },
       }}
     />

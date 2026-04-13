@@ -13,6 +13,7 @@ interface EventData {
   event_date: string;
   location: string;
   status: "draft" | "published";
+  is_active: boolean;
   banner?: File | string | null;
   contact_person_name?: string;
   contact_person_phone?: string;
@@ -40,6 +41,7 @@ const EventAddEditModal: React.FC<Props> = ({
     event_date: "",
     location: "",
     status: "draft",
+    is_active: false,
     banner: null,
     contact_person_name: "",
     contact_person_phone: "",
@@ -61,6 +63,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
         status: event.status || "draft",
         contact_person_name: event.contact_person_name || "",
         contact_person_phone: event.contact_person_phone || "",
+        is_active: event.is_active || false,
         banner: null,
       });
 
@@ -78,9 +81,9 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
         event_date: "",
         location: "",
         status: "draft",
-        banner: null,
-        contact_person_name: "",
         contact_person_phone: "",
+        is_active: false,
+        banner: null,
       });
       setPreviewBanner(null);
     }
@@ -130,6 +133,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
       formData.append("event_date", form.event_date);
       formData.append("location", form.location);
       formData.append("status", form.status);
+      formData.append("is_active", form.is_active ? "1" : "0");
 
       // ✅ contact fields
       formData.append("contact_person_name", form.contact_person_name || "");
@@ -213,6 +217,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
               value={form.title}
               onChange={(e) => handleChange("title", e.target.value)}
               disabled={loading}
+              error={errors.title}
             />
 
             {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title[0]}</p>}
@@ -223,6 +228,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
               value={form.location}
               onChange={(e) => handleChange("location", e.target.value)}
               disabled={loading}
+              error={errors.location}
             />
 
             {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location[0]}</p>}
@@ -236,11 +242,10 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
               value={form.event_date}
               onChange={(e) => handleChange("event_date", e.target.value)}
               disabled={loading}
+              error={errors.event_date}
             />
 
-            {errors.event_date && <p className="text-red-500 text-xs mt-1">{errors.event_date[0]}</p>}
-
-<InputField
+            <InputField
               label="Status"
               type="select"
               value={form.status}
@@ -251,7 +256,20 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
               ]}
               disabled={loading}
             />
+          </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <InputField
+              label="Overlay Ad Active"
+              type="select"
+              value={form.is_active ? "1" : "0"}
+              onChange={(e) => handleChange("is_active", e.target.value === "1")}
+              options={[
+                { label: "Disabled", value: "0" },
+                { label: "Active (Show as Popup)", value: "1" },
+              ]}
+              disabled={loading}
+            />
           </div>
 
           <EditorComponent

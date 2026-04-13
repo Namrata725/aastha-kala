@@ -3,7 +3,19 @@
 
 :root {
   --primary: #0a35c8;
+  --primary-rgb: 10, 53, 200;
   --secondary: #9e33cf;
+  --secondary-rgb: 158, 51, 207;
+  --info: #3b82f6;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --accent: #9b4dca;
+  --brand-deep: #1b2a6b;
+  --fb: #1877f2;
+  --insta-yellow: #f9ce34;
+  --insta-pink: #ee2a7b;
+  --insta-purple: #6228d7;
 }
 
 @theme inline {
@@ -11,9 +23,21 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
+  --color-info: var(--info);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-accent: var(--accent);
+  --color-brand-deep: var(--brand-deep);
+  --color-fb: var(--fb);
+  --color-insta-yellow: var(--insta-yellow);
+  --color-insta-pink: var(--insta-pink);
+  --color-insta-purple: var(--insta-purple);
   --font-poppins: var(--font-poppins);
   --font-sans: var(--font-poppins);
 }
+
+
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -112,4 +136,19 @@ body {
 
 .animate-slideDown {
   animation: slideDown 0.25s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out;
 }

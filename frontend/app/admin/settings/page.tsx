@@ -35,6 +35,8 @@ interface Setting {
   email: string;
   about: string;
   about_short: string;
+  opening_hour: string;
+  closing_hour: string;
 }
 
 interface SocialLinks {
@@ -87,6 +89,8 @@ const Settings: React.FC = () => {
     email: "",
     about: "",
     about_short: "",
+    opening_hour: "",
+    closing_hour: "",
   });
 
   // SOCIAL
@@ -157,6 +161,8 @@ const Settings: React.FC = () => {
             email: s.email || "",
             about: s.about || "",
             about_short: s.about_short || "",
+            opening_hour: s.opening_hour || "",
+            closing_hour: s.closing_hour || "",
           };
           setSetting(settingData);
 
@@ -243,6 +249,8 @@ const Settings: React.FC = () => {
     formData.append("email", setting.email);
     formData.append("about", setting.about);
     formData.append("about_short", setting.about_short);
+    formData.append("opening_hour", setting.opening_hour);
+    formData.append("closing_hour", setting.closing_hour);
 
     // STATS
     formData.append("years_of_experience", stats.experience);
@@ -411,6 +419,27 @@ const Settings: React.FC = () => {
                 disabled={isSaving}
                 error={errors.about_short}
               />
+              <InputField
+                label="Opening Hour"
+                icon={Calendar}
+                placeholder="e.g. 10:00 AM"
+                value={setting.opening_hour}
+                onChange={(e) =>
+                  setSetting({ ...setting, opening_hour: e.target.value })
+                }
+                disabled={isSaving}
+              />
+              <InputField
+                label="Closing Hour"
+                icon={Calendar}
+                placeholder="e.g. 6:00 PM"
+                value={setting.closing_hour}
+                onChange={(e) =>
+                  setSetting({ ...setting, closing_hour: e.target.value })
+                }
+                disabled={isSaving}
+              />
+
               {/* LOGO */}
               <div>
                 <label className="flex items-center text-[11px] mb-0.5 font-bold uppercase tracking-wider bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent italic gap-2">

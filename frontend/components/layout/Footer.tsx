@@ -23,8 +23,22 @@ const getSettings = async () => {
   }
 };
 
+const getPrograms = async () => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/programs`, {
+      next: { revalidate: 3600 },
+    });
+    const data = await res.json();
+    // Since index() uses pagination, programs are in data.data.data
+    return data?.data?.data || [];
+  } catch (error) {
+    console.error("Failed to fetch programs:", error);
+    return [];
+  }
+};
+
 const Footer = async () => {
-  const data = await getSettings();
+  const [data, programs] = await Promise.all([getSettings(), getPrograms()]);
   const setting = data?.setting;
   const socialLinks = data?.social_links;
 
@@ -34,14 +48,14 @@ const Footer = async () => {
       icon: <Facebook className="w-5 h-5" />,
       url: ensureAbsoluteUrl(socialLinks?.facebook),
       className:
-        "bg-[#1877F2] text-white border-transparent hover:shadow-[0_8px_20px_-8px_#1877F2]",
+        "bg-fb text-white border-transparent hover:shadow-[0_8px_20px_-8px_var(--fb)]",
     },
     {
       id: "instagram",
       icon: <Instagram className="w-5 h-5" />,
       url: ensureAbsoluteUrl(socialLinks?.instagram),
       className:
-        "bg-linear-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white border-transparent hover:shadow-[0_8px_20px_-8px_#ee2a7b]",
+        "bg-linear-to-tr from-insta-yellow via-insta-pink to-insta-purple text-white border-transparent hover:shadow-[0_8px_20px_-8px_var(--insta-pink)]",
     },
     {
       id: "tiktok",
@@ -96,7 +110,7 @@ const Footer = async () => {
                 alt={setting?.company_name || "Aastha Kala Kendra"}
                 className="h-10 w-10"
               />
-              <h2 className="text-xl font-semibold text-blue-600">
+              <h2 className="text-xl font-semibold text-primary">
                 {setting?.company_name || "Aastha Kala Kendra"}
               </h2>
             </Link>
@@ -127,32 +141,32 @@ const Footer = async () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold text-blue-600 mb-4">
+            <h3 className="text-lg font-semibold text-primary mb-4">
               Quick Links
             </h3>
             <ul className="space-y-2 text-gray-600 text-sm">
               <li>
-                <Link href="/about" className="hover:text-blue-600">
+                <Link href="/about" className="hover:text-primary">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="/instructors" className="hover:text-blue-600">
+                <Link href="/instructors" className="hover:text-primary">
                   Instructors
                 </Link>
               </li>
               <li>
-                <Link href="/events" className="hover:text-blue-600">
+                <Link href="/events" className="hover:text-primary">
                   Events
                 </Link>
               </li>
               <li>
-                <Link href="/gallery" className="hover:text-blue-600">
+                <Link href="/gallery" className="hover:text-primary">
                   Gallery
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-blue-600">
+                <Link href="/contact" className="hover:text-primary">
                   Contact
                 </Link>
               </li>
@@ -161,40 +175,61 @@ const Footer = async () => {
 
           {/* Programs */}
           <div>
-            <h3 className="text-lg font-semibold text-blue-600 mb-4">
+            <h3 className="text-lg font-semibold text-primary mb-4">
               Programs
             </h3>
             <ul className="space-y-2 text-gray-600 text-sm">
-              {/* Add program items here */}
+              {programs.slice(0, 6).map((program: any) => (
+                <li key={program.id}>
+                  <Link
+                    href="/programs"
+                    className="hover:text-primary transition-colors"
+                  >
+                    {program.title}
+                  </Link>
+                </li>
+              ))}
+              {programs.length === 0 && (
+                <li className="italic text-gray-400">Comming soon...</li>
+              )}
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h3 className="text-lg font-semibold text-blue-600 mb-4">
+            <h3 className="text-lg font-semibold text-primary mb-4">
               Contact Details
             </h3>
             <div className="space-y-4 text-sm text-gray-600">
               <div className="flex items-center space-x-3">
-                <Phone className="h-4 w-4 text-blue-600" />
+                <Phone className="h-4 w-4 text-primary" />
                 <span>{setting?.phone || "+977 9841305158"}</span>
               </div>
               <div className="flex items-center space-x-3">
-                <Mail className="h-4 w-4 text-blue-600" />
+                <Mail className="h-4 w-4 text-primary" />
                 <span>{setting?.email || "aasthakalakendra@gmail.com"}</span>
               </div>
               <div className="flex items-center space-x-3">
-                <MapPin className="h-4 w-4 text-blue-600" />
+                <MapPin className="h-4 w-4 text-primary" />
                 <span>
                   {setting?.address || "Narayangopal Chowk, Kathmandu, Nepal"}
                 </span>
               </div>
+              {setting?.opening_hour && setting?.closing_hour && (
+                <div className="flex items-start space-x-3 pt-2">
+                  <div className="text-primary font-semibold uppercase text-[10px] tracking-wider mt-1 px-1 border border-primary rounded">OPEN</div>
+                  <div>
+                    <p className="font-medium text-gray-800">Opening Hours</p>
+                    <p>{setting.opening_hour} - {setting.closing_hour}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Footer Bottom */}
-        <div className="border-t-4 mt-10 pt-6 text-center text-sm text-blue-600">
+        <div className="border-t-4 mt-10 pt-6 text-center text-sm text-primary">
           © {new Date().getFullYear()}{" "}
           {setting?.company_name || "Aastha Kala Kendra"}, All rights reserved.
           | Designed & Developed by{" "}

@@ -100,7 +100,8 @@ function BookingModal({
         duration_value: parseInt(form.duration_value) || 1,
         duration_unit: form.duration_unit,
         type: bookingType,
-        message: `${form.message}${form.current_address ? `\n\nAddress: ${form.current_address}` : ""}`,
+        address: form.current_address,
+        message: form.message,
       };
 
       if (bookingType === "regular") {

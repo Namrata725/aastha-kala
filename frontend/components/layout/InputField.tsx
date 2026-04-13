@@ -21,7 +21,7 @@ interface Props {
   error?: string | string[];
 }
 
-const InputField: React.FC<Props> = ({
+const InputField: React.FC<Props & { multiple?: boolean }> = ({
   label,
   icon: Icon,
   value,
@@ -32,6 +32,7 @@ const InputField: React.FC<Props> = ({
   required = false,
   disabled = false,
   error,
+  multiple = false,
 }) => {
   const inputId = label.replace(/\s+/g, "_").toLowerCase();
   const isSelect = type === "select";
@@ -65,25 +66,44 @@ const InputField: React.FC<Props> = ({
             />
           ) : isSelect ? (
             // DROPDOWN
-            <select
-              value={value ?? ""}
-              onChange={onChange}
-              disabled={disabled}
-              className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <option value="" className="bg-white text-black/60">
-                Select {label}
-              </option>
-              {options.map((opt, idx) => (
-                <option
-                  key={idx}
-                  value={opt.value}
-                  className="bg-white text-black"
+            <div className="relative group/select">
+                <select
+                    multiple={multiple}
+                    value={multiple ? (Array.isArray(value) ? value : (value ? value.split(',').map((v: string) => v.trim()) : [])) : (value ?? "")}
+                    onChange={(e) => {
+                        if (multiple) {
+                            const options = e.target.options;
+                            const values = [];
+                            for (let i = 0, l = options.length; i < l; i++) {
+                                if (options[i].selected) {
+                                    values.push(options[i].value);
+                                }
+                            }
+                            onChange?.({ target: { value: values.join(', ') } } as any);
+                        } else {
+                            onChange?.(e);
+                        }
+                    }}
+                    disabled={disabled}
+                    className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${multiple ? 'min-h-[80px] py-1' : ''}`}
                 >
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+                    {!multiple && (
+                        <option value="" className="bg-white text-black/60">
+                            Select {label}
+                        </option>
+                    )}
+                    {options.map((opt, idx) => (
+                        <option
+                            key={idx}
+                            value={opt.value}
+                            className="bg-white text-black py-1 px-2 hover:bg-primary/10"
+                        >
+                            {opt.label}
+                        </option>
+                    ))}
+                </select>
+                {multiple && <div className="absolute top-0 right-0 p-1 opacity-0 group-hover/select:opacity-100 transition-opacity"><span className="text-[9px] bg-black/10 px-1 rounded text-gray-400">Ctrl+Click</span></div>}
+            </div>
           ) : (
             // NORMAL INPUT
             <div className="flex items-center gap-2">

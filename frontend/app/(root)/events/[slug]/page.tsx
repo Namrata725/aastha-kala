@@ -62,12 +62,24 @@ export default async function EventPage({
     <div>
       {/* Banner */}
       {event.banner && (
-        <div className="overflow-hidden shadow-md">
+        <div className="relative w-full h-85 md:h-90 2xl:h-120 overflow-hidden shadow-md bg-black">
+          {/* Blurred background to fill empty space */}
+          <img
+            src={getImageUrl(event.banner)}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-60"
+          />
+
+          {/* Full visible image on top */}
           <img
             src={getImageUrl(event.banner)}
             alt={event.title}
-            className="w-full h-85 md:h-90 2xl:h-120 object-cover"
+            className="relative z-10 w-full h-full object-contain drop-shadow-2xl"
           />
+
+          {/* Subtle bottom gradient for depth */}
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent z-20" />
         </div>
       )}
 

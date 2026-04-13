@@ -18,10 +18,12 @@ class Event extends Model
         'contact_person_name',
         'contact_person_phone',
         'status',
+        'is_active',
     ];
 
     protected $casts = [
         'event_date' => 'datetime',
+        'is_active' => 'boolean',
     ];
 
 

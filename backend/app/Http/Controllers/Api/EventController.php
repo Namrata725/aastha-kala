@@ -44,6 +44,7 @@ class EventController extends Controller
             'contact_person_name' => 'nullable|string|max:255',
             'contact_person_phone' => 'nullable|string|max:20',
             'status' => 'nullable|in:draft,published',
+            'is_active' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -105,6 +106,7 @@ class EventController extends Controller
             'contact_person_name' => 'nullable|string|max:255',
             'contact_person_phone' => 'nullable|string|max:20',
             'status' => 'sometimes|in:draft,published',
+            'is_active' => 'sometimes|boolean',
             'remove_banner' => 'sometimes|boolean',
         ]);
 

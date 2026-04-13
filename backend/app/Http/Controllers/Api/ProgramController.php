@@ -50,6 +50,8 @@ class ProgramController extends Controller
             'speciality' => 'nullable|array',
             'speciality.*' => 'string|max:255',
             'is_active' => 'nullable|boolean',
+            'admission_fee' => 'nullable|numeric|min:0',
+            'program_fee' => 'nullable|numeric|min:0',
             'instructor_ids' => 'nullable|array',
             'instructor_ids.*' => 'exists:instructors,id',
             'schedules' => 'nullable|array',
@@ -66,7 +68,7 @@ class ProgramController extends Controller
             ], 422);
         }
 
-        $data = $request->only(['title', 'description', 'speciality', 'is_active']);
+        $data = $request->only(['title', 'description', 'speciality', 'is_active', 'admission_fee', 'program_fee']);
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('programs', 'public');
@@ -138,6 +140,8 @@ class ProgramController extends Controller
             'speciality' => 'nullable|array',
             'speciality.*' => 'string|max:255',
             'is_active' => 'nullable|boolean',
+            'admission_fee' => 'nullable|numeric|min:0',
+            'program_fee' => 'nullable|numeric|min:0',
             'instructor_ids' => 'nullable|array',
             'instructor_ids.*' => 'exists:instructors,id',
             'schedules' => 'nullable|array',
@@ -154,7 +158,7 @@ class ProgramController extends Controller
             ], 422);
         }
 
-        $data = $request->only(['title', 'description', 'speciality', 'is_active']);
+        $data = $request->only(['title', 'description', 'speciality', 'is_active', 'admission_fee', 'program_fee']);
 
         // Handle image removal
         if ($request->has('remove_image') && $request->remove_image == '1' && $program->image) {

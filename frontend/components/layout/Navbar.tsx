@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
   ];
 
   return (
-    <nav className="w-full bg-blue-700 text-white">
+    <nav className="w-full bg-primary text-white">
       <div className="px-4 md:px-5 lg:px-6 py-2 flex items-center justify-between max-w-7xl mx-auto">
         {/* Logo — far left, fixed width */}
         <div className="flex items-center shrink-0">

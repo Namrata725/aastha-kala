@@ -63,6 +63,7 @@ const Page = () => {
     { key: "title", label: "Title" },
     { key: "event_date", label: "Event Date" },
     { key: "location", label: "Location" },
+    { key: "is_active", label: "Overlay Ad" },
     { key: "status", label: "Status" },
   ];
 
@@ -148,6 +149,18 @@ const Page = () => {
         }`}
       >
         {event.status}
+      </span>
+    ),
+
+    is_active: (
+      <span
+        className={`px-2 py-1 rounded text-xs ${
+          event.is_active
+            ? "bg-blue-500 text-white"
+            : "bg-gray-200 text-gray-600"
+        }`}
+      >
+        {event.is_active ? "Active" : "Disabled"}
       </span>
     ),
 

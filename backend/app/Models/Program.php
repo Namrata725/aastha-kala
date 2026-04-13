@@ -15,6 +15,8 @@ class Program extends Model
         'image',
         'speciality',
         'is_active',
+        'admission_fee',
+        'program_fee',
     ];
 
     protected $casts = [

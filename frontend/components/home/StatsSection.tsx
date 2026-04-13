@@ -26,10 +26,10 @@ const StatsSection: React.FC<StatsSectionProps> = ({ settings }) => {
         <div
           className="w-full py-6 md:py-8 px-2 sm:px-6 md:px-10 relative overflow-hidden"
           style={{
-            background: "linear-gradient(135deg, #3a1fa8 0%, #6b35c8 100%)",
+            background: "linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)",
             borderRadius: "10px",
             boxShadow:
-              "0 20px 50px -12px rgba(58, 31, 168, 0.5), 0 10px 20px -5px rgba(107, 53, 200, 0.3)",
+              "0 20px 50px -12px rgba(var(--primary-rgb), 0.5), 0 10px 20px -5px rgba(var(--secondary-rgb), 0.3)",
           }}
         >
           {/* Subtle accent light inside */}
@@ -37,7 +37,7 @@ const StatsSection: React.FC<StatsSectionProps> = ({ settings }) => {
 
           <div className="flex flex-row items-start justify-between relative z-10 gap-1 md:gap-4">
             {stats.map((stat, index) => (
-              <div className="flex-1 flex flex-col items-center text-center gap-1 md:gap-2">
+              <div key={index} className="flex-1 flex flex-col items-center text-center gap-1 md:gap-2">
                 <span
                   className="font-extrabold leading-none text-white"
                   style={{ fontSize: "clamp(1.25rem, 3.5vw, 2.5rem)" }}

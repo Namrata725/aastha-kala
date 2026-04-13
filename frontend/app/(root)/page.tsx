@@ -49,7 +49,7 @@ const Page = async () => {
   const socialLinks = data?.social_links;
 
   return (
-    <div className="bg-white">
+    <div className="bg-white min-h-screen">
       <Suspense fallback={<SectionPlaceholder />}>
         <HeroSection />
       </Suspense>

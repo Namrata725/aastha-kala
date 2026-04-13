@@ -26,6 +26,8 @@ class Setting extends Model
         'number_of_instructors',
         'number_of_students',
         'success_rate',
+        'opening_hour',
+        'closing_hour',
     ];
 
     protected $casts = [

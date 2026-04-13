@@ -12,6 +12,8 @@ import {
   LogOut,
   Mic,
   Shirt,
+  Users,
+  CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -38,6 +40,8 @@ const menuItems = [
   { name: "Gallery", icon: Image, href: "/admin/gallery" },
   { name: "Testimonials", icon: Mic, href: "/admin/testimonials" },
   { name: "Contact Us", icon: Mail, href: "/admin/contact" },
+  { name: "Students", icon: Users, href: "/admin/students" },
+  { name: "Fees & Billing", icon: CreditCard, href: "/admin/fees" },
   { name: "Settings", icon: Settings, href: "/admin/settings" },
 ];
 

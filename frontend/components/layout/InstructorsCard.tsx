@@ -69,7 +69,7 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
               {instructor.about.length > 150 && (
                 <button
                   onClick={() => setExpanded(!expanded)}
-                  className="text-blue-500 text-sm hover:underline"
+                  className="text-primary text-sm hover:underline"
                 >
                   {expanded ? "See less" : "See more"}
                 </button>
@@ -85,10 +85,10 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
               href={ensureAbsoluteUrl(instructor.facebook_url)}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-1.5 rounded-full bg-[#1877F2] text-white hover:scale-110 hover:shadow-lg transition-all duration-300"
+              className="p-1.5 rounded-full bg-fb text-white hover:scale-110 hover:shadow-lg transition-all duration-300"
               title="Facebook"
             >
-              <Facebook className="p-1.5 w-8 h-8 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition" />
+              <Facebook className="p-1.5 w-8 h-8 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition" />
             </a>
           )}
 
@@ -97,10 +97,10 @@ const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
               href={ensureAbsoluteUrl(instructor.instagram_url)}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-1.5 rounded-full bg-linear-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white hover:scale-110 hover:shadow-lg transition-all duration-300"
+              className="p-1.5 rounded-full bg-linear-to-tr from-insta-yellow via-insta-pink to-insta-purple text-white hover:scale-110 hover:shadow-lg transition-all duration-300"
               title="Instagram"
             >
-              <Instagram className="p-1.5 w-8 h-8 rounded-full bg-pink-100 text-pink-500 hover:bg-pink-200 transition" />
+              <Instagram className="p-1.5 w-8 h-8 rounded-full bg-insta-pink/10 text-insta-pink hover:bg-insta-pink/20 transition" />
             </a>
           )}
         </div>

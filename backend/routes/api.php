@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\InstructorAvailabilityController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DressHireController;
+use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\StudentFeeController;
 
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -85,6 +87,10 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         Route::put('/{id}', [DressHireController::class, 'update']);
         Route::delete('/{id}', [DressHireController::class, 'destroy']);
     });
+
+    Route::apiResource('students', StudentController::class);
+    Route::apiResource('student-fees', StudentFeeController::class);
+    Route::get('/students/{studentId}/fee-info', [StudentFeeController::class, 'studentFeeInfo']);
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

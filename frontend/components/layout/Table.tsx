@@ -47,7 +47,7 @@ const SkeletonRow = ({ columns }: { columns: Column[] }) => {
 
 const EmptyState = ({ message }: { message: string }) => {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-gray-400 animate-fadeIn">
+    <div className="flex flex-col items-center justify-center py-12 text-gray-400 animate-in fade-in duration-700">
       <Mailbox size={70} className="mb-3 opacity-70" />
       <p className="text-sm">{message}</p>
     </div>
@@ -77,17 +77,17 @@ const Table: React.FC<Props> = ({
     view: {
       icon: Eye,
       handler: onView,
-      color: "#3b82f6",
+      color: "var(--info)",
     },
     edit: {
       icon: Pencil,
       handler: onEdit,
-      color: "#f59e0b",
+      color: "var(--warning)",
     },
     delete: {
       icon: Trash2,
       handler: onDelete,
-      color: "#ef4444",
+      color: "var(--error)",
     },
   };
 

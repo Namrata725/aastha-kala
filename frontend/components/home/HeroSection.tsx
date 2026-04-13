@@ -33,7 +33,7 @@ const HeroSection = async () => {
   if (heroImages.length === 0) return null;
 
   return (
-    <section className="relative w-full min-h-[480px] md:min-h-[580px] bg-[#1B2A6B] flex flex-col items-center justify-start overflow-hidden">
+    <section className="relative w-full min-h-[480px] md:min-h-[580px] bg-brand-deep flex flex-col items-center justify-start overflow-hidden">
       {/* ── "AASTHA KALA" watermark text ──────────────────────────────── */}
       <div className="absolute inset-0 flex items-start justify-center pt-6 select-none pointer-events-none z-0">
         <h1

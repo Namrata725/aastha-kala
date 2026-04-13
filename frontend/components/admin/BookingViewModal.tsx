@@ -107,6 +107,12 @@ const BookingViewModal: React.FC<BookingViewModalProps> = ({
                         <Phone className="w-3.5 h-3.5 text-secondary" /> {booking.phone}
                       </span>
                    </div>
+                   <div className="flex flex-col">
+                      <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest italic">Current Address</span>
+                      <span className="text-sm text-primary font-bold flex items-center gap-2 italic">
+                        <MapPin className="w-3.5 h-3.5 text-primary" /> {booking.address || "Not provided"}
+                      </span>
+                   </div>
                 </div>
               </div>
 
@@ -251,37 +257,98 @@ const BookingViewModal: React.FC<BookingViewModalProps> = ({
                 </div>
               ) : (
                 // For customization or if no teacher is pre-assigned
-                <div className="flex flex-col gap-2">
-                  <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest italic">Available Teachers for this Slot</span>
-                  <select 
-                    value={selectedInstructorId}
-                    onChange={(e) => setSelectedInstructorId(e.target.value ? Number(e.target.value) : "")}
-                    className="bg-white/60 border border-primary/20 rounded-xl px-4 py-3 text-sm text-primary font-bold italic focus:outline-none focus:border-primary transition w-full appearance-none cursor-pointer hover:border-primary/40"
-                    disabled={loadingInstructors}
-                  >
-                    <option value="">-- Choose a teacher --</option>
-                    {availableInstructors.map((ins) => {
-                      let statusText = "";
-                      if (ins.is_available) {
-                        statusText = "Perfectly Available";
-                      } else if (ins.free_slots && ins.free_slots.length > 0) {
-                        const slots = ins.free_slots.map((s: any) => `${to12h(s.start)} - ${to12h(s.end)}`).join(", ");
-                        statusText = `Busy. Free: ${slots}`;
-                      } else {
-                        statusText = "No free time defined today";
-                      }
-                      return (
-                        <option key={ins.id} value={ins.id}>
-                          {ins.name} ({statusText})
-                        </option>
-                      );
-                    })}
-                  </select>
-                  {loadingInstructors && <span className="text-[10px] text-primary/60 animate-pulse font-bold italic">Checking availability...</span>}
-                  {!loadingInstructors && availableInstructors.length === 0 && (
-                    <span className="text-[10px] text-red-500 font-bold uppercase tracking-widest italic">No instructors assigned to this program.</span>
-                  )}
-                </div>
+                  <div className="space-y-6">
+                    {/* Perfectly Available Section */}
+                    {availableInstructors.filter(ins => ins.is_available).length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-[9px] text-green-600 font-bold uppercase tracking-widest">Perfectly Available for this Slot</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {availableInstructors.filter(ins => ins.is_available).map((ins) => (
+                            <div 
+                              key={ins.id}
+                              onClick={() => setSelectedInstructorId(ins.id)}
+                              className={`border rounded-xl px-4 py-3 text-sm font-bold italic shadow-sm flex items-center gap-3 cursor-pointer transition-all ${
+                                selectedInstructorId === ins.id 
+                                  ? "bg-primary text-white border-primary shadow-primary/20 scale-[1.02]" 
+                                  : "bg-green-500/5 text-primary border-green-500/10 hover:border-green-500/40 hover:bg-green-500/10"
+                              }`}
+                            >
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center border transition-colors ${
+                                selectedInstructorId === ins.id ? "bg-primary/20 border-primary/40 text-primary" : "bg-green-500/10 border-green-500/20 text-green-600"
+                              }`}>
+                                <User className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="line-clamp-1">{ins.name}</p>
+                                <p className={`text-[9px] font-medium uppercase tracking-tighter ${
+                                  selectedInstructorId === ins.id ? "text-primary/70" : "text-green-600/60"
+                                }`}>Free for requested time</p>
+                              </div>
+                              {selectedInstructorId === ins.id && (
+                                <div className="bg-white rounded-full p-1 text-primary">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Busy But Has Free Slots Section */}
+                    {availableInstructors.filter(ins => !ins.is_available && ins.free_slots?.length > 0).length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-amber-500" />
+                          <span className="text-[9px] text-amber-600 font-bold uppercase tracking-widest">Busy but available at other times</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {availableInstructors.filter(ins => !ins.is_available && ins.free_slots?.length > 0).map((ins) => (
+                            <div 
+                              key={ins.id}
+                              onClick={() => setSelectedInstructorId(ins.id)}
+                              className={`border rounded-xl px-4 py-3 text-sm font-bold italic shadow-sm flex items-center gap-3 cursor-pointer transition-all ${
+                                selectedInstructorId === ins.id 
+                                  ? "bg-primary text-white border-primary shadow-primary/20 scale-[1.02]" 
+                                  : "bg-amber-500/5 text-primary border-amber-500/10 hover:border-amber-500/40 hover:bg-amber-500/10"
+                              }`}
+                            >
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center border transition-colors ${
+                                selectedInstructorId === ins.id ? "bg-primary/20 border-primary/40 text-primary" : "bg-amber-500/10 border-amber-500/20 text-amber-600"
+                              }`}>
+                                <Clock className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="line-clamp-1">{ins.name}</p>
+                                <div className={`flex flex-wrap gap-1 mt-0.5 ${
+                                  selectedInstructorId === ins.id ? "text-primary/70" : "text-amber-600/60"
+                                }`}>
+                                   <span className="text-[8px] font-medium uppercase">Free:</span>
+                                   {ins.free_slots.slice(0, 2).map((s: any, i: number) => (
+                                      <span key={i} className="text-[8px] bg-black/5 px-1 rounded">{to12h(s.start)}</span>
+                                   ))}
+                                   {ins.free_slots.length > 2 && <span className="text-[8px]">...</span>}
+                                </div>
+                              </div>
+                              {selectedInstructorId === ins.id && (
+                                <div className="bg-white rounded-full p-1 text-primary">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {loadingInstructors && <span className="text-[10px] text-primary/60 animate-pulse font-bold italic">Checking availability...</span>}
+                    {!loadingInstructors && availableInstructors.length === 0 && (
+                      <span className="text-[10px] text-red-500 font-bold uppercase tracking-widest italic">No instructors assigned to this program.</span>
+                    )}
+                  </div>
               )}
             </div>
           </div>

@@ -116,36 +116,26 @@ const InstructorSchedulePage = () => {
                                 status: <span className="px-2 py-0.5 bg-[#f59e0b]/20 text-primary border border-[#f59e0b]/30 rounded text-xs font-bold uppercase tracking-widest">Occupied</span>,
                                 _sortTime: c.start_time,
                             })),
-                            ...item.availabilities.map((a: any, idx: number) => {
-                                // Check if this availability slot overlaps with any scheduled class
-                                const isOccupied = item.classes.some((c: any) =>
-                                    timesOverlap(
-                                        a.start_time.substring(0, 5),
-                                        a.end_time.substring(0, 5),
-                                        c.start_time.substring(0, 5),
-                                        c.end_time.substring(0, 5)
-                                    )
-                                );
-
-                                return {
+                            ...item.availabilities
+                                .filter((a: any) => {
+                                    // Only keep availabilities that do NOT overlap with any class
+                                    // This avoids duplicate "Occupied" entries
+                                    return !item.classes.some((c: any) =>
+                                        timesOverlap(
+                                            a.start_time.substring(0, 5),
+                                            a.end_time.substring(0, 5),
+                                            c.start_time.substring(0, 5),
+                                            c.end_time.substring(0, 5)
+                                        )
+                                    );
+                                })
+                                .map((a: any, idx: number) => ({
                                     id: `avail-${idx}`,
                                     time: `${to12h(a.start_time)} - ${to12h(a.end_time)}`,
-                                    details: isOccupied
-                                        ? item.classes.find((c: any) =>
-                                            timesOverlap(
-                                                a.start_time.substring(0, 5),
-                                                a.end_time.substring(0, 5),
-                                                c.start_time.substring(0, 5),
-                                                c.end_time.substring(0, 5)
-                                            )
-                                          )?.program_title ?? "Occupied"
-                                        : "Free slot for booking",
-                                    status: isOccupied
-                                        ? <span className="px-2 py-0.5 bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/30 rounded text-xs font-bold uppercase tracking-widest">Occupied</span>
-                                        : <span className="px-2 py-0.5 bg-green-500/20 text-green-500 border border-green-500/30 rounded text-xs font-bold uppercase tracking-widest">Free</span>,
+                                    details: "Free slot for booking",
+                                    status: <span className="px-2 py-0.5 bg-green-500/20 text-green-500 border border-green-500/30 rounded text-xs font-bold uppercase tracking-widest">Free</span>,
                                     _sortTime: a.start_time,
-                                };
-                            })
+                                }))
                         ].sort((a, b) => a._sortTime.localeCompare(b._sortTime))
                           .map((s, idx) => ({ ...s, sn: idx + 1 }));
 

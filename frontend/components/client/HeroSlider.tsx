@@ -35,7 +35,7 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ heroImages }) => {
       ))}
 
       {/* Subtle theme-color vignette at very bottom to blend into stats */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#1B2A6B] to-transparent z-20 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-brand-deep to-transparent z-20 pointer-events-none" />
 
       {/* Pagination dots */}
       {heroImages.length > 1 && (

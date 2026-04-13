@@ -17,6 +17,7 @@ class Booking extends Model
         'name',
         'phone',
         'email',
+        'address',
         'message',
         'class_mode',
         'type',
