@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 
 interface HeroSliderProps {
   heroImages: string[];
+  fill?: boolean;
 }
 
-const HeroSlider: React.FC<HeroSliderProps> = ({ heroImages }) => {
+const HeroSlider: React.FC<HeroSliderProps> = ({ heroImages, fill = false }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Auto-transitioning slider
@@ -20,8 +22,8 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ heroImages }) => {
 
   return (
     <div
-      className="relative w-full overflow-hidden"
-      style={{ aspectRatio: "3/1.6", minHeight: 400 }}
+      className={`relative w-full overflow-hidden ${fill ? "h-full" : ""}`}
+      style={!fill ? { aspectRatio: "3/1.6", minHeight: 400 } : {}}
     >
       {heroImages.map((img, idx) => (
         <img
@@ -44,9 +46,8 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ heroImages }) => {
             <button
               key={idx}
               onClick={() => setCurrentIndex(idx)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                idx === currentIndex ? "bg-white w-6" : "bg-white/50 w-2"
-              }`}
+              className={`h-2 rounded-full transition-all duration-300 ${idx === currentIndex ? "bg-white w-6" : "bg-white/50 w-2"
+                }`}
             />
           ))}
         </div>

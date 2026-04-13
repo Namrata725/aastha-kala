@@ -1,4 +1,4 @@
-import React from "react";
+
 import ClientTestimonialSlider from "@/components/client/ClientTestimonialSlider";
 
 interface Testimonial {
@@ -38,7 +38,7 @@ const TestimonialSlider = async () => {
   if (data.length === 0) return null;
 
   return (
-    <section className="bg-gray-100 py-20 px-6 font-poppins">
+    <section className="bg-white py-20 px-6 font-poppins">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h4 className="text-secondary font-bold mb-2 uppercase tracking-widest">Student Success Stories</h4>

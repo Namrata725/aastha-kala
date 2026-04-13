@@ -7,6 +7,7 @@ import HomeProgramSection from "@/components/home/HomeProgramSection";
 import TestimonialSlider from "@/components/home/TestimonialSlider";
 import HomeGallery from "@/components/home/HomeGallery";
 import ContactHomeSection from "@/components/home/ContactHomeSection";
+import InstructorSection from "@/components/home/InstructorSection";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -65,16 +66,17 @@ const Page = async () => {
       </Suspense>
 
       <Suspense fallback={<SectionPlaceholder />}>
-        <HomeInstructor />
+        <InstructorSection />
+      </Suspense>
+
+      <Suspense fallback={<SectionPlaceholder />}>
+        <HomeGallery socialLinks={socialLinks} />
       </Suspense>
 
       <Suspense fallback={<SectionPlaceholder />}>
         <TestimonialSlider />
       </Suspense>
 
-      <Suspense fallback={<SectionPlaceholder />}>
-        <HomeGallery socialLinks={socialLinks} />
-      </Suspense>
 
       {settings && <ContactHomeSection settings={settings} />}
     </div>

@@ -48,7 +48,6 @@ const InstructorPage = async () => {
     <section>
       <Heading
         title="Our Instructors"
-        image={settings?.banner || "/banner.png"}
         subtitle="Learn from industry professionals and award-winning artists dedicated to your success."
       />
 

@@ -1,5 +1,6 @@
-import React from "react";
+import ClientProgramSlider from "@/components/client/ClientProgramSlider";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -8,9 +9,7 @@ const fetchPrograms = async () => {
     const res = await fetch(`${API_URL}/programs`, { cache: "no-store" });
     if (!res.ok) throw new Error("Failed to fetch programs");
     const data = await res.json();
-    const programs = data?.data?.data || data?.data || [];
-    // We want exactly 3 programs as shown in the mockup
-    return programs.slice(0, 3);
+    return data?.data?.data || data?.data || [];
   } catch (error) {
     console.error("Failed to fetch programs for home section:", error);
     return [];
@@ -22,58 +21,40 @@ const HomeProgramSection = async () => {
 
   if (programs.length === 0) return null;
 
+
+
   return (
-    <section className="bg-[#f8fafc] pt-24 pb-10 px-6">
+    <section className="bg-gray-100 py-14 px-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="text-center mb-16 space-y-4">
-          <h2 className="text-4xl md:text-5xl font-black text-primary font-poppins tracking-tight">
-            What we Offer
-          </h2>
-          <h4 className="text-lg md:text-lg text-secondary font-semibold  mx-auto leading-relaxed">
-            Comprehensive training programs designed to nurture talent and
-            inspire excellence
-          </h4>
+
+        {/* HEADER */}
+        <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-4">
+          <div className="text-center md:text-left space-y-2">
+            <h2 className="text-3xl md:text-4xl font-poppins tracking-tighter text-blue-900 font-black uppercase">
+              What WE Offer
+            </h2>
+            <div className="h-1 w-20 bg-secondary mx-auto md:mx-0 rounded-full" />
+          </div>
+
+          <Link
+            href="/programs"
+            className="flex items-center gap-2 px-6 py-2 border-2 border-primary text-primary font-bold rounded-full hover:bg-primary hover:text-white transition-all duration-300 group"
+          >
+            All Programs
+            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
 
-        {/* Programs Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-          {programs.map((program: any) => (
-            <div
-              key={program.id}
-              className="group relative aspect-[3/2] rounded-[2rem] overflow-hidden shadow-2xl shadow-blue-900/10 transition-all duration-500 hover:-translate-y-2"
-            >
-              {/* Image Container */}
-              <img
-                src={program.image || "/logo.jpg"}
-                alt={program.title}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-
-              {/* Sophisticated linear Overlay */}
-              <div className="absolute inset-0 bg-linear-to-t from-secondary/90 via-secondary/20 to-transparent opacity-90 transition-opacity duration-500" />
-
-              {/* Secondary Glow on Hover */}
-              <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-              {/* Content Overlay */}
-
-              <div className="absolute inset-0 p-8 md:p-10 flex flex-col justify-end">
-                <div className="flex items-center justify-between">
-                  <h5 className="text-lg md:text-md font-bold text-white leading-tight font-poppins uppercase tracking-wide">
-                    {program.title}
-                  </h5>
-
-                  <Link href="/programs">
-                    <button className="shrink-0 whitespace-nowrap border-2 border-white/50 bg-white/10 backdrop-blur-md text-white px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest hover:bg-white hover:text-secondary hover:border-white transition-all duration-300 active:scale-90">
-                      Learn More
-                    </button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
+        {/* MOBILE VIEW: Show ALL Programs */}
+        <div className="block md:hidden">
+          <ClientProgramSlider programs={programs} viewType="grid" />
         </div>
+
+        {/* DESKTOP/UI VIEW: The "Perfect" Slider */}
+        <div className="hidden md:block">
+          <ClientProgramSlider programs={programs} viewType="slider" />
+        </div>
+
       </div>
     </section>
   );

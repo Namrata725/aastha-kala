@@ -25,14 +25,14 @@ const HomeInstructor = async () => {
 
   if (instructors.length === 0) return null;
 
-  const limitedInstructors = instructors.slice(0, 2);
+  const limitedInstructors = instructors.slice(0, 4);
 
-  const hasMoreThanTwo = instructors.length > 2;
+  const hasMoreThanFour = instructors.length > 4;
 
   return (
-    <section className="max-w-7xl mx-auto px-6 my-16 md:space-y-12">
+    <section className="max-w-7xl mx-auto px-6 py-6 md:space-y-12">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-primary tracking-wide font-poppins mb-2">
+        <h1 className="text-3xl font-bold text-blue-900 tracking-wide font-poppins mb-2">
           Meet Our Instructors
         </h1>
         <h4 className=" font-semibold text-secondary tracking-wider">
@@ -44,7 +44,7 @@ const HomeInstructor = async () => {
       </div>
       <ClientInstructors instructors={limitedInstructors} />
 
-      {hasMoreThanTwo && (
+      {hasMoreThanFour && (
         <div className="text-center">
           <Link
             href="/instructors"

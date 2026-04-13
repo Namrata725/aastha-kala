@@ -117,7 +117,6 @@ const ContactPage = async () => {
     <section className="bg-white">
       <Heading
         title="Get in Touch"
-        image={settings?.banner || "/logo.jpg"}
         subtitle="Ready to start your musical journey? Contact us today for more information or schedule a tour"
       />
 

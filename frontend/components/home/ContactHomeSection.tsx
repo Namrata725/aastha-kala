@@ -124,7 +124,7 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
 
           {/* Map */}
           {mapUrl && (
-            <div className="rounded-2xl border-2 border-accent overflow-hidden shadow-lg">
+            <div className="rounded-2xl overflow-hidden">
               <div className="w-full h-[340px]">
                 <iframe
                   src={mapUrl}

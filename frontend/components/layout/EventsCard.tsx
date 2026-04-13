@@ -17,46 +17,48 @@ const stripHtml = (html: string) => {
 
 const EventCard = ({ event }: { event: EventItem }) => {
   return (
-    <div className="group relative rounded-2xl shadow-md overflow-hidden bg-white hover:shadow-2xl transition duration-500 ease-in-out">
-      {/* Image */}
+    <Link 
+      href={`/events/${event.slug}`}
+      className="group relative rounded-2xl shadow-md overflow-hidden bg-white hover:shadow-xl transition duration-300 ease-in-out block"
+    >
+      {/* Image Container */}
       <div className="relative h-64 overflow-hidden">
         <img
-          src={event.banner || "/logo.jpg"}
+          src={event.banner || "/images/program-fallback.png"}
           alt={event.title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
+        
+        {/* Date Overlay (Optional but looks premium) */}
+        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full shadow-sm">
+           <p className="text-secondary text-xs font-bold uppercase tracking-wider">
+             {new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+           </p>
+        </div>
+      </div>
 
-        <div
-          className="
-            absolute bottom-0 left-0 right-0
-            h-1/2
-            bg-white/95
-            p-4
-            transform translate-y-full
-            group-hover:translate-y-0
-            transition-transform duration-300 ease-in-out
-            flex flex-col
-          "
-        >
-          <p className="text-sm text-gray-600 line-clamp-5">
-            {stripHtml(event.description || "")}
+      <div className="p-5 flex flex-col gap-2">
+        {/* Heading */}
+        <h2 className="text-xl font-bold text-blue-900 group-hover:text-primary transition-colors line-clamp-1">
+          {event.title}
+        </h2>
+
+        {/* Detail / Description - Showed directly below heading */}
+        <div className="mt-1">
+          <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+            {stripHtml(event.description || "Join us for this exciting event at Aastha Kala and explore new creative horizons.")}
           </p>
         </div>
-      </div>
 
-      <div className="p-4">
-        <h2 className="text-lg font-semibold line-clamp-1">{event.title}</h2>
-
-        <div className="mt-3">
-          <Link
-            href={`/events/${event.slug}`}
-            className="block text-center bg-primary text-white py-2 rounded-lg hover:bg-secondary"
-          >
-            View Details
-          </Link>
+        {/* Location / Meta info */}
+        <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400 font-bold uppercase tracking-widest text-justify">
+           <span className="flex items-center gap-1">
+             📍 {event.location || "Main Studio"}
+           </span>
+           <span className="text-primary italic">Read More →</span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import React from "react";
-
+import Heading from "@/components/global/Heading";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const fetchSettings = async () => {
@@ -77,7 +77,7 @@ const AboutPage = async () => {
   const whyUs: any[] = data?.why_us || [];
 
   const introImages = aboutGallery.length > 0 ? aboutGallery[0].images : [];
-  const image1 = introImages[0] || "/logo.jpg";
+  const image1 = introImages[0] || "/images/program-fallback.png";
   const image2 = introImages[1] || image1;
 
   const cards =
@@ -87,9 +87,13 @@ const AboutPage = async () => {
 
   return (
     <div className="bg-white font-poppins">
+      <Heading
+        title="About Us"
+        subtitle="Discover our story, mission, and the passion behind Aastha Kala Kendra."
+      />
 
       {/* ── ABOUT INTRO ── */}
-      <section className="max-w-6xl mx-auto px-6 pt-16 pb-20">
+      <section className="max-w-6xl mx-auto px-6 pt-12 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
 
           {/* Left: text */}
@@ -111,7 +115,7 @@ const AboutPage = async () => {
           {/* Right: overlapping images */}
           <div className="relative h-[340px] md:h-[380px] mt-6 lg:mt-0">
             {/* Main image — top right */}
-            <div className="absolute top-0 right-0 w-[85%] h-[88%] rounded-2xl overflow-hidden shadow-xl z-0">
+            <div className="absolute top-0 right-0 w-[85%] h-[88%] rounded-2xl overflow-hidden z-0">
               <img
                 src={image1}
                 alt="Dance School Students"
@@ -119,7 +123,7 @@ const AboutPage = async () => {
               />
             </div>
             {/* Overlapping image — bottom left */}
-            <div className="absolute bottom-0 left-0 w-[58%] h-[58%] rounded-2xl overflow-hidden shadow-xl border-[6px] border-white z-10">
+            <div className="absolute bottom-0 left-0 w-[58%] h-[58%] rounded-2xl overflow-hidden z-10">
               <img
                 src={image2}
                 alt="Dance Performance"
@@ -149,12 +153,12 @@ const AboutPage = async () => {
       </section>
 
       {/* ── MISSION ── */}
-      <section className="bg-white py-20 px-6 border-t border-gray-100">
-        <div className="w-full mx-auto text-center">
+      <section className="bg-white py-16 px-6 border-t border-gray-100">
+        <div className="w-full max-w-7xl mx-auto text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-blue-700 mb-10 font-poppins">
             Our Mission
           </h2>
-          <div className="relative px-8 space-y-4">
+          <div className="relative px-8 space-y-4 text-justify">
             {settings?.mission &&
             Array.isArray(settings.mission) &&
             settings.mission.length > 0 ? (

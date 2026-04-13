@@ -42,6 +42,18 @@ const Footer = async () => {
   const setting = data?.setting;
   const socialLinks = data?.social_links;
 
+  const getLogoUrl = (logo: string | null | undefined) => {
+    if (!logo) return "/logo.jpg";
+    if (logo.startsWith("http")) return logo;
+    
+    // Use environment variable with a hardcoded fallback for local development
+    const base = process.env.NEXT_PUBLIC_IMAGE_URL || "http://localhost:8000/storage/";
+    const baseUrl = base.endsWith("/") ? base.slice(0, -1) : base;
+    const imgPath = logo.startsWith("/") ? logo : `/${logo}`;
+    
+    return `${baseUrl}${imgPath}`;
+  };
+
   const socials = [
     {
       id: "facebook",
@@ -99,30 +111,30 @@ const Footer = async () => {
   ].filter((social) => social.url);
 
   return (
-    <footer className="bg-white border-t border-blue-100 mt-10">
+    <footer className="bg-white border-blue-100 mt-10">
       <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Logo & Description */}
-          <div>
-            <Link href="/" className="flex items-center space-x-2">
+          <div className="col-span-2 md:col-span-1 flex flex-col items-center md:items-start text-center md:text-left">
+            <Link href="/" className="flex items-center space-x-2 justify-center md:justify-start">
               <img
-                src={setting?.logo || "/logo.jpg"}
+                src={getLogoUrl(setting?.logo)}
                 alt={setting?.company_name || "Aastha Kala Kendra"}
-                className="h-10 w-10"
+                className="h-14 w-auto object-contain"
               />
               <h2 className="text-xl font-semibold text-primary">
                 {setting?.company_name || "Aastha Kala Kendra"}
               </h2>
             </Link>
 
-            <p className="mt-4 text-gray-600 text-sm">
+            <p className="mt-4 text-gray-600 text-sm max-w-sm mx-auto md:mx-0">
               {setting?.about_short ||
                 "Empowering artists and nurturing talent since 1999. Join our vibrant community and discover your creative potential."}
             </p>
 
             {/* Social Icons */}
             {socials.length > 0 && (
-              <div className="mt-4 flex gap-3">
+              <div className="mt-4 flex gap-3 justify-center md:justify-start">
                 {socials.map((social) => (
                   <a
                     key={social.id}

@@ -13,7 +13,9 @@ export default function PublicLayout({ children }: AdminLayoutProps) {
       <EventOverlay />
       <Navbar />
 
-      <main className="public-content">{children}</main>
+      <main className="public-content">
+        {children}
+      </main>
       <Footer />
     </div>
   );

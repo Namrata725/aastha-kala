@@ -1,10 +1,26 @@
 @import "tailwindcss";
 
+/* Program Slider Pagination */
+.program-pagination .swiper-pagination-bullet {
+  width: 10px;
+  height: 10px;
+  background-color: #0a35c8 !important;
+  opacity: 0.3;
+  margin: 0 4px !important;
+  transition: all 0.3s ease;
+}
+
+.program-pagination .swiper-pagination-bullet-active {
+  width: 24px !important;
+  border-radius: 5px !important;
+  opacity: 1 !important;
+}
+
 
 :root {
-  --primary: #0a35c8;
+  --primary: #27A0CF;
   --primary-rgb: 10, 53, 200;
-  --secondary: #9e33cf;
+  --secondary: #27A0CF;
   --secondary-rgb: 158, 51, 207;
   --info: #3b82f6;
   --success: #10b981;
