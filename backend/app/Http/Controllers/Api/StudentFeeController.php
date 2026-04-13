@@ -53,24 +53,46 @@ class StudentFeeController extends Controller
         }
 
         $admissionRecord = StudentFee::where('student_id', $studentId)
-            ->whereIn('fee_type', ['admission', 'billing'])
+            ->where(function($q) {
+                $q->where('fee_type', 'admission')
+                  ->orWhere('fee_type', 'billing');
+            })
             ->first();
 
         $admissionPaid = $admissionRecord ? ($admissionRecord->status === 'paid') : false;
         $admissionAmount = $admissionRecord ? $admissionRecord->total_amount : null;
+        $admissionExists = $admissionRecord ? true : false;
 
         // Try to get program fees from student's classes field (comma separated titles)
         $programFees = null;
         if ($student->classes) {
-            $classTitles = array_map('trim', explode(',', $student->classes));
-            $matchingPrograms = \App\Models\Program::whereIn('title', $classTitles)->get();
+            // Normalize class titles by splitting, trimming and removing empties
+            $classTitles = array_values(array_filter(array_map('trim', explode(',', $student->classes))));
             
-            if ($matchingPrograms->count() > 0) {
-                $programFees = [
-                    'program_titles' => $matchingPrograms->pluck('title')->toArray(),
-                    'admission_fee' => $matchingPrograms->max('admission_fee'),
-                    'program_fee' => $matchingPrograms->sum('program_fee'),
-                ];
+            if (!empty($classTitles)) {
+                // Fetch programs matching these titles (case insensitive)
+                $matchingPrograms = \App\Models\Program::where(function($query) use ($classTitles) {
+                    foreach ($classTitles as $title) {
+                        $query->orWhere('title', '=', trim($title));
+                    }
+                })->get();
+                
+                if ($matchingPrograms->count() > 0) {
+                    $programFees = [
+                        'program_titles' => $matchingPrograms->pluck('title')->toArray(),
+                        'programs_breakdown' => $matchingPrograms->map(function ($p) {
+                            return [
+                                'title' => $p->title,
+                                'admission_fee' => (float) $p->admission_fee,
+                                'program_fee' => (float) $p->program_fee,
+                            ];
+                        })->toArray(),
+                        'enrolled_count' => count($classTitles),
+                        'matched_count'  => $matchingPrograms->count(),
+                        'admission_fee' => (float) $matchingPrograms->max('admission_fee'),
+                        'program_fee' => (float) $matchingPrograms->sum('program_fee'),
+                    ];
+                }
             }
         }
 
@@ -83,6 +105,7 @@ class StudentFeeController extends Controller
                     'classes' => $student->classes,
                 ],
                 'admission_paid' => $admissionPaid,
+                'admission_exists' => $admissionExists,
                 'admission_amount' => $admissionAmount,
                 'program_fees' => $programFees,
             ]

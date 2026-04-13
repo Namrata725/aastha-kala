@@ -16,6 +16,13 @@ interface Student {
 
 interface ProgramFees {
   program_titles: string[];
+  programs_breakdown?: {
+    title: string;
+    admission_fee: number;
+    program_fee: number;
+  }[];
+  enrolled_count?: number;
+  matched_count?: number;
   admission_fee: number | null;
   program_fee: number | null;
 }
@@ -23,6 +30,7 @@ interface ProgramFees {
 interface FeeInfo {
   student: { id: number; name: string; classes?: string };
   admission_paid: boolean;
+  admission_exists: boolean;
   admission_amount: number | null;
   program_fees: ProgramFees | null;
 }
@@ -224,7 +232,8 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
   const [errors, setErrors] = useState<Record<string, string[]>>({});
 
   /* derived */
-  const admissionInHistory = feeInfo?.admission_paid ?? false;
+  const admissionInHistory = feeInfo?.admission_exists ?? false;
+  const admissionPaidStatus = feeInfo?.admission_paid ?? false;
   const admBaseNum = Number(admBase) || 0;
   const admNet = calcNet(admBaseNum, admDisc, admDiscType);
   const admPaidNum = fee ? (initialAdmPaid + (Number(admAdd) || 0)) : (Number(admPaid) || 0);
@@ -365,8 +374,15 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
           setFeeInfo(data.data);
           if (data.data?.program_fees) {
             const pf = data.data.program_fees;
-            if (pf.admission_fee) setAdmBase(pf.admission_fee.toString());
-            if (pf.program_fee) setProgBase(pf.program_fee.toString());
+            // Only suggest admission fee if it doesn't exist in history
+            if (pf.admission_fee !== null && pf.admission_fee !== undefined && !data.data.admission_exists) {
+              setAdmBase(pf.admission_fee.toString());
+            } else {
+              setAdmBase(""); // Clear it if it exists or is null
+            }
+            if (pf.program_fee !== null && pf.program_fee !== undefined) {
+              setProgBase(pf.program_fee.toString());
+            }
           }
         }
       } catch {}
@@ -515,30 +531,53 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
                   </div>
 
                   {feeInfo?.program_fees && (
-                    <div className="mt-3 flex items-center gap-3 p-3 bg-gray-50 border border-gray-100 rounded-lg">
-                      <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center flex-shrink-0">
-                        <BookOpen className="w-4 h-4 text-success" />
+                    <div className="mt-3 flex flex-col gap-2 p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="w-4 h-4 text-success" />
+                          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none">
+                            Enrolled Programs Breakdown
+                          </p>
+                        </div>
+                        {feeInfo.program_fees.enrolled_count !== undefined && 
+                         feeInfo.program_fees.matched_count !== undefined && 
+                         feeInfo.program_fees.matched_count < feeInfo.program_fees.enrolled_count && (
+                          <span className="text-[10px] text-red-500 font-bold bg-red-50 px-1.5 py-0.5 rounded border border-red-100 uppercase">
+                            Missing {feeInfo.program_fees.enrolled_count - feeInfo.program_fees.matched_count} Program(s)
+                          </span>
+                        )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider leading-none mb-0.5">
-                          Enrolled program
-                        </p>
-                        <p className="text-sm font-medium text-primary truncate">
-                          {feeInfo.program_fees.program_titles.join(', ')}
-                        </p>
+                      
+                      <div className="space-y-1.5 mt-1">
+                        {feeInfo.program_fees.programs_breakdown?.map((pb, idx) => (
+                           <div key={idx} className="flex items-center justify-between bg-white border border-gray-100 px-3 py-2 rounded-md">
+                             <span className="text-sm font-semibold text-primary">{pb.title}</span>
+                             <div className="flex gap-4 text-right">
+                                <div>
+                                  <span className="text-[9px] text-gray-400 font-medium uppercase block leading-none mb-0.5">Adm.</span>
+                                  <span className="text-xs font-semibold text-primary">{fmt(pb.admission_fee)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[9px] text-gray-400 font-medium uppercase block leading-none mb-0.5">Fee</span>
+                                  <span className="text-xs font-semibold text-primary">{fmt(pb.program_fee)}</span>
+                                </div>
+                             </div>
+                           </div>
+                        ))}
                       </div>
-                      <div className="flex gap-5 flex-shrink-0">
+
+                      <div className="flex justify-end gap-5 mt-2 pt-2 border-t border-gray-200">
                         <div className="text-right">
-                          <p className="text-[10px] text-gray-400 font-medium uppercase leading-none mb-1">Adm.</p>
-                          <p className="text-sm font-semibold text-primary">
+                          <p className="text-[10px] text-gray-400 font-bold uppercase leading-none mb-1">Max Adm.</p>
+                          <p className="text-sm font-black text-gray-900">
                             {feeInfo.program_fees.admission_fee != null
                               ? fmt(feeInfo.program_fees.admission_fee)
                               : "—"}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[10px] text-gray-400 font-medium uppercase leading-none mb-1">Fee</p>
-                          <p className="text-sm font-semibold text-primary">
+                          <p className="text-[10px] text-gray-400 font-bold uppercase leading-none mb-1">Total Fee</p>
+                          <p className="text-sm font-black text-gray-900">
                             {feeInfo.program_fees.program_fee != null
                               ? fmt(feeInfo.program_fees.program_fee)
                               : "—"}
@@ -612,10 +651,15 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
                 badge="One-time"
                 right={
                   admissionInHistory ? (
-                    <div className="flex items-center gap-1.5 bg-success/10 border border-success/20 text-success px-2.5 py-1 rounded-full">
-                      <CheckCircle2 className="w-3 h-3" />
+                    <div className={`flex items-center gap-1.5 border px-2.5 py-1 rounded-full ${
+                      admissionPaidStatus 
+                        ? "bg-success/10 border-success/20 text-success" 
+                        : "bg-warning/10 border-warning/20 text-warning"
+                    }`}>
+                      {admissionPaidStatus ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                       <span className="text-[11px] font-medium">
-                        Stored in History {feeInfo?.admission_amount ? `— ${fmt(Number(feeInfo.admission_amount))}` : ""}
+                        {admissionPaidStatus ? "Paid in History" : "Pending in History"} 
+                        {feeInfo?.admission_amount ? ` — ${fmt(Number(feeInfo.admission_amount))}` : ""}
                       </span>
                     </div>
                   ) : null
