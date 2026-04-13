@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import ClientDressHire from "@/components/client/ClientDressHire";
 import Heading from "@/components/global/Heading";
 import { Shirt } from "lucide-react";

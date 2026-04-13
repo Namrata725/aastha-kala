@@ -294,7 +294,7 @@ const FeesPage = () => {
         onConfirm={handleDelete}
         title="Delete Payment Record"
         loading={deleting}
-        message={`Are you sure you want to delete the payment record for ${selectedFee?.student?.name ?? "this student"}? This cannot be undone.`}
+        description={`Are you sure you want to delete the payment record for ${selectedFee?.student?.name ?? "this student"}? This cannot be undone.`}
       />
     </div>
   );

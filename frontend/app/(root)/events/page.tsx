@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import ClientEvents from "@/components/client/ClientEvents";
 import Heading from "@/components/global/Heading";
 

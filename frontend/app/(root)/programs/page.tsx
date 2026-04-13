@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Heading from "@/components/global/Heading";
 import ClientPrograms from "@/components/client/ClientPrograms";
 

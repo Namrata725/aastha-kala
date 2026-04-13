@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import ContactForm from "@/components/client/ContactForm";
 import Heading from "@/components/global/Heading";
 import {
