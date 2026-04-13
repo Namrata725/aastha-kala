@@ -113,14 +113,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
   const labelCls = "block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5";
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[1000] flex items-start justify-center p-4 overflow-y-auto">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto transform transition-all animate-in fade-in zoom-in duration-300">
+      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl mt-20 md:mt-24 mb-10 max-h-[calc(100vh-120px)] overflow-y-auto transform transition-all animate-in fade-in zoom-in duration-300">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-8 py-5 flex justify-between items-center rounded-t-3xl">
           <div>

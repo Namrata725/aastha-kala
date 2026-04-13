@@ -41,7 +41,7 @@ const ClientProgramSlider: React.FC<ClientProgramSliderProps> = ({ programs, vie
       <div
         key={program.id}
         onClick={() => setSelectedProgram(program)}
-        className="group relative overflow-hidden h-[250px] md:h-[550px] transition-transform duration-500 hover:-translate-y-2 cursor-pointer shadow-lg rounded-xl"
+        className="group relative overflow-hidden h-[250px] md:h-[550px] transition-transform duration-500 hover:-translate-y-2 cursor-pointer"
       >
         {/* Background Image */}
         <img

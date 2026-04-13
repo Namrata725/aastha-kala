@@ -37,7 +37,7 @@ const InstructorDetailModal: React.FC<InstructorDetailModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300"
+      className="fixed inset-0 z-[150] flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300"
     >
       <div
         onClick={(e) => e.stopPropagation()}

@@ -25,7 +25,7 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm cursor-pointer"
+      className="fixed inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-sm cursor-pointer"
     >
       {/* Modal container with gradient border */}
       <div
