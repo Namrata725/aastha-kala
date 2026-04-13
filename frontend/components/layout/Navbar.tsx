@@ -7,14 +7,14 @@ import { Menu, X } from "lucide-react";
 
 const Navbar: React.FC = () => {
   const pathname = usePathname();
-  const [logo, setLogo] = useState<string>("/logo.jpg");
+  const [logo, setLogo] = useState<string | null>("/logo.jpg");
   const [isOpen, setIsOpen] = useState(false);
 
   const getLogoUrl = (logoPath: string | null | undefined) => {
-    if (!logoPath) return "/logo.jpg";
+    if (!logoPath) return null;
     if (logoPath.startsWith("http")) return logoPath;
-    const baseUrl = process.env.NEXT_PUBLIC_IMAGE_URL || "";
-    const cleanBase = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+    const base = process.env.NEXT_PUBLIC_IMAGE_URL || "http://localhost:8000/storage/";
+    const cleanBase = base.endsWith("/") ? base.slice(0, -1) : base;
     const cleanPath = logoPath.startsWith("/") ? logoPath : `/${logoPath}`;
     return `${cleanBase}${cleanPath}`;
   };
@@ -23,9 +23,10 @@ const Navbar: React.FC = () => {
     const fetchSettings = async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/settings`);
-        const data = await res.json();
-        if (data.success && data.data.setting?.logo) {
-          setLogo(getLogoUrl(data.data.setting.logo));
+        const json = await res.json();
+        const settings = json?.data?.setting || json?.setting;
+        if (settings?.logo) {
+          setLogo(getLogoUrl(settings.logo));
         }
       } catch (error) {
         console.error("Failed to fetch settings for logo:", error);
@@ -48,9 +49,9 @@ const Navbar: React.FC = () => {
     <nav className="w-full bg-primary text-white sticky top-0 z-[100] shadow-sm">
       <div className="px-4 md:px-5 lg:px-6 py-1.5 flex items-center justify-between max-w-7xl mx-auto">
         {/* Logo — far left, fixed width */}
-        <div className="flex items-center shrink-0">
+         <div className="flex items-center shrink-0">
           <Link href="/">
-            <img src={logo} alt="Logo" className="h-14 w-auto" />
+            {logo && <img src={logo} alt="Logo" className="h-14 w-auto" />}
           </Link>
         </div>
 

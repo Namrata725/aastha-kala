@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 
+
 interface HeadingSliderProps {
   title: string;
   subtitle: React.ReactNode;
@@ -20,19 +21,23 @@ const HeadingSlider = ({ title, subtitle, images }: HeadingSliderProps) => {
   }, [images]);
 
   return (
-    <div className="relative w-full h-[350px] md:h-[450px] overflow-hidden bg-gray-100">
+    <div className="relative w-full h-[350px] md:h-[450px] overflow-hidden bg-brand-deep">
       {/* Background Slider */}
       <div className="absolute inset-0">
         {images.length > 0 ? (
           images.map((img, idx) => (
-            <img
+            <div
               key={img}
-              src={img}
-              alt={title}
-              className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-1000 ease-in-out ${
+              className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
                 idx === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
               }`}
-            />
+            >
+              <img
+                src={img}
+                alt={title || "Banner"}
+                className="absolute inset-0 w-full h-full object-cover object-top"
+              />
+            </div>
           ))
         ) : (
           <div className="w-full h-full bg-blue-900" />
@@ -40,7 +45,7 @@ const HeadingSlider = ({ title, subtitle, images }: HeadingSliderProps) => {
       </div>
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-linear-to-t from-white via-white/20 to-transparent z-20" />
+      <div className="absolute inset-x-0 bottom-0 h-48 bg-linear-to-t from-white via-white/40 to-transparent pointer-events-none z-20" />
 
       {/* Title & Subtitle */}
       <div className="w-full absolute inset-0 flex items-end justify-center z-30 pb-12 px-6">

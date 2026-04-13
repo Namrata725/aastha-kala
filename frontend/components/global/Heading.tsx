@@ -26,10 +26,15 @@ const fetchHeroImages = async () => {
       data[0].images.length > 0
     ) {
       return data[0].images.map((img: string) => {
-        if (img.startsWith("http")) return img;
+        if (img.startsWith("http")) {
+          try {
+            return new URL(img).toString();
+          } catch {
+            return img;
+          }
+        }
         
-        // Use environment variable with a hardcoded fallback for local development
-        const base = process.env.NEXT_PUBLIC_IMAGE_URL || "http://localhost:8000/storage/";
+        const base = process.env.NEXT_PUBLIC_IMAGE_URL || "";
         const baseUrl = base.endsWith("/") ? base.slice(0, -1) : base;
         const imgPath = img.startsWith("/") ? img : `/${img}`;
         

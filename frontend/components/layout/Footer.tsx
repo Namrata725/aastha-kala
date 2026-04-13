@@ -43,16 +43,17 @@ const Footer = async () => {
   const socialLinks = data?.social_links;
 
   const getLogoUrl = (logo: string | null | undefined) => {
-    if (!logo) return "/logo.jpg";
+    if (!logo) return null;
     if (logo.startsWith("http")) return logo;
     
-    // Use environment variable with a hardcoded fallback for local development
-    const base = process.env.NEXT_PUBLIC_IMAGE_URL || "http://localhost:8000/storage/";
+    const base = process.env.NEXT_PUBLIC_IMAGE_URL || "";
     const baseUrl = base.endsWith("/") ? base.slice(0, -1) : base;
     const imgPath = logo.startsWith("/") ? logo : `/${logo}`;
     
     return `${baseUrl}${imgPath}`;
   };
+
+  const logoUrl = getLogoUrl(setting?.logo);
 
   const socials = [
     {
@@ -117,11 +118,13 @@ const Footer = async () => {
           {/* Logo & Description */}
           <div className="col-span-2 md:col-span-1 flex flex-col items-center md:items-start text-center md:text-left">
             <Link href="/" className="flex items-center space-x-2 justify-center md:justify-start">
-              <img
-                src={getLogoUrl(setting?.logo)}
-                alt={setting?.company_name || "Aastha Kala Kendra"}
-                className="h-14 w-auto object-contain"
-              />
+              {logoUrl && (
+                <img
+                  src={logoUrl}
+                  alt={setting?.company_name || "Aastha Kala Kendra"}
+                  className="h-14 w-auto object-contain"
+                />
+              )}
               <h2 className="text-xl font-semibold text-primary">
                 {setting?.company_name || "Aastha Kala Kendra"}
               </h2>

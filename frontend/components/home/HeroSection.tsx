@@ -7,7 +7,7 @@ const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL;
 const fetchHero = async (): Promise<string[]> => {
   try {
     const res = await fetch(`${API_URL}/galleries/position/slider-home`, {
-      next: { revalidate: 3600 },
+      cache: "no-store",
     });
     const data = await res.json();
     if (
@@ -18,7 +18,7 @@ const fetchHero = async (): Promise<string[]> => {
     ) {
       return data[0].images.map((img: string) => {
         if (img.startsWith("http")) return img;
-        const base = IMAGE_URL || "http://localhost:8000/storage";
+        const base = IMAGE_URL || "";
         const baseUrl = base.endsWith("/") ? base.slice(0, -1) : base;
         const imgPath = img.startsWith("/") ? img : `/${img}`;
         return `${baseUrl}${imgPath}`;
