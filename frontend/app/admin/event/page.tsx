@@ -22,7 +22,6 @@ interface Event {
   banner?: string;
   created_at?: string;
   contact_person_name?: string;
-  is_active: boolean;
   contact_person_phone?: string;
 }
 
