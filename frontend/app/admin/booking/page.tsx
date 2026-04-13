@@ -181,7 +181,7 @@ const BookingManagementPage = () => {
 
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
                 <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4 p-2 cursor-pointer">
-                  {filteredBookings.length} / {bookings.length} bookings ({statusFilter !== "all" ? statusFilter : "all statuses"})
+                  {filteredBookings.length} / {bookings.length} bookings ({statusFilter !== "all" ? statusFilter : "all status"})
                 </div>
                 <Table
                     columns={columns}
