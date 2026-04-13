@@ -18,7 +18,10 @@ const fetchHero = async (): Promise<string[]> => {
     ) {
       return data[0].images.map((img: string) => {
         if (img.startsWith("http")) return img;
-        return `${IMAGE_URL}${img}`;
+        const base = IMAGE_URL || "http://localhost:8000/storage";
+        const baseUrl = base.endsWith("/") ? base.slice(0, -1) : base;
+        const imgPath = img.startsWith("/") ? img : `/${img}`;
+        return `${baseUrl}${imgPath}`;
       });
     }
   } catch (err) {
@@ -33,23 +36,23 @@ const HeroSection = async () => {
   if (heroImages.length === 0) return null;
 
   return (
-    <section className="relative w-full min-h-[480px] md:min-h-[580px] bg-brand-deep flex flex-col items-center justify-start overflow-hidden">
+    <section className="relative w-full h-[450px] sm:h-[550px] md:h-[650px] lg:h-[750px] bg-brand-deep overflow-hidden">
+      {/* ── Hero image – Fill entire section ── */}
+      <div className="absolute inset-0 z-10">
+        <HeroSlider heroImages={heroImages} fill />
+      </div>
+
       {/* ── "AASTHA KALA" watermark text ──────────────────────────────── */}
-      <div className="absolute inset-0 flex items-start justify-center pt-6 select-none pointer-events-none z-0">
+      <div className="absolute inset-0 flex items-start justify-center pt-8 md:pt-12 select-none pointer-events-none z-20">
         <h1
-          className="text-[3.5rem] sm:text-[5rem] md:text-[8rem] lg:text-[10rem] font-extrabold text-white/15 tracking-[0.25em] leading-none whitespace-nowrap"
+          className="text-[3rem] sm:text-[5rem] md:text-[8rem] lg:text-[10rem] font-extrabold text-white/10 tracking-[0.25em] leading-none whitespace-nowrap"
           style={{ fontFamily: "'Montserrat', 'Poppins', sans-serif" }}
         >
           AASTHA KALA
         </h1>
       </div>
 
-      {/* ── Hero image – fills from near-top to bottom edge, no card rounding ── */}
-      <div className="relative z-10 w-full h-full flex-1 flex flex-col items-center justify-end px-0">
-        <HeroSlider heroImages={heroImages} />
-      </div>
-
-      {/* ── Simple linear Blend (Removes crisp line) ───────────────── */}
+      {/* ── Gradient Overlay (Blend into white) ───────────────── */}
       <div className="absolute inset-x-0 bottom-0 h-32 md:h-48 bg-linear-to-b from-transparent to-white pointer-events-none z-20" />
     </section>
   );

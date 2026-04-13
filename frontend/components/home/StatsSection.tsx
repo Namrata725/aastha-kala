@@ -20,18 +20,18 @@ const StatsSection: React.FC<StatsSectionProps> = ({ settings }) => {
 
   if (stats.length === 0) return null;
   return (
-    <section className="relative w-full h-0 z-20">
+    <section className="relative w-full z-30 h-4 md:h-14">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 md:-translate-y-1/2 -translate-y-9/10 w-full max-w-6xl px-2 sm:px-6 md:px-8">
         <div className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-primary to-secondary -z-10 pointer-events-none" />
-        <div
-          className="w-full py-6 md:py-8 px-2 sm:px-6 md:px-10 relative overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)",
-            borderRadius: "10px",
-            boxShadow:
-              "0 20px 50px -12px rgba(var(--primary-rgb), 0.5), 0 10px 20px -5px rgba(var(--secondary-rgb), 0.3)",
-          }}
-        >
+          <div
+            className="w-full py-6 md:py-8 px-2 sm:px-6 md:px-10"
+            style={{
+              background: "linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)",
+              borderRadius: "10px",
+              boxShadow:
+                "0 20px 50px -12px rgba(var(--primary-rgb), 0.5), 0 10px 20px -5px rgba(var(--secondary-rgb), 0.3)",
+            }}
+          >
           {/* Subtle accent light inside */}
           <div className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-primary to-secondary  pointer-events-none" />
 

@@ -78,9 +78,8 @@ const GalleryPage = async () => {
   return (
     <section>
       <Heading
-        title="Gallery and Videos"
-        image={settings?.banner || "/banner.png"}
-        subtitle="Moments and memories"
+        title=""
+        subtitle=""
       />
 
       <ClientGallery gallery={gallery} categories={categories} />

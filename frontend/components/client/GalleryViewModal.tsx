@@ -31,14 +31,14 @@ const GalleryViewModal = ({
     if (!item) return 0;
 
     if (item.type === "images" && item.images) {
-      return 1 + item.images.length;
+      return item.images.length;
     }
 
     if (item.type === "video") {
-      return 2;
+      return 1;
     }
 
-    return 1;
+    return 0;
   };
 
   useEffect(() => {
@@ -103,22 +103,10 @@ const GalleryViewModal = ({
 
         {/* Content */}
         <div className="p-6">
-          {currentSlide === 0 && (
-            <div className="space-y-4 hover:text-white transition-colors duration-200">
-              <span className="text-3xl md:text-4xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                {item.title}
-              </span>
-              <p className="text-base md:text-lg text-primary gray-700 leading-relaxed max-w-prose mt-3">
-                {item.description || "No description available"}
-              </p>
-            </div>
-          )}
-
           {/* Media Slides */}
-          {currentSlide > 0 && (
-            <div className="flex items-center justify-center">
-              {(() => {
-                const mediaIndex = currentSlide - 1;
+          <div className="flex items-center justify-center">
+            {(() => {
+              const mediaIndex = currentSlide;
 
                 // Images
                 if (
@@ -154,7 +142,6 @@ const GalleryViewModal = ({
                 );
               })()}
             </div>
-          )}
         </div>
       </div>
     </div>

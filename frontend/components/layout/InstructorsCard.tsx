@@ -21,89 +21,62 @@ const ensureAbsoluteUrl = (url?: string) => {
   return `https://${url}`;
 };
 
-const InstructorsCard = ({ instructor }: { instructor: Instructor }) => {
-  const [expanded, setExpanded] = useState(false);
+interface InstructorsCardProps {
+  instructor: Instructor;
+  onClick?: (instructor: Instructor) => void;
+}
 
+const InstructorsCard = ({ instructor, onClick }: InstructorsCardProps) => {
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-4 flex flex-col md:flex-row gap-4 items-stretch hover:shadow-md transition">
-      {/* Left Image */}
-      <div className="w-full md:w-60 h-60 shrink-0 rounded-xl overflow-hidden bg-gray-100">
-        {instructor.image ? (
-          <img
-            src={instructor.image}
-            alt={instructor.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-            No Image
-          </div>
-        )}
-      </div>
-
-      {/* Right Content */}
-      <div className="flex-1 flex flex-col h-full min-h-45">
-        {/* Top Content */}
-        <div>
-          {/* Name */}
-          <h3 className="text-lg font-semibold text-gray-800 mt-2 md:mt-0">
-            {instructor.name}
-          </h3>
-
-          {/* Title */}
-          {instructor.title && (
-            <p className="text-sm text-gray-500 mb-2">{instructor.title}</p>
-          )}
-
-          {/* About */}
-          {instructor.about && (
-            <div>
-              <p className="text-sm text-black mb-1">
-                {expanded
-                  ? instructor.about
-                  : instructor.about.length > 150
-                    ? instructor.about.slice(0, 150) + "..."
-                    : instructor.about}
-              </p>
-
-              {instructor.about.length > 150 && (
-                <button
-                  onClick={() => setExpanded(!expanded)}
-                  className="text-primary text-sm hover:underline"
-                >
-                  {expanded ? "See less" : "See more"}
-                </button>
-              )}
+    <div 
+      onClick={() => onClick?.(instructor)}
+      className="group cursor-pointer flex flex-col items-center transition-all duration-300 hover:-translate-y-2"
+    >
+      {/* Circular Image Container */}
+      <div className="relative w-32 h-32 md:w-36 md:h-36 mb-6">
+        {/* Background decorative element */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/10 to-secondary/10 scale-105 group-hover:scale-110 transition-transform duration-500" />
+        
+        {/* Main Image */}
+        <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white shadow-xl bg-gray-50">
+          {instructor.image ? (
+            <img
+              src={instructor.image}
+              alt={instructor.name}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full text-primary font-bold text-xl md:text-2xl text-center px-2">
+              {instructor.name.split(" ")[0]}
             </div>
           )}
         </div>
 
-        {/* Social Icons (Always Bottom) */}
-        <div className="mt-auto flex gap-3 items-center pt-3">
-          {instructor.facebook_url && (
-            <a
-              href={ensureAbsoluteUrl(instructor.facebook_url)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1.5 rounded-full bg-fb text-white hover:scale-110 hover:shadow-lg transition-all duration-300"
-              title="Facebook"
-            >
-              <Facebook className="p-1.5 w-8 h-8 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition" />
-            </a>
-          )}
+        {/* Floating Social Icons (Optional, maybe keep it clean) */}
+        {/* <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+           {instructor.facebook_url && (
+            <div className="p-1.5 rounded-full bg-[#1877F2] text-white shadow-lg">
+              <Facebook className="w-3.5 h-3.5" />
+            </div>
+           )}
+           {instructor.instagram_url && (
+            <div className="p-1.5 rounded-full bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white shadow-lg">
+              <Instagram className="w-3.5 h-3.5" />
+            </div>
+           )}
+        </div> */}
+      </div>
 
-          {instructor.instagram_url && (
-            <a
-              href={ensureAbsoluteUrl(instructor.instagram_url)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1.5 rounded-full bg-linear-to-tr from-insta-yellow via-insta-pink to-insta-purple text-white hover:scale-110 hover:shadow-lg transition-all duration-300"
-              title="Instagram"
-            >
-              <Instagram className="p-1.5 w-8 h-8 rounded-full bg-insta-pink/10 text-insta-pink hover:bg-insta-pink/20 transition" />
-            </a>
-          )}
-        </div>
+      {/* Text Content Below */}
+      <div className="text-center px-4">
+        <h3 className="text-lg md:text-xl font-bold text-gray-900 group-hover:text-primary transition-colors truncate w-full">
+          {instructor.name}
+        </h3>
+        {instructor.title && (
+          <p className="text-[10px] md:text-sm font-medium text-primary uppercase tracking-wider mt-1 line-clamp-1">
+            {instructor.title}
+          </p>
+        )}
       </div>
     </div>
   );

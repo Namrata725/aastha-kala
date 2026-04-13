@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import GalleryViewModal from "./GalleryViewModal";
-import { ImageOff } from "lucide-react";
+import { ImageOff, ChevronRight } from "lucide-react";
 import { getYouTubeEmbedUrl } from "@/utils/url";
 
 type Category = {
@@ -127,14 +127,11 @@ const ClientGallery = ({ gallery, categories }: Props) => {
                   />
                 )}
 
-                {/* Hover Title */}
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition duration-300">
-                  <p
-                    className="text-primary text-center px-3 text-lg"
-                    style={{ color: "white !important" }}
-                  >
-                    {item.title}
-                  </p>
+                {/* Hover Effect (Icon Only or Pure Dim) */}
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition duration-300">
+                  <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+                    <ChevronRight className="text-white" />
+                  </div>
                 </div>
               </div>
             );

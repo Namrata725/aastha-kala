@@ -62,9 +62,8 @@ export default async function EventsPage() {
   return (
     <section>
       <Heading
-        title="Events"
-        image={settings?.banner || "/logo.jpg"}
-        subtitle="Moments and memories"
+        title="Events & Performances"
+        subtitle="Experience exciting moments and step into the rhythm of expression."
       />
 
       <ClientEvents events={events} />

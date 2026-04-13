@@ -44,13 +44,10 @@ const ProgramsPage = async () => {
     <section>
       <Heading
         title="Our Programs"
-        image={settings?.banner || "/banner.png"}
         subtitle={
           <>
             At Aasha Kala Kendra, our programs are designed to nurture talent,
             build confidence, and develop artistic excellence. 
-            Whether your <br /> passion lies in music, dance, acting, or complete stage
-            performance, our structured training helps you grow step by step.
           </>
         }
       />

@@ -10,13 +10,22 @@ const Navbar: React.FC = () => {
   const [logo, setLogo] = useState<string>("/logo.jpg");
   const [isOpen, setIsOpen] = useState(false);
 
+  const getLogoUrl = (logoPath: string | null | undefined) => {
+    if (!logoPath) return "/logo.jpg";
+    if (logoPath.startsWith("http")) return logoPath;
+    const baseUrl = process.env.NEXT_PUBLIC_IMAGE_URL || "";
+    const cleanBase = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+    const cleanPath = logoPath.startsWith("/") ? logoPath : `/${logoPath}`;
+    return `${cleanBase}${cleanPath}`;
+  };
+
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/settings`);
         const data = await res.json();
         if (data.success && data.data.setting?.logo) {
-          setLogo(data.data.setting.logo);
+          setLogo(getLogoUrl(data.data.setting.logo));
         }
       } catch (error) {
         console.error("Failed to fetch settings for logo:", error);
@@ -36,12 +45,12 @@ const Navbar: React.FC = () => {
   ];
 
   return (
-    <nav className="w-full bg-primary text-white">
-      <div className="px-4 md:px-5 lg:px-6 py-2 flex items-center justify-between max-w-7xl mx-auto">
+    <nav className="w-full bg-primary text-white sticky top-0 z-[100] shadow-sm">
+      <div className="px-4 md:px-5 lg:px-6 py-1.5 flex items-center justify-between max-w-7xl mx-auto">
         {/* Logo — far left, fixed width */}
         <div className="flex items-center shrink-0">
           <Link href="/">
-            <img src={logo} alt="Logo" className="h-16 w-auto" />
+            <img src={logo} alt="Logo" className="h-14 w-auto" />
           </Link>
         </div>
 

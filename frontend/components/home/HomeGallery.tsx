@@ -105,17 +105,10 @@ const HomeGallery = async ({
   const limitedGallery = gallery.slice(0, 8);
 
   return (
-    <section className="py-20 px-6">
+    <section className="py-10 px-6 bg-gray-100">
       <div className="max-w-7xl mx-auto">
-        {/* HEADER */}
-        <div className="text-center my-5">
-          <h4 className="font-semibold text-secondary tracking-wider">
-            <span>Moments & memories</span>
-          </h4>
-          <h1 className="text-3xl font-bold text-primary tracking-wide font-poppins m-2">
-            Gallery and Videos
-          </h1>
-        </div>
+        {/* HEADER REMOVED */}
+
 
         {/* GALLERY */}
         <ClientGallery gallery={limitedGallery} categories={categories} />

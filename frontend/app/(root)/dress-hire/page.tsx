@@ -57,7 +57,6 @@ export default async function DressHirePage() {
     <section className="">
       <Heading
         title="Dress Hire"
-        image={settings?.banner || "/logo.jpg"}
         subtitle="Explore our exclusive dress collection"
       />
 
