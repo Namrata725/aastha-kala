@@ -229,7 +229,7 @@ const Footer = async () => {
         </div>
 
         {/* Footer Bottom */}
-        <div className="border-t-4 mt-10 pt-6 text-center text-sm text-primary">
+        <div className="border-t-1 mt-10 pt-6 text-center text-sm text-primary">
           © {new Date().getFullYear()}{" "}
           {setting?.company_name || "Aastha Kala Kendra"}, All rights reserved.
           | Designed & Developed by{" "}

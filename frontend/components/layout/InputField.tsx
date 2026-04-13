@@ -19,6 +19,7 @@ interface Props {
   required?: boolean;
   disabled?: boolean;
   error?: string | string[];
+  placeholder?: string;
 }
 
 const InputField: React.FC<Props & { multiple?: boolean }> = ({
@@ -33,6 +34,7 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
   disabled = false,
   error,
   multiple = false,
+  placeholder,
 }) => {
   const inputId = label.replace(/\s+/g, "_").toLowerCase();
   const isSelect = type === "select";
@@ -62,7 +64,7 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
               rows={4}
               disabled={disabled}
               className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 resize-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-              placeholder={`Enter ${label}...`}
+              placeholder={placeholder ?? `Enter ${label}...`}
             />
           ) : isSelect ? (
             // DROPDOWN
@@ -115,7 +117,7 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
                 onChange={onChange}
                 disabled={disabled}
                 className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                placeholder={`Enter ${label}...`}
+                placeholder={placeholder ?? `Enter ${label}...`}
               />
             </div>
           )}

@@ -23,12 +23,12 @@ const HomeProgramSection = async () => {
   if (programs.length === 0) return null;
 
   return (
-    <section className="bg-[#f8fafc] py-20 px-6">
+    <section className="bg-[#f8fafc] pt-24 pb-10 px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-black text-primary font-poppins tracking-tight">
-            Our Program
+            What we Offer
           </h2>
           <h4 className="text-lg md:text-lg text-secondary font-semibold  mx-auto leading-relaxed">
             Comprehensive training programs designed to nurture talent and

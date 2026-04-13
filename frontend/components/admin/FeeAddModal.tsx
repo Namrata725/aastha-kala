@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   X, Search, Receipt, CheckCircle2, Sparkles,
-  ChevronDown, User, CreditCard, BookOpen,
+  ChevronDown, User, CreditCard, BookOpen, Clock,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -924,7 +924,7 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
                 {feeInfo?.program_fees && (
                   <div className="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2.5 flex items-center gap-2">
                     <Sparkles className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                    <span className="truncate">{feeInfo.program_fees.program_title}</span>
+                    <span className="truncate">{feeInfo.program_fees.program_titles?.join(", ")}</span>
                   </div>
                 )}
               </div>

@@ -18,6 +18,7 @@ interface Event {
   event_date: string;
   location: string;
   status: "draft" | "published";
+  is_active?: boolean | number;
   banner?: string;
   created_at?: string;
   contact_person_name?: string;

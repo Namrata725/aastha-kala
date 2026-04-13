@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import ClientInstructors from "@/components/client/ClientInstructors";
 import Heading from "@/components/global/Heading";
 
