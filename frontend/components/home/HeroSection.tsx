@@ -17,11 +17,19 @@ const fetchHero = async (): Promise<string[]> => {
       data[0].images.length > 0
     ) {
       return data[0].images.map((img: string) => {
-        if (img.startsWith("http")) return img;
-        const base = IMAGE_URL || "";
-        const baseUrl = base.endsWith("/") ? base.slice(0, -1) : base;
-        const imgPath = img.startsWith("/") ? img : `/${img}`;
-        return `${baseUrl}${imgPath}`;
+        let cleanPath = img;
+        if (img.startsWith("http")) {
+          try {
+            const parsed = new URL(img);
+            cleanPath = parsed.pathname; // extracts e.g. "/storage/gallery/image.jpg"
+          } catch {}
+        }
+        const base = IMAGE_URL || "http://localhost:8000/storage/";
+        // If NEXT_PUBLIC_IMAGE_URL includes /storage and cleanPath includes /storage, deduplicate it
+        const finalBase = base.endsWith("/") ? base.slice(0, -1) : base;
+        const normalizedPath = cleanPath.replace("/storage", "");
+        const imgPath = normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`;
+        return `${finalBase}${imgPath}`;
       });
     }
   } catch (err) {
@@ -42,15 +50,7 @@ const HeroSection = async () => {
         <HeroSlider heroImages={heroImages} fill />
       </div>
 
-      {/* ── "AASTHA KALA" watermark text ──────────────────────────────── */}
-      <div className="absolute inset-0 flex items-start justify-center pt-8 md:pt-12 select-none pointer-events-none z-20">
-        <h1
-          className="text-[3rem] sm:text-[5rem] md:text-[8rem] lg:text-[10rem] font-extrabold text-white/10 tracking-[0.25em] leading-none whitespace-nowrap"
-          style={{ fontFamily: "'Montserrat', 'Poppins', sans-serif" }}
-        >
-          AASTHA KALA
-        </h1>
-      </div>
+
 
       {/* ── Gradient Overlay (Blend into white) ───────────────── */}
       <div className="absolute inset-x-0 bottom-0 h-32 md:h-48 bg-linear-to-b from-transparent to-white pointer-events-none z-20" />

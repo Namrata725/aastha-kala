@@ -126,6 +126,21 @@ const GalleryAddEditModal: React.FC<Props> = ({
 
 
   const handleSubmit = async () => {
+    if (!form.title?.trim()) {
+      toast.error("Please enter a title");
+      return;
+    }
+
+    if (form.type === "images" && previewImages.length === 0) {
+      toast.error("Please add at least one image");
+      return;
+    }
+
+    if (form.type === "video" && !form.video?.trim()) {
+      toast.error("Please enter a video URL");
+      return;
+    }
+
     try {
       setLoading(true);
 

@@ -162,7 +162,7 @@ const InstructorAvailabilityModal: React.FC<InstructorAvailabilityModalProps> = 
         </div>
 
         <div className="flex justify-end pt-8 mt-10 border-t border-primary/20">
-             <button onClick={onClose} className="px-10 py-3 bg-white/60 text-primary/60 rounded-xl hover:bg-white/80 hover:text-primary border border-primary/10 transition duration-300 font-bold uppercase tracking-widest text-[10px] italic">Close Settings</button>
+             <button onClick={onClose} className="px-10 py-3 bg-white/60 text-primary/60 rounded-xl hover:bg-white/80 hover:text-primary border border-primary/10 transition duration-300 font-bold uppercase tracking-widest text-[10px] italic">Close</button>
         </div>
       </div>
     </div>

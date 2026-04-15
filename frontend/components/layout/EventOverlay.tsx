@@ -34,10 +34,10 @@ const EventOverlay = () => {
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events`);
                 const data = await res.json();
-                
+
                 const events: Event[] = data?.data?.data || [];
                 const active = events.filter(e => e.is_active);
-                
+
                 if (active.length > 0) {
                     setActiveEvents(active);
                     setTimeout(() => {
@@ -69,16 +69,17 @@ const EventOverlay = () => {
     const currentEvent = activeEvents[currentEventIndex];
 
     return (
-        <div 
+        <div
             className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-8 bg-black/70 backdrop-blur-md transition-opacity duration-300 ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
             style={{ pointerEvents: isAnimating ? 'auto' : 'none' }}
         >
-            <div 
+            <div
                 className={`relative w-full max-w-4xl bg-white rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)] transform transition-all duration-500 flex flex-col md:flex-row ${isAnimating ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-8 opacity-0'}`}
             >
-                <button 
+                <button
                     onClick={dismissOverlay}
-                    className="absolute top-4 right-4 z-20 p-2 bg-white/20 hover:bg-white/40 text-white md:text-gray-900 md:bg-gray-100 md:hover:bg-gray-200 rounded-full transition-colors backdrop-blur-md"
+                    className="absolute top-4 right-4 z-20 p-2 bg-white/30 backdrop-blur-md rounded-full"
+                    style={{filter: "invert(1)"}}
                     aria-label="Close"
                 >
                     <X className="w-5 h-5" />
@@ -87,8 +88,8 @@ const EventOverlay = () => {
                 {/* Left Side: Banner */}
                 <div className="relative w-full md:w-1/2 aspect-square md:aspect-auto">
                     {currentEvent.banner ? (
-                        <img 
-                            src={currentEvent.banner} 
+                        <img
+                            src={currentEvent.banner}
                             alt={currentEvent.title}
                             className="w-full h-full object-cover"
                         />
@@ -116,7 +117,7 @@ const EventOverlay = () => {
                     <h2 className="text-2xl md:text-3xl font-black text-gray-900 leading-tight mb-4">
                         {currentEvent.title}
                     </h2>
-                    
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                         <div className="flex items-center text-gray-600 text-sm">
                             <div className="p-2 bg-blue-50 rounded-lg mr-3">
@@ -144,14 +145,14 @@ const EventOverlay = () => {
 
                     <div className="flex-1">
                         <p className="font-bold text-gray-900 uppercase text-[10px] tracking-tighter mb-2">About Event</p>
-                        <div 
+                        <div
                             className="text-gray-600 text-sm leading-relaxed line-clamp-4 md:line-clamp-6"
                             dangerouslySetInnerHTML={{ __html: currentEvent.description }}
                         />
                     </div>
 
                     <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3">
-                        <Link 
+                        <Link
                             href={`/events/${currentEvent.slug}`}
                             onClick={dismissOverlay}
                             className="flex-1 px-8 py-4 bg-blue-600 hover:bg-black text-white font-bold rounded-2xl text-center transition-all duration-300 flex items-center justify-center group"
@@ -160,7 +161,7 @@ const EventOverlay = () => {
                             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Link>
                         {activeEvents.length > 1 && (
-                            <button 
+                            <button
                                 onClick={() => {
                                     setIsAnimating(false);
                                     setTimeout(() => {
