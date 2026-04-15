@@ -220,7 +220,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
 
   return (
     <div
-      onClick={onClose}
+      // onClick={onClose}
       className="fixed inset-0 bg-white/5 backdrop-blur-lg border border-white/10 flex items-center justify-center z-50 cursor-pointer"
     >
       <div

@@ -174,7 +174,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
 
   return (
     <div
-      onClick={onClose}
+      // onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg cursor-pointer"
     >
       <div

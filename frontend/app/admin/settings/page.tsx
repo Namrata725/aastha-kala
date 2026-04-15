@@ -22,6 +22,7 @@ import {
   AlignLeft,
   Mail,
   Trash2,
+  DollarSign,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -37,6 +38,7 @@ interface Setting {
   about_short: string;
   opening_hour: string;
   closing_hour: string;
+  admission_fee: string;
 }
 
 interface SocialLinks {
@@ -63,6 +65,7 @@ interface ContentItem {
 
 const tabs = [
   { id: "general", label: "General" },
+  { id: "fees", label: "Fees" },
   { id: "social", label: "Social Links" },
   { id: "stats", label: "Stats" },
   { id: "whyus", label: "Why Us" },
@@ -91,6 +94,7 @@ const Settings: React.FC = () => {
     about_short: "",
     opening_hour: "",
     closing_hour: "",
+    admission_fee: "",
   });
 
   // SOCIAL
@@ -163,6 +167,7 @@ const Settings: React.FC = () => {
             about_short: s.about_short || "",
             opening_hour: s.opening_hour || "",
             closing_hour: s.closing_hour || "",
+            admission_fee: s.admission_fee?.toString() || "",
           };
           setSetting(settingData);
 
@@ -241,7 +246,6 @@ const Settings: React.FC = () => {
     setErrors({});
     const formData = new FormData();
 
-    // GENERAL
     formData.append("company_name", setting.company_name);
     formData.append("address", setting.address);
     formData.append("location_map", setting.location);
@@ -251,6 +255,7 @@ const Settings: React.FC = () => {
     formData.append("about_short", setting.about_short);
     formData.append("opening_hour", setting.opening_hour);
     formData.append("closing_hour", setting.closing_hour);
+    if (setting.admission_fee) formData.append("admission_fee", setting.admission_fee);
 
     // STATS
     formData.append("years_of_experience", stats.experience);
@@ -553,6 +558,43 @@ const Settings: React.FC = () => {
                     disabled={isSaving}
                     error={errors.about}
                 />
+              </div>
+            </div>
+          )}
+
+          {/* FEES */}
+          {activeTab === "fees" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+              <div className="md:col-span-2">
+                <div className="bg-white/60 border border-primary/20 rounded-2xl p-6 space-y-4">
+                  <div className="flex items-center gap-3 pb-3 border-b border-primary/10">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <DollarSign className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-primary">Admission Fee</h3>
+                      <p className="text-[11px] text-gray-400">One-time fee charged to every new student at enrollment. Applied globally across all programs.</p>
+                    </div>
+                  </div>
+                  <InputField
+                    label="Admission Fee (Rs.)"
+                    // icon={DollarSign}
+                    type="number"
+                    placeholder="e.g. 5000"
+                    value={setting.admission_fee}
+                    onChange={(e) =>
+                      setSetting({ ...setting, admission_fee: e.target.value })
+                    }
+                    disabled={isSaving}
+                    error={errors.admission_fee}
+                  />
+                  <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                    <span className="text-amber-500 text-xs mt-0.5">⚠️</span>
+                    <p className="text-[11px] text-amber-700 font-medium">
+                      Changing this fee will only affect <strong>new students</strong> enrolled after saving. Existing student fee records are not retroactively changed.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

@@ -7,6 +7,7 @@ import { Plus, Check, X, Eye, AlertCircle, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import BookingViewModal from "@/components/admin/BookingViewModal";
 import { Pagination } from "@/components/global/Pagination";
+import { to12h } from "@/lib/timeFormat";
 
 const statusColors: any = {
   pending: "bg-yellow-500/10 text-yellow-500",
@@ -120,7 +121,7 @@ const BookingManagementPage = () => {
         customer: (
             <div className="flex flex-col">
                 <span className="text-sm font-bold text-black">{b.name}</span>
-                <span className="text-[10px] text-gray-500 uppercase tracking-tight">{b.email}</span>
+                <span className="text-[10px] text-gray-500 tracking-tight">{b.email}</span>
             </div>
         ),
         programInfo: (
@@ -136,7 +137,14 @@ const BookingManagementPage = () => {
             <div className="flex flex-col">
               <span className="text-xs font-bold text-black">{b.booking_date}</span>
               <span className="text-[10px] text-gray-500 italic">
-                {b.type === 'regular' ? `${b.schedule?.start_time?.substring(0, 5)} - ${b.schedule?.end_time?.substring(0, 5)}` : `${b.custom_start_time?.substring(0, 5)} - ${b.custom_end_time?.substring(0, 5)}`}
+                {b.type === 'regular' ? (
+                  b.schedule ? `${to12h(b.schedule.start_time)} - ${to12h(b.schedule.end_time)}` : 
+                  (b.schedules && b.schedules.length > 0 ? 
+                    `${to12h(b.schedules[0].start_time)} - ${to12h(b.schedules[0].end_time)}${b.schedules.length > 1 ? ' (+)' : ''}` : 
+                    "No slot")
+                ) : (
+                  `${to12h(b.custom_start_time)} - ${to12h(b.custom_end_time)}`
+                )}
               </span>
             </div>
         ),

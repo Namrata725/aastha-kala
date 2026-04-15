@@ -35,4 +35,16 @@ class Student extends Model
     {
         return $this->hasMany(StudentFee::class);
     }
+
+    public function enrollments()
+    {
+        return $this->hasMany(StudentProgram::class);
+    }
+
+    public function programs()
+    {
+        return $this->belongsToMany(Program::class, 'student_programs')
+                    ->withPivot(['enrolled_at', 'status'])
+                    ->withTimestamps();
+    }
 }

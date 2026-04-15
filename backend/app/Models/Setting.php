@@ -28,6 +28,7 @@ class Setting extends Model
         'success_rate',
         'opening_hour',
         'closing_hour',
+        'admission_fee',
     ];
 
     protected $casts = [

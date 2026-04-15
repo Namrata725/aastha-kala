@@ -17,6 +17,7 @@ interface Student {
 interface ProgramFees {
   program_titles: string[];
   programs_breakdown?: {
+    id: number;
     title: string;
     admission_fee: number;
     program_fee: number;
@@ -25,6 +26,17 @@ interface ProgramFees {
   matched_count?: number;
   admission_fee: number | null;
   program_fee: number | null;
+}
+
+interface ProgramFeeEntry {
+  id: number;
+  title: string;
+  base: number;
+  discount: number;
+  discountType: "cash" | "percentage";
+  paid: string;
+  paidAdd?: string; // for edit mode
+  initialPaid?: number; // for edit mode
 }
 
 interface FeeInfo {
@@ -213,6 +225,7 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
   const [admPaid, setAdmPaid] = useState("");
 
   /* program fee */
+  const [progEntries, setProgEntries] = useState<ProgramFeeEntry[]>([]);
   const [progPeriod, setProgPeriod] = useState(getCurrentPeriod());
   const [progBase, setProgBase] = useState("");
   const [progDisc, setProgDisc] = useState(0);
@@ -240,11 +253,17 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
   const admDue = Math.max(0, admNet - admPaidNum);
   const admSaved = admBaseNum - admNet;
 
-  const progBaseNum = Number(progBase) || 0;
-  const progNet = calcNet(progBaseNum, progDisc, progDiscType);
-  const progPaidNum = fee ? (initialProgPaid + (Number(progAdd) || 0)) : (Number(progPaid) || 0);
+  const progBaseNum = fee ? (Number(progBase) || 0) : progEntries.reduce((acc, curr) => acc + (Number(curr.base) || 0), 0);
+  const progNet = fee 
+    ? calcNet(progBaseNum, progDisc, progDiscType)
+    : progEntries.reduce((acc, curr) => acc + calcNet(curr.base, curr.discount, curr.discountType), 0);
+  const progPaidNum = fee 
+    ? (initialProgPaid + (Number(progAdd) || 0)) 
+    : progEntries.reduce((acc, curr) => acc + (Number(curr.paid) || 0), 0);
   const progDue = Math.max(0, progNet - progPaidNum);
-  const progSaved = progBaseNum - progNet;
+  const progSaved = fee 
+    ? (progBaseNum - progNet)
+    : progEntries.reduce((acc, curr) => acc + (curr.base - calcNet(curr.base, curr.discount, curr.discountType)), 0);
 
   const hasAdm = admBaseNum > 0;
   const hasProg = progBaseNum > 0;
@@ -328,18 +347,24 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
             setInitialProgPaid(Math.max(0, totalPaid - admAlloc));
         }
         setAdmAdd(""); setProgAdd("");
+        setProgEntries([]);
       }
     } else {
       resetForm();
     }
   }, [isOpen, fee]);
 
+  const updateProgEntry = (id: number, field: keyof ProgramFeeEntry, value: any) => {
+    setProgEntries(prev => prev.map(entry => 
+      entry.id === id ? { ...entry, [field]: value } : entry
+    ));
+  };
+
   const resetForm = () => {
     setSelectedStudentId(""); setSelectedStudent(null); setSearchQuery("");
     setFeeInfo(null);
     setAdmBase(""); setAdmPaid(""); setAdmDisc(0); setAdmDiscType("cash");
-    setProgBase(""); setProgPaid(""); setProgDisc(0); setProgDiscType("cash");
-    setAdmAdd(""); setProgAdd(""); setInitialAdmPaid(0); setInitialProgPaid(0);
+    setProgEntries([]);
     setProgPeriod(getCurrentPeriod());
     setPaymentMethod("Cash"); setRemarks("");
   };
@@ -382,6 +407,16 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
             }
             if (pf.program_fee !== null && pf.program_fee !== undefined) {
               setProgBase(pf.program_fee.toString());
+            }
+            if (pf.programs_breakdown) {
+              setProgEntries(pf.programs_breakdown.map((pb: any) => ({
+                id: pb.id,
+                title: pb.title,
+                base: pb.program_fee,
+                discount: 0,
+                discountType: "cash",
+                paid: pb.program_fee.toString()
+              })));
             }
           }
         }
@@ -428,8 +463,15 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
           admission_discount_type: admDiscType, admission_paid: admPaidNum >= admNet,
         }),
         ...(hasProg && {
-          program_fee: progBaseNum, program_discount: progDisc,
+          program_fee: progBaseNum, 
+          program_discount: progDisc,
           program_discount_type: progDiscType,
+          selected_programs: progEntries.map(e => e.id),
+          program_payments: progEntries.reduce((acc, curr) => ({ ...acc, [curr.id]: Number(curr.paid) || 0 }), {}),
+          program_discounts: progEntries.reduce((acc, curr) => ({ 
+            ...acc, 
+            [curr.id]: { amount: curr.discount, type: curr.discountType } 
+          }), {}),
         }),
       };
       const res = await fetch(url, {
@@ -774,97 +816,196 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
             {/* ── 3. Program Fee ── */}
             <Card>
               <SectionHeader step={3} title="Program fee" badge="Recurring" />
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <Label>Period</Label>
+              
+              <div className="mb-5 max-w-sm">
+                <Label>Fee Period</Label>
+                <div className="relative">
                   <FieldInput
                     type="text" value={progPeriod}
                     onChange={(e) => setProgPeriod(e.target.value)}
                     placeholder="e.g. April 2026" disabled={loading}
+                    className="pl-9"
                   />
-                </div>
-                <div>
-                  <Label>Fee amount</Label>
-                  <FieldInput
-                    type="number" min={0} value={progBase}
-                    onChange={(e) => { if (Number(e.target.value) >= 0) setProgBase(e.target.value); }}
-                    placeholder="0" disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label>Discount</Label>
-                  <DiscountField
-                    discountType={progDiscType} onTypeChange={setProgDiscType}
-                    value={progDisc} onChange={setProgDisc}
-                    disabled={loading} baseIsZero={progBaseNum === 0}
-                  />
-                  {progSaved > 0 && (
-                    <p className="text-[11px] text-success font-medium mt-1.5">
-                      Saving {fmt(progSaved)}
-                    </p>
-                  )}
+                  <Clock className="w-4 h-4 text-gray-300 absolute left-3 top-1/2 -translate-y-1/2" />
                 </div>
               </div>
 
-              {progBaseNum > 0 && (
-                <div className="flex items-end gap-3 mt-3">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-[11px] font-bold text-gray-600 uppercase tracking-widest">
-                        {fee ? "Payment update" : "Amount paid"}
-                      </label>
-                      {progDue > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (fee) {
-                              setProgAdd((progNet - initialProgPaid).toString());
-                            } else {
-                              setProgPaid(progNet.toString());
-                            }
-                          }}
-                          className="text-[10px] font-bold text-secondary hover:text-secondary/80 uppercase tracking-widest transition-colors"
-                        >
-                          Clear Due
-                        </button>
-                      )}
-                    </div>
-
-                    {fee ? (
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1">
-                          <p className="text-[9px] text-gray-400 uppercase mb-1">Already Paid</p>
-                          <FieldInput
-                            value={fmt(initialProgPaid)}
-                            disabled
-                            className="bg-gray-50 border-gray-200 text-gray-400 font-medium"
-                          />
+              {!fee && progEntries.length > 0 ? (
+                <div className="space-y-4">
+                  {progEntries.map((pe) => {
+                    const entryNet = calcNet(pe.base, pe.discount, pe.discountType);
+                    const entryDue = Math.max(0, entryNet - (Number(pe.paid) || 0));
+                    
+                    return (
+                      <div key={pe.id} className="p-4 bg-gray-50 border border-gray-100 rounded-xl space-y-4">
+                        <div className="flex items-center justify-between border-b border-gray-200/50 pb-2">
+                           <div className="flex items-center gap-2">
+                             <div className="w-2 h-2 rounded-full bg-secondary"></div>
+                             <span className="text-sm font-bold text-primary">{pe.title}</span>
+                           </div>
+                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Individual Program Billing</span>
                         </div>
-                        <div className="text-gray-300 mt-4">+</div>
-                        <div className="flex-1">
-                          <p className="text-[9px] text-secondary font-bold uppercase mb-1">Add Payment</p>
-                          <FieldInput
-                            type="number" min={0} max={progNet - initialProgPaid} value={progAdd}
-                            onChange={(e) => { if (Number(e.target.value) >= 0) setProgAdd(e.target.value); }}
-                            placeholder="0" disabled={loading}
-                            className="border-secondary/30 focus:border-secondary focus:ring-secondary/10"
-                          />
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label>Base Fee</Label>
+                            <FieldInput
+                              type="number" min={0} value={pe.base}
+                              onChange={(e) => updateProgEntry(pe.id, "base", Number(e.target.value))}
+                              placeholder="0" disabled={loading}
+                            />
+                          </div>
+                          <div>
+                            <Label>Discount</Label>
+                            <DiscountField
+                              discountType={pe.discountType} 
+                              onTypeChange={(t) => updateProgEntry(pe.id, "discountType", t)}
+                              value={pe.discount} 
+                              onChange={(v) => updateProgEntry(pe.id, "discount", v)}
+                              disabled={loading} baseIsZero={pe.base === 0}
+                            />
+                          </div>
+                        </div>
+
+                          <div className="flex items-end gap-3 pt-1">
+                          <div className="flex-1">
+                             <div className="flex items-center justify-between mb-1.5">
+                                <Label>Amount Paid</Label>
+                                {entryDue > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => updateProgEntry(pe.id, "paid", entryNet.toString())}
+                                    className="text-[10px] font-bold text-secondary hover:text-secondary/80 uppercase tracking-widest transition-colors mb-1.5"
+                                  >
+                                    Clear Due
+                                  </button>
+                                )}
+                             </div>
+                             <FieldInput
+                                type="number" min={0} max={entryNet} value={pe.paid}
+                                onChange={(e) => updateProgEntry(pe.id, "paid", e.target.value)}
+                                placeholder="0" disabled={loading}
+                             />
+                          </div>
+                          <div className="flex items-end gap-2">
+                            <MiniStat label="Net" value={fmt(entryNet)} />
+                            <MiniStat
+                              label="Due" value={fmt(entryDue)}
+                              highlight={entryDue > 0 ? "due" : "clear"}
+                            />
+                          </div>
                         </div>
                       </div>
-                    ) : (
+                    );
+                  })}
+                  
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm">
+                    <div>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Total Program Bill</p>
+                      <p className="text-sm text-gray-600 font-medium">Sum of all enrolled programs for this period</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase leading-none mb-1">Grand Program Net</p>
+                      <p className="text-xl font-black text-gray-900">{fmt(progNet)}</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {fee?.program && (
+                    <div className="mb-4 p-3 bg-secondary/5 border border-secondary/10 rounded-lg flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">Target Program</p>
+                        <p className="text-sm font-bold text-primary">{fee.program.title}</p>
+                      </div>
+                      <BookOpen className="w-5 h-5 text-secondary opacity-30" />
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Fee amount</Label>
                       <FieldInput
-                        type="number" min={0} max={progNet} value={progPaid}
-                        onChange={(e) => { if (Number(e.target.value) >= 0) setProgPaid(e.target.value); }}
+                        type="number" min={0} value={progBase}
+                        onChange={(e) => { if (Number(e.target.value) >= 0) setProgBase(e.target.value); }}
                         placeholder="0" disabled={loading}
                       />
-                    )}
+                    </div>
+                    <div>
+                      <Label>Discount</Label>
+                      <DiscountField
+                        discountType={progDiscType} onTypeChange={setProgDiscType}
+                        value={progDisc} onChange={setProgDisc}
+                        disabled={loading} baseIsZero={progBaseNum === 0}
+                      />
+                      {progSaved > 0 && (
+                        <p className="text-[11px] text-success font-medium mt-1.5">
+                          Saving {fmt(progSaved)}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <MiniStat label="Net" value={fmt(progNet)} />
-                  <MiniStat
-                    label="Due" value={fmt(progDue)}
-                    highlight={progDue > 0 ? "due" : "clear"}
-                  />
-                </div>
+
+                  {progBaseNum > 0 && (
+                    <div className="flex items-end gap-3 mt-3">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-[11px] font-bold text-gray-600 uppercase tracking-widest">
+                            {fee ? "Payment update" : "Amount paid"}
+                          </label>
+                          {progDue > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (fee) {
+                                  setProgAdd((progNet - initialProgPaid).toString());
+                                } else {
+                                  setProgPaid(progNet.toString());
+                                }
+                              }}
+                              className="text-[10px] font-bold text-secondary hover:text-secondary/80 uppercase tracking-widest transition-colors"
+                            >
+                              Clear Due
+                            </button>
+                          )}
+                        </div>
+
+                        {fee ? (
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1">
+                              <p className="text-[9px] text-gray-400 uppercase mb-1">Already Paid</p>
+                              <FieldInput
+                                value={fmt(initialProgPaid)}
+                                disabled
+                                className="bg-gray-50 border-gray-200 text-gray-400 font-medium"
+                              />
+                            </div>
+                            <div className="text-gray-300 mt-4">+</div>
+                            <div className="flex-1">
+                              <p className="text-[9px] text-secondary font-bold uppercase mb-1">Add Payment</p>
+                              <FieldInput
+                                type="number" min={0} max={progNet - initialProgPaid} value={progAdd}
+                                onChange={(e) => { if (Number(e.target.value) >= 0) setProgAdd(e.target.value); }}
+                                placeholder="0" disabled={loading}
+                                className="border-secondary/30 focus:border-secondary focus:ring-secondary/10"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <FieldInput
+                            type="number" min={0} max={progNet} value={progPaid}
+                            onChange={(e) => { if (Number(e.target.value) >= 0) setProgPaid(e.target.value); }}
+                            placeholder="0" disabled={loading}
+                          />
+                        )}
+                      </div>
+                      <MiniStat label="Net" value={fmt(progNet)} />
+                      <MiniStat
+                        label="Due" value={fmt(progDue)}
+                        highlight={progDue > 0 ? "due" : "clear"}
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </Card>
 
@@ -983,7 +1124,17 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
                             onClick={() => {
                                 // Clear overall remainder by distributing to paid fields
                                 if(hasAdm) setAdmPaid(admNet.toString());
-                                if(hasProg) setProgPaid(progNet.toString());
+                                if(hasProg) {
+                                  if (fee) {
+                                    setProgAdd((progNet - initialProgPaid).toString());
+                                  } else {
+                                    setProgEntries(prev => prev.map(e => ({
+                                      ...e,
+                                      paid: calcNet(e.base, e.discount, e.discountType).toString()
+                                    })));
+                                    setProgPaid(progNet.toString()); // Fallback for visibility elsewhere
+                                  }
+                                }
                             }}
                             className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider hover:underline text-left mt-0.5"
                           >

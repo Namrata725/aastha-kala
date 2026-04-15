@@ -64,7 +64,7 @@ class SettingController extends Controller
                 'company_name','email','phone','address','location_map',
                 'about_short','about','mission','years_of_experience',
                 'awards','number_of_instructors','number_of_students','success_rate',
-                'opening_hour','closing_hour'
+                'opening_hour','closing_hour','admission_fee'
             ]);
 
             // Ensure numeric fields are not null
@@ -171,7 +171,7 @@ class SettingController extends Controller
                 'company_name','email','phone','address','location_map',
                 'about_short','about','mission','years_of_experience',
                 'awards','number_of_instructors','number_of_students','success_rate',
-                'opening_hour','closing_hour'
+                'opening_hour','closing_hour','admission_fee'
             ]);
 
             // Ensure numeric fields are not null

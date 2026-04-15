@@ -248,7 +248,7 @@ const StudentAddEditModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 cursor-pointer" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 cursor-pointer">
       <div className="bg-white w-full max-w-3xl rounded-[2rem] p-8 relative overflow-y-auto max-h-[90vh] cursor-default shadow-2xl transition-all" onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute right-6 top-6 text-gray-400 hover:text-black transition-colors p-2 bg-gray-50 rounded-full">
           <X className="w-5 h-5" />
