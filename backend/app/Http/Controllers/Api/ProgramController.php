@@ -44,20 +44,19 @@ class ProgramController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'speciality' => 'nullable|array',
-            'speciality.*' => 'string|max:255',
-            'is_active' => 'nullable|boolean',
-            'admission_fee' => 'nullable|numeric|min:0',
-            'program_fee' => 'nullable|numeric|min:0',
-            'instructor_ids' => 'nullable|array',
-            'instructor_ids.*' => 'exists:instructors,id',
-            'schedules' => 'nullable|array',
+            'title'                     => 'required|string|max:255',
+            'description'               => 'nullable|string',
+            'image'                     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'speciality'                => 'nullable|array',
+            'speciality.*'              => 'string|max:255',
+            'is_active'                 => 'nullable|boolean',
+            'program_fee'               => 'nullable|numeric|min:0',
+            'instructor_ids'            => 'nullable|array',
+            'instructor_ids.*'          => 'exists:instructors,id',
+            'schedules'                 => 'nullable|array',
             'schedules.*.instructor_id' => 'nullable|exists:instructors,id',
-            'schedules.*.start_time' => 'required_with:schedules|date_format:H:i',
-            'schedules.*.end_time' => 'required_with:schedules|date_format:H:i',
+            'schedules.*.start_time'    => 'required_with:schedules|date_format:H:i',
+            'schedules.*.end_time'      => 'required_with:schedules|date_format:H:i',
         ]);
 
         if ($validator->fails()) {
@@ -68,7 +67,7 @@ class ProgramController extends Controller
             ], 422);
         }
 
-        $data = $request->only(['title', 'description', 'speciality', 'is_active', 'admission_fee', 'program_fee']);
+        $data = $request->only(['title', 'description', 'speciality', 'is_active', 'program_fee']);
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('programs', 'public');
@@ -133,21 +132,20 @@ class ProgramController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'remove_image' => 'nullable|in:1',
-            'speciality' => 'nullable|array',
-            'speciality.*' => 'string|max:255',
-            'is_active' => 'nullable|boolean',
-            'admission_fee' => 'nullable|numeric|min:0',
-            'program_fee' => 'nullable|numeric|min:0',
-            'instructor_ids' => 'nullable|array',
-            'instructor_ids.*' => 'exists:instructors,id',
-            'schedules' => 'nullable|array',
+            'title'                     => 'required|string|max:255',
+            'description'               => 'nullable|string',
+            'image'                     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'remove_image'              => 'nullable|in:1',
+            'speciality'                => 'nullable|array',
+            'speciality.*'              => 'string|max:255',
+            'is_active'                 => 'nullable|boolean',
+            'program_fee'               => 'nullable|numeric|min:0',
+            'instructor_ids'            => 'nullable|array',
+            'instructor_ids.*'          => 'exists:instructors,id',
+            'schedules'                 => 'nullable|array',
             'schedules.*.instructor_id' => 'nullable|exists:instructors,id',
-            'schedules.*.start_time' => 'required_with:schedules|date_format:H:i',
-            'schedules.*.end_time' => 'required_with:schedules|date_format:H:i',
+            'schedules.*.start_time'    => 'required_with:schedules|date_format:H:i',
+            'schedules.*.end_time'      => 'required_with:schedules|date_format:H:i',
         ]);
 
         if ($validator->fails()) {
@@ -158,7 +156,7 @@ class ProgramController extends Controller
             ], 422);
         }
 
-        $data = $request->only(['title', 'description', 'speciality', 'is_active', 'admission_fee', 'program_fee']);
+        $data = $request->only(['title', 'description', 'speciality', 'is_active', 'program_fee']);
 
         // Handle image removal
         if ($request->has('remove_image') && $request->remove_image == '1' && $program->image) {

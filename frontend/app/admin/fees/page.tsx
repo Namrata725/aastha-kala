@@ -56,7 +56,6 @@ const FeesPage = () => {
   const columns = [
     { key: "sn", label: "SN" },
     { key: "student_name", label: "Student" },
-    { key: "fee_type", label: "Type" },
     { key: "month_year", label: "Period" },
     { key: "total_amount", label: "Total" },
     { key: "paid_amount", label: "Paid" },
@@ -131,11 +130,10 @@ const FeesPage = () => {
       </div>
     ),
     fee_type: (
-      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
-        fee.fee_type === "admission"
+      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${fee.fee_type === "admission"
           ? "bg-secondary/10 text-secondary"
           : "bg-info/10 text-info"
-      }`}>
+        }`}>
         {fee.fee_type === "admission" ? "Admission" : (fee.fee_type === "program" ? "Program" : "Billing")}
       </span>
     ),
@@ -149,11 +147,10 @@ const FeesPage = () => {
       <span className="text-sm font-bold text-success">Rs. {Number(fee.paid_amount).toLocaleString()}</span>
     ),
     status: (
-      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
-        fee.status === "paid"
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${fee.status === "paid"
           ? "bg-success/10 text-success"
           : "bg-warning/10 text-warning"
-      }`}>
+        }`}>
         <span className={`w-1.5 h-1.5 rounded-full ${fee.status === "paid" ? "bg-success" : "bg-warning"}`} />
         {fee.status}
       </span>

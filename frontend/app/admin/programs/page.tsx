@@ -54,7 +54,7 @@ const ProgramsPage = () => {
         { key: "sn", label: "SN" },
         { key: "image", label: "Image" },
         { key: "title", label: "Program Name" },
-        { key: "fees_display", label: "Fees (Adm / Prog)" },
+        { key: "fees_display", label: "Program Fee" },
         { key: "schedule_count", label: "Schedules" },
         { key: "status", label: "Status" },
     ];
@@ -108,11 +108,8 @@ const ProgramsPage = () => {
         image: p.image ? <img src={getImageUrl(p.image)} className="w-10 h-10 rounded object-cover" /> : "?",
         fees_display: (
             <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold text-violet-600">
-                    Adm: {(p as any).admission_fee ? `Rs. ${Number((p as any).admission_fee).toLocaleString()}` : <span className="text-gray-300 font-normal">—</span>}
-                </span>
-                <span className="text-[10px] font-bold text-sky-600">
-                    Prog: {(p as any).program_fee ? `Rs. ${Number((p as any).program_fee).toLocaleString()}` : <span className="text-gray-300 font-normal">—</span>}
+                <span className="text-xs font-bold text-sky-600">
+                    {(p as any).program_fee ? `Rs. ${Number((p as any).program_fee).toLocaleString()}` : <span className="text-gray-300 font-normal">—</span>}
                 </span>
             </div>
         ),

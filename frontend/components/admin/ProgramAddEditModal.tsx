@@ -40,7 +40,6 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
   const [speciality, setSpeciality] = useState<string[]>([""]);
   const [isActive, setIsActive] = useState(true);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [admissionFee, setAdmissionFee] = useState("");
   const [programFee, setProgramFee] = useState("");
 
   useEffect(() => {
@@ -52,7 +51,6 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
         setImagePreview(program.image || null);
         setSpeciality(program.speciality || [""]);
         setIsActive(program.is_active ?? true);
-        setAdmissionFee(program.admission_fee?.toString() ?? "");
         setProgramFee(program.program_fee?.toString() ?? "");
         setSchedules(program.schedules?.map((s: any) => ({
           ...s,
@@ -74,7 +72,6 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
     setSpeciality([""]);
     setIsActive(true);
     setSchedules([]);
-    setAdmissionFee("");
     setProgramFee("");
   };
 
@@ -183,7 +180,6 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
     formData.append("description", description);
     formData.append("is_active", isActive ? "1" : "0");
     if (image) formData.append("image", image);
-    if (admissionFee) formData.append("admission_fee", admissionFee);
     if (programFee) formData.append("program_fee", programFee);
     
     speciality.forEach((s, i) => {
@@ -227,7 +223,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
 
   return (
     <div
-      onClick={onClose}
+      // onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg cursor-pointer"
     >
       <div 
@@ -340,32 +336,17 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
 
               {/* Fee Settings */}
               <div className="bg-white/60 border border-primary/20 rounded-xl p-4 space-y-3">
-                <p className="text-xs font-black uppercase tracking-widest text-primary/50 italic mb-3">Fee Structure <span className="text-[9px] font-medium normal-case text-gray-400">(admin-only, auto-fills billing)</span></p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] font-black uppercase text-primary/40 mb-1 tracking-widest italic">Admission Fee (Rs.)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={admissionFee}
-                      onChange={(e) => setAdmissionFee(e.target.value)}
-                      disabled={loading}
-                      placeholder="e.g. 5000"
-                      className="w-full bg-white/40 border border-primary/20 rounded-lg px-3 py-2 text-primary text-sm focus:outline-none focus:border-primary transition disabled:opacity-50"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black uppercase text-primary/40 mb-1 tracking-widest italic">Program Fee (Rs.)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={programFee}
-                      onChange={(e) => setProgramFee(e.target.value)}
-                      disabled={loading}
-                      placeholder="e.g. 2000"
-                      className="w-full bg-white/40 border border-primary/20 rounded-lg px-3 py-2 text-primary text-sm focus:outline-none focus:border-primary transition disabled:opacity-50"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-primary/40 mb-1 tracking-widest italic">Program Fee (Rs.)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={programFee}
+                    onChange={(e) => setProgramFee(e.target.value)}
+                    disabled={loading}
+                    placeholder="e.g. 2000"
+                    className="w-full bg-white/40 border border-primary/20 rounded-lg px-3 py-2 text-primary text-sm focus:outline-none focus:border-primary transition disabled:opacity-50"
+                  />
                 </div>
               </div>
 
