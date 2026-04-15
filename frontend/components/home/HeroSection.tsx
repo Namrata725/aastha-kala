@@ -1,4 +1,3 @@
-import React from "react";
 import HeroSlider from "@/components/client/HeroSlider";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -19,7 +18,7 @@ const fetchHero = async (): Promise<string[]> => {
       return data[0].images.map((img: string) => {
         let cleanPath = img;
         if (img.startsWith("http")) {
-          try {
+          try {1
             const parsed = new URL(img);
             cleanPath = parsed.pathname; // extracts e.g. "/storage/gallery/image.jpg"
           } catch {}
@@ -49,9 +48,6 @@ const HeroSection = async () => {
       <div className="absolute inset-0 z-10">
         <HeroSlider heroImages={heroImages} fill />
       </div>
-
-
-
       {/* ── Gradient Overlay (Blend into white) ───────────────── */}
       <div className="absolute inset-x-0 bottom-0 h-32 md:h-48 bg-linear-to-b from-transparent to-white pointer-events-none z-20" />
     </section>
