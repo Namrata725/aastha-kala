@@ -42,6 +42,9 @@ Route::get('/programs/{id}/available-instructors', [ProgramController::class, 'a
 
 Route::post('/bookings', [BookingController::class, 'store']);
 
+// Public: get remaining free time slots for an instructor (used in BookingModal)
+Route::get('/instructor-availabilities/instructor/{id}/free-slots', [InstructorAvailabilityController::class, 'freeSlots']);
+
 Route::get('/dress-hire', [DressHireController::class, 'index']);
 
 // Admin Routes
@@ -76,6 +79,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
     Route::prefix('instructor-availabilities')->group(function () {
         Route::get('/instructor/{instructor_id}', [InstructorAvailabilityController::class, 'index']);
+        Route::get('/instructor/{instructor_id}/free-slots', [InstructorAvailabilityController::class, 'freeSlots']);
         Route::post('/', [InstructorAvailabilityController::class, 'store']);
         Route::put('/{id}', [InstructorAvailabilityController::class, 'update']);
         Route::delete('/{id}', [InstructorAvailabilityController::class, 'destroy']);

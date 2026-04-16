@@ -69,7 +69,7 @@ const GalleryViewModal = ({
   const maxSlide = getTotalSlides() - 1;
 
   return (
-    <div className="fixed top-[68px] inset-x-0 bottom-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-8">
+    <div className="fixed top-[68px] inset-x-0 bottom-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 md:p-8">
        <div className="px-4 md:px-6 lg:px-8 py-3 flex items-center justify-between max-w-7xl mx-auto">
         {/* Close Button */}
         <button

@@ -100,6 +100,15 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
       ...prev,
       [key]: key === "rating" || key === "order" ? Number(value) : value,
     }));
+
+    // Clear error for this field
+    if (errors[key as string]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[key as string];
+        return newErrors;
+      });
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,8 +163,18 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
         if (result.errors) {
           const validationErrors = result.errors as Record<string, string[]>;
           setErrors(validationErrors);
-          const firstError = Object.values(validationErrors)[0]?.[0] || result.message || "Validation failed";
-          toast.error(firstError);
+          
+          // Scroll to the first error field
+          const firstErrorKey = Object.keys(validationErrors)[0];
+          const elementId = firstErrorKey.replace(/\./g, "_");
+          
+          setTimeout(() => {
+            const element = document.getElementById(elementId);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }, 100);
+          
           return;
         }
         throw new Error(result.message || "Something went wrong");
@@ -253,6 +272,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             value={form.title}
             onChange={(e) => handleChange("title", e.target.value)}
             disabled={loading}
+            error={errors.title}
           />
 
           <InputField

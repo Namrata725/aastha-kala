@@ -206,15 +206,17 @@ class StudentController extends Controller
                 ->exists();
 
             if (!$feeExists) {
+                $feeAmount = (float) ($prog->program_fee ?? 0);
+
                 \App\Models\StudentFee::create([
                     'student_id'     => $student->id,
                     'program_id'     => $prog->id,
                     'fee_type'       => 'program',
-                    'total_amount'   => $prog->program_fee,
+                    'total_amount'   => $feeAmount,
                     'paid_amount'    => 0,
-                    'pending_amount' => $prog->program_fee,
+                    'pending_amount' => $feeAmount,
                     'status'         => 'pending',
-                    'program_fee'    => $prog->program_fee,
+                    'program_fee'    => $feeAmount,
                     'month_year'     => $currentMonth,
                     'payment_method' => 'Cash',
                     'remarks'        => 'Auto-generated for program enrollment',

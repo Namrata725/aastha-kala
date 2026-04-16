@@ -1,96 +1,263 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { 
-  Users, 
-  BookOpen, 
-  CalendarCheck, 
-  Clock, 
-  PlusCircle, 
-  UserPlus, 
-  Flag, 
+import {
+  Users,
+  BookOpen,
+  CalendarCheck,
+  Clock,
+  PlusCircle,
+  UserPlus,
+  Flag,
   Image as ImageIcon,
   ChevronRight,
-  TrendingUp,
   MessageSquare,
-  AlertCircle
+  Zap,
+  Mail,
+  Timer,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
-import Link from 'next/link';
+import Link from "next/link";
 import { useDashboard } from "@/lib/DashboardContext";
 
-// Modals for shortcuts
 import ProgramAddEditModal from "@/components/admin/ProgramAddEditModal";
 import InstructorModal from "@/components/admin/InstructorModal";
 import EventAddEditModal from "@/components/admin/EventAddEditModal";
 import GalleryAddEditModal from "@/components/admin/GalleryAddEditModal";
 
-const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
-  <div className="bg-slate-50 border border-gray-200 rounded-2xl p-6 shadow-sm relative overflow-hidden group hover:border-primary/50 transition-all duration-300">
-    <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity ${color}`} />
-    <div className="flex justify-between items-start relative z-10">
-      <div>
-        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{title}</p>
-        <h3 className="text-3xl font-black text-gray-900">{value}</h3>
+/* ───────────────────────── helpers ───────────────────────── */
+
+const fmt = (n: number) =>
+  n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+
+const timeAgo = (date: string) => {
+  const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+};
+
+const statusConfig: Record<
+  string,
+  { bg: string; text: string; dot: string; label: string }
+> = {
+  pending: {
+    bg: "bg-amber-50",
+    text: "text-amber-600",
+    dot: "bg-amber-400",
+    label: "Pending",
+  },
+  approved: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-600",
+    dot: "bg-emerald-400",
+    label: "Approved",
+  },
+  rejected: {
+    bg: "bg-red-50",
+    text: "text-red-600",
+    dot: "bg-red-400",
+    label: "Rejected",
+  },
+};
+
+/* ─────────────────────── animated counter ─────────────────── */
+
+const AnimatedNumber = ({ value, duration = 700 }: { value: number; duration?: number }) => {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    let start = 0;
+    const step = value / (duration / 16);
+    const id = setInterval(() => {
+      start += step;
+      if (start >= value) {
+        setDisplay(value);
+        clearInterval(id);
+      } else {
+        setDisplay(Math.floor(start));
+      }
+    }, 16);
+    return () => clearInterval(id);
+  }, [value, duration]);
+  return <>{fmt(display)}</>;
+};
+
+/* ─────────────────────── stat card ────────────────────────── */
+
+const StatCard = ({
+  title,
+  value,
+  icon: Icon,
+  accent,
+}: {
+  title: string;
+  value: number;
+  icon: React.ElementType;
+  accent: string;
+}) => (
+  <div className="relative bg-white border border-gray-200/80 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:border-gray-300/80 transition-all duration-300 group overflow-hidden">
+    <div
+      className={`absolute -right-8 -top-8 w-28 h-28 rounded-full blur-3xl opacity-[0.07] group-hover:opacity-[0.12] transition-opacity ${accent}`}
+    />
+    <div className="relative z-10">
+      <div className="flex items-center justify-between mb-5">
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em]">
+          {title}
+        </span>
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center border"
+          style={{ backgroundColor: `${accent}0D`, borderColor: `${accent}1A` }}
+        >
+          <Icon className="w-4 h-4" style={{ color: accent }} />
+        </div>
       </div>
-      <div className={`p-3 rounded-xl bg-slate-100 border border-gray-100 ${color.replace('bg-', 'text-')}`}>
-        <Icon className="w-6 h-6" />
-      </div>
+      <p className="text-[32px] font-extrabold text-gray-900 leading-none tracking-tight">
+        <AnimatedNumber value={value} />
+      </p>
     </div>
   </div>
 );
 
-const QuickAction = ({ title, icon: Icon, onClick, color }: any) => (
-  <button 
+/* ─────────────────────── quick action ─────────────────────── */
+
+const QuickAction = ({
+  title,
+  desc,
+  icon: Icon,
+  onClick,
+  accent,
+}: {
+  title: string;
+  desc: string;
+  icon: React.ElementType;
+  onClick: () => void;
+  accent: string;
+}) => (
+  <button
     onClick={onClick}
-    className="flex flex-col items-center justify-center gap-3 p-6 bg-slate-50 border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-300 group"
+    className="relative bg-white border border-gray-200/80 rounded-2xl p-5 text-left shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:border-gray-300/80 transition-all duration-300 group overflow-hidden"
   >
-    <div className={`p-4 rounded-2xl bg-slate-100 border border-gray-100 transition-transform group-hover:scale-110 ${color}`}>
-      <Icon className="w-8 h-8" />
+    <div
+      className="absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity"
+      style={{ backgroundColor: accent }}
+    />
+    <div className="relative z-10 flex items-start gap-4">
+      <div
+        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-transform group-hover:scale-105"
+        style={{ backgroundColor: `${accent}0D`, borderColor: `${accent}1A` }}
+      >
+        <Icon className="w-5 h-5" style={{ color: accent }} />
+      </div>
+      <div className="min-w-0">
+        <span className="block text-sm font-bold text-gray-800 group-hover:text-gray-900 transition-colors truncate">
+          {title}
+        </span>
+        <span className="block text-[11px] text-gray-400 mt-0.5 truncate">{desc}</span>
+      </div>
     </div>
-    <span className="text-sm font-bold text-gray-600 group-hover:text-black transition-colors uppercase tracking-wider">{title}</span>
   </button>
 );
+
+/* ─────────────────────── status badge ─────────────────────── */
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const cfg = statusConfig[status] || statusConfig.pending;
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+      {cfg.label}
+    </span>
+  );
+};
+
+/* ─────────────────────── activity item ────────────────────── */
+
+const ActivityItem = ({
+  icon: Icon,
+  color,
+  title,
+  time,
+}: {
+  icon: React.ElementType;
+  color: string;
+  title: string;
+  time: string;
+}) => (
+  <div className="flex items-start gap-3">
+    <div
+      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border"
+      style={{ backgroundColor: `${color}0D`, borderColor: `${color}1A` }}
+    >
+      <Icon className="w-3.5 h-3.5" style={{ color }} />
+    </div>
+    <div className="min-w-0 pt-0.5">
+      <p className="text-[12px] font-semibold text-gray-700 leading-snug">{title}</p>
+      <p className="text-[10px] text-gray-400 mt-0.5 font-medium">{time}</p>
+    </div>
+  </div>
+);
+
+/* ════════════════════════ MAIN DASHBOARD ════════════════════════ */
 
 const Dashboard = () => {
   const { data, loading, categories, refreshData } = useDashboard();
   const [adminName, setAdminName] = useState("Admin");
+  const [currentTime, setCurrentTime] = useState("");
 
-  // Modal States
   const [modals, setModals] = useState({
     program: false,
     instructor: false,
     event: false,
-    gallery: false
+    gallery: false,
   });
 
   useEffect(() => {
-    // Get user from localStorage
     const userStr = localStorage.getItem("user");
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
         if (user.name) setAdminName(user.name);
-      } catch (e) {}
+      } catch {}
     }
 
-    // Refresh data on mount
+    const tick = () =>
+      setCurrentTime(
+        new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      );
+    tick();
+    const id = setInterval(tick, 1000);
+
+    // Refresh dashboard data on mount
     refreshData();
+
+    return () => clearInterval(id);
   }, [refreshData]);
 
-  const openModal = (type: keyof typeof modals) => {
-    setModals(prev => ({ ...prev, [type]: true }));
-  };
+  const openModal = (type: keyof typeof modals) =>
+    setModals((p) => ({ ...p, [type]: true }));
+  const closeModal = (type: keyof typeof modals) =>
+    setModals((p) => ({ ...p, [type]: false }));
 
-  const closeModal = (type: keyof typeof modals) => {
-    setModals(prev => ({ ...prev, [type]: false }));
-  };
-
+  /* ── skeleton ── */
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="relative w-16 h-16">
-          <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <div className="space-y-8 animate-pulse">
+        <div className="h-8 w-64 bg-gray-200 rounded-lg" />
+        <div className="grid grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-32 bg-gray-100 rounded-2xl" />
+          ))}
+        </div>
+        <div className="grid grid-cols-3 gap-6">
+          <div className="col-span-2 h-80 bg-gray-100 rounded-2xl" />
+          <div className="h-80 bg-gray-100 rounded-2xl" />
         </div>
       </div>
     );
@@ -101,199 +268,355 @@ const Dashboard = () => {
   const recentMessages = data?.recent_messages || [];
 
   return (
-    <div className="space-y-10 pb-12">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6">
-        <div className="space-y-1">
-          <h1 className="text-4xl font-black text-black uppercase tracking-tight">
-            Dashboard Overview
+    <div className="space-y-8 pb-16">
+      {/* ──── HEADER ──── */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+          </div>
+          <h1 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight">
+            Dashboard
           </h1>
-          <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">
-            Welcome back, {adminName}. Here's what's happening today.
+          <p className="text-gray-400 text-sm font-medium mt-1">
+            Welcome back,{" "}
+            <span className="text-gray-600 font-semibold">{adminName}</span>.
           </p>
         </div>
-      </div>
 
-      {/* KPI Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard 
-          title="Total Bookings" 
-          value={stats.total_bookings || 0} 
-          icon={CalendarCheck} 
-          color="bg-blue-500"
-          trend="+12%"
-        />
-        <StatCard 
-          title="Pending Requests" 
-          value={stats.pending_bookings || 0} 
-          icon={Clock} 
-          color="bg-yellow-500"
-        />
-        <StatCard 
-          title="Instructors" 
-          value={stats.total_instructors || 0} 
-          icon={Users} 
-          color="bg-purple-500"
-        />
-        <StatCard 
-          title="Active Programs" 
-          value={stats.total_programs || 0} 
-          icon={BookOpen} 
-          color="bg-pink-500"
-        />
-      </div>
-
-      {/* Quick Actions Shortcuts */}
-      <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold text-black uppercase tracking-widest italic">Quick Shortcuts</h2>
-          <div className="h-[1px] flex-1 bg-slate-200" />
+          <div className="text-right hidden sm:block">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+              Local Time
+            </p>
+            <p className="text-lg font-bold text-gray-700 tabular-nums tracking-tight">
+              {currentTime}
+            </p>
+          </div>
+          <div className="w-px h-10 bg-gray-200 hidden sm:block" />
+          <div className="text-right hidden sm:block">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+              Today
+            </p>
+            <p className="text-sm font-semibold text-gray-600">
+              {new Date().toLocaleDateString("en-US", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+              })}
+            </p>
+          </div>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          <QuickAction 
-            title="Add Program" 
-            icon={PlusCircle} 
-            color="text-primary"
-            onClick={() => openModal('program')}
+      </div>
+
+      {/* ──── KPI STATS (all values from API) ──── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <StatCard
+          title="Total Bookings"
+          value={stats.total_bookings || 0}
+          icon={CalendarCheck}
+          accent="#3B82F6"
+        />
+        <StatCard
+          title="Pending Requests"
+          value={stats.pending_bookings || 0}
+          icon={Clock}
+          accent="#F59E0B"
+        />
+        <StatCard
+          title="Instructors"
+          value={stats.total_instructors || 0}
+          icon={Users}
+          accent="#8B5CF6"
+        />
+        <StatCard
+          title="Programs"
+          value={stats.total_programs || 0}
+          icon={BookOpen}
+          accent="#EC4899"
+        />
+      </div>
+
+      {/* ──── QUICK ACTIONS ──── */}
+      <div>
+        <div className="flex items-center gap-3 mb-5">
+          <Zap className="w-4 h-4 text-gray-400" />
+          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-[0.15em]">
+            Quick Actions
+          </h2>
+          <div className="h-px flex-1 bg-gray-100" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <QuickAction
+            title="Add Program"
+            desc="Create a new training program"
+            icon={PlusCircle}
+            accent="#0EA5E9"
+            onClick={() => openModal("program")}
           />
-          <QuickAction 
-            title="New Instructor" 
-            icon={UserPlus} 
-            color="text-secondary"
-            onClick={() => openModal('instructor')}
+          <QuickAction
+            title="New Instructor"
+            desc="Onboard a team member"
+            icon={UserPlus}
+            accent="#8B5CF6"
+            onClick={() => openModal("instructor")}
           />
-          <QuickAction 
-            title="Create Event" 
-            icon={Flag} 
-            color="text-pink-500"
-            onClick={() => openModal('event')}
+          <QuickAction
+            title="Create Event"
+            desc="Schedule an upcoming event"
+            icon={Flag}
+            accent="#EC4899"
+            onClick={() => openModal("event")}
           />
-          <QuickAction 
-            title="Gallery Item" 
-            icon={ImageIcon} 
-            color="text-blue-400"
-            onClick={() => openModal('gallery')}
+          <QuickAction
+            title="Gallery Upload"
+            desc="Add photos to the gallery"
+            icon={ImageIcon}
+            accent="#3B82F6"
+            onClick={() => openModal("gallery")}
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* Recent Bookings Table */}
-        <div className="xl:col-span-2 space-y-6">
-           <div className="flex justify-between items-center">
-             <h2 className="text-xl font-bold text-black uppercase tracking-widest italic flex items-center gap-3">
-               <CalendarCheck className="w-5 h-5 text-primary" />
-               Recent Bookings
-             </h2>
-             <Link href="/admin/booking" className="text-[10px] font-black text-primary uppercase tracking-widest hover:text-black transition-colors flex items-center gap-1">
-               View All <ChevronRight className="w-3 h-3" />
-             </Link>
-           </div>
-           
-           <div className="bg-slate-50 border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-             <table className="w-full text-left">
-               <thead>
-                 <tr className="border-b border-gray-100 bg-slate-100">
-                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Customer</th>
-                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Program</th>
-                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
-                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
-                 </tr>
-               </thead>
-               <tbody className="divide-y divide-gray-100">
-                 {recentBookings.length > 0 ? recentBookings.map((booking: any) => (
-                   <tr key={booking.id} className="hover:bg-slate-100 transition-colors">
-                     <td className="px-6 py-4">
-                       <div className="flex flex-col">
-                         <span className="text-sm font-bold text-black">{booking.name}</span>
-                         <span className="text-[10px] text-black/50 truncate max-w-[150px]">{booking.email}</span>
-                       </div>
-                     </td>
-                     <td className="px-6 py-4">
-                       <span className="text-xs font-medium text-secondary">{booking.program?.title || 'Unknown'}</span>
-                     </td>
-                     <td className="px-6 py-4">
-                       <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter
-                         ${booking.status === 'pending' ? 'bg-yellow-500/10 text-yellow-500' : 
-                           booking.status === 'approved' ? 'bg-green-500/10 text-green-500' : 
-                           'bg-red-500/10 text-red-500'}`}
-                       >
-                         {booking.status}
-                       </span>
-                     </td>
-                     <td className="px-6 py-4 text-xs font-bold text-black/60">
-                       {new Date(booking.created_at).toLocaleDateString()}
-                     </td>
-                   </tr>
-                 )) : (
-                   <tr>
-                     <td colSpan={4} className="px-6 py-12 text-center text-black/20 italic text-sm font-bold uppercase tracking-widest">No recent bookings</td>
-                   </tr>
-                 )}
-               </tbody>
-             </table>
-           </div>
+      {/* ──── MAIN CONTENT GRID ──── */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        {/* ── BOOKINGS TABLE ── */}
+        <div className="xl:col-span-8 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <CalendarCheck className="w-4 h-4 text-blue-500" />
+              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-[0.15em]">
+                Recent Bookings
+              </h2>
+              {recentBookings.length > 0 && (
+                <span className="px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-500">
+                  {recentBookings.length}
+                </span>
+              )}
+            </div>
+            <Link
+              href="/admin/booking"
+              className="text-[10px] font-bold text-gray-400 uppercase tracking-wider hover:text-gray-700 transition-colors flex items-center gap-1"
+            >
+              View All
+              <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+
+          <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+            {recentBookings.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="px-6 py-3.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                        Customer
+                      </th>
+                      <th className="px-6 py-3.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                        Program
+                      </th>
+                      <th className="px-6 py-3.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                        Status
+                      </th>
+                      <th className="px-6 py-3.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50 text-right">
+                        Received
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {recentBookings.map((booking: any) => (
+                      <tr
+                        key={booking.id}
+                        className="hover:bg-gray-50/80 transition-colors group"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-[11px] font-bold text-gray-400 uppercase shrink-0">
+                              {(booking.name || "?")[0]}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-semibold text-gray-800 truncate max-w-[160px]">
+                                {booking.name}
+                              </p>
+                              <p className="text-[11px] text-gray-400 truncate max-w-[160px]">
+                                {booking.email}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-[12px] font-medium text-sky-600 truncate block max-w-[180px]">
+                            {booking.program?.title || "—"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <StatusBadge status={booking.status} />
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <span className="text-[11px] font-medium text-gray-400">
+                            {timeAgo(booking.created_at)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-300">
+                <CalendarCheck className="w-10 h-10 mb-3 opacity-30" />
+                <p className="text-xs font-bold uppercase tracking-widest">
+                  No bookings yet
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Recent Messages */}
-        <div className="space-y-6">
-           <div className="flex justify-between items-center">
-             <h2 className="text-xl font-bold text-black uppercase tracking-widest italic flex items-center gap-3">
-               <MessageSquare className="w-5 h-5 text-secondary" />
-               Recent Inbox
-             </h2>
-             <Link href="/admin/contact" className="text-[10px] font-black text-secondary uppercase tracking-widest hover:text-black transition-colors flex items-center gap-1">
-               View All <ChevronRight className="w-3 h-3" />
-             </Link>
-           </div>
+        {/* ── RIGHT COLUMN ── */}
+        <div className="xl:col-span-4 space-y-6">
+          {/* Recent Messages */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <MessageSquare className="w-4 h-4 text-violet-500" />
+                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-[0.15em]">
+                  Inbox
+                </h2>
+                {recentMessages.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-md bg-violet-50 text-[10px] font-bold text-violet-500">
+                    {recentMessages.length}
+                  </span>
+                )}
+              </div>
+              <Link
+                href="/admin/contact"
+                className="text-[10px] font-bold text-gray-400 uppercase tracking-wider hover:text-gray-700 transition-colors flex items-center gap-1"
+              >
+                All
+                <ChevronRight className="w-3 h-3" />
+              </Link>
+            </div>
 
-           <div className="space-y-4">
-             {recentMessages.length > 0 ? recentMessages.map((msg: any) => (
-               <div key={msg.id} className="bg-slate-50 border border-gray-300 rounded-2xl p-4 flex gap-4 hover:border-secondary/40 transition-all group">
-                 <div className="w-10 h-10 rounded-xl bg-slate-50 border border-gray-300 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-black transition-colors">
-                   <MessageSquare className="w-5 h-5" />
-                 </div>
-                 <div className="flex-1 space-y-1">
-                   <div className="flex justify-between items-start">
-                     <span className="text-sm font-bold text-black truncate max-w-[120px]">{msg.name}</span>
-                     <span className="text-[9px] font-black text-black/40 uppercase whitespace-nowrap">{new Date(msg.created_at).toLocaleDateString()}</span>
-                   </div>
-                   <p className="text-[11px] text-black/60 line-clamp-1 italic">"{msg.message}"</p>
-                 </div>
-               </div>
-             )) : (
-               <div className="bg-slate-50 border border-dashed border-gray-300 rounded-2xl p-12 flex flex-col items-center justify-center text-black/10">
-                 <AlertCircle className="w-10 h-10 mb-2 opacity-20" />
-                 <span className="text-xs font-bold uppercase tracking-widest">Inbox is empty</span>
-               </div>
-             )}
-           </div>
+            <div className="space-y-3">
+              {recentMessages.length > 0 ? (
+                recentMessages.map((msg: any) => (
+                  <div
+                    key={msg.id}
+                    className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] hover:border-gray-300/80 transition-all group"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center shrink-0 text-violet-500 group-hover:bg-violet-500 group-hover:text-white transition-colors">
+                        <Mail className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[12px] font-semibold text-gray-800 truncate">
+                            {msg.name}
+                          </span>
+                          <span className="text-[9px] font-bold text-gray-400 whitespace-nowrap">
+                            {timeAgo(msg.created_at)}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
+                          &ldquo;{msg.message}&rdquo;
+                        </p>
+                        <div className="flex items-center gap-3 mt-2">
+                          {msg.email && (
+                            <span className="text-[9px] text-gray-300 font-medium truncate max-w-[130px]">
+                              {msg.email}
+                            </span>
+                          )}
+                          {msg.phone && (
+                            <span className="text-[9px] text-gray-300 font-medium">
+                              {msg.phone}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="bg-white border border-dashed border-gray-200 rounded-xl p-12 flex flex-col items-center text-gray-300">
+                  <MessageSquare className="w-8 h-8 mb-2 opacity-20" />
+                  <p className="text-[11px] font-bold uppercase tracking-widest">
+                    No messages
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Activity Feed — derived from real bookings only */}
+          {/* <div className="space-y-4">
+            <div className="flex items-center gap-2.5">
+              <Timer className="w-4 h-4 text-gray-400" />
+              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-[0.15em]">
+                Activity Feed
+              </h2>
+            </div>
+            <div className="bg-white border border-gray-200/80 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] space-y-4">
+              {recentBookings.length > 0 ? (
+                recentBookings.map((b: any) => (
+                  <ActivityItem
+                    key={b.id}
+                    icon={
+                      b.status === "approved"
+                        ? CheckCircle2
+                        : b.status === "rejected"
+                        ? XCircle
+                        : Clock
+                    }
+                    color={
+                      b.status === "approved"
+                        ? "#10B981"
+                        : b.status === "rejected"
+                        ? "#EF4444"
+                        : "#F59E0B"
+                    }
+                    title={`${b.name} — ${
+                      b.status === "approved"
+                        ? "booking approved"
+                        : b.status === "rejected"
+                        ? "booking rejected"
+                        : "new booking received"
+                    }`}
+                    time={timeAgo(b.created_at)}
+                  />
+                ))
+              ) : (
+                <p className="text-[11px] text-gray-300 text-center py-4 font-medium uppercase tracking-wider">
+                  No activity yet
+                </p>
+              )}
+            </div>
+          </div> */}
         </div>
       </div>
 
-      {/* Shortcut Modals */}
-      <ProgramAddEditModal 
-        isOpen={modals.program} 
-        onClose={() => closeModal('program')} 
-        onSuccess={() => { refreshData(); }} 
+      {/* ──── MODALS ──── */}
+      <ProgramAddEditModal
+        isOpen={modals.program}
+        onClose={() => closeModal("program")}
+        onSuccess={() => refreshData()}
         program={null}
       />
-      <InstructorModal 
-        isOpen={modals.instructor} 
-        onClose={() => closeModal('instructor')} 
-        onSuccess={() => { refreshData(); }} 
+      <InstructorModal
+        isOpen={modals.instructor}
+        onClose={() => closeModal("instructor")}
+        onSuccess={() => refreshData()}
         instructor={null}
       />
-      <EventAddEditModal 
-        isOpen={modals.event} 
-        onClose={() => closeModal('event')} 
-        onSuccess={() => { refreshData(); }} 
+      <EventAddEditModal
+        isOpen={modals.event}
+        onClose={() => closeModal("event")}
+        onSuccess={() => refreshData()}
         event={null}
       />
-      <GalleryAddEditModal 
-        isOpen={modals.gallery} 
-        onClose={() => closeModal('gallery')} 
-        onSuccess={() => { refreshData(); }} 
+      <GalleryAddEditModal
+        isOpen={modals.gallery}
+        onClose={() => closeModal("gallery")}
+        onSuccess={() => refreshData()}
         categories={categories}
         editData={null}
       />

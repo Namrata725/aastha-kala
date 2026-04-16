@@ -182,15 +182,28 @@ class ProgramController extends Controller
             $program->instructors()->sync($request->instructor_ids);
         }
 
-        // Update schedules (simple way: delete all and re-create)
+        // Update schedules gracefully
         if ($request->has('schedules')) {
-            $program->schedules()->delete();
-            foreach ($request->schedules as $schedule) {
-                $program->schedules()->create([
-                    'instructor_id' => $schedule['instructor_id'] ?? null,
-                    'start_time'    => $schedule['start_time'],
-                    'end_time'      => $schedule['end_time'],
-                ]);
+            $newSchedules = is_array($request->schedules) ? $request->schedules : [];
+            $existingIds = collect($newSchedules)->pluck('id')->filter()->toArray();
+            
+            // Delete schedules that are no longer present
+            $program->schedules()->whereNotIn('id', $existingIds)->delete();
+            
+            foreach ($newSchedules as $sData) {
+                if (!empty($sData['id'])) {
+                    $program->schedules()->where('id', $sData['id'])->update([
+                        'instructor_id' => $sData['instructor_id'] ?? null,
+                        'start_time'    => $sData['start_time'],
+                        'end_time'      => $sData['end_time'],
+                    ]);
+                } else {
+                    $program->schedules()->create([
+                        'instructor_id' => $sData['instructor_id'] ?? null,
+                        'start_time'    => $sData['start_time'],
+                        'end_time'      => $sData['end_time'],
+                    ]);
+                }
             }
         }
 

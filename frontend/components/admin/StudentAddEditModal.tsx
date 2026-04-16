@@ -163,6 +163,15 @@ const StudentAddEditModal: React.FC<Props> = ({
 
   const handleChange = (key: string, value: any) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+    
+    // Clear error for this field
+    if (errors[key]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[key];
+        return newErrors;
+      });
+    }
   };
 
   const toggleClass = (title: string) => {
@@ -227,10 +236,17 @@ const StudentAddEditModal: React.FC<Props> = ({
       if (!res.ok) {
         if (result.errors) {
           setErrors(result.errors);
-          // Better error extraction
-          const errorValues = Object.values(result.errors).flat();
-          const firstError = errorValues[0] as string;
-          toast.error(firstError || "Validation failed");
+          
+          // Scroll to the first error field
+          const firstErrorKey = Object.keys(result.errors)[0];
+          const elementId = firstErrorKey.replace(/\./g, "_");
+          
+          setTimeout(() => {
+            const element = document.getElementById(elementId);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }, 100);
         } else {
           toast.error(result.message || "Something went wrong");
         }
@@ -338,9 +354,9 @@ const StudentAddEditModal: React.FC<Props> = ({
 
         <div className="space-y-6">
           {/* Photo Section */}
-          <div className="flex flex-col items-center sm:flex-row gap-6 p-6 bg-slate-50 rounded-3xl border border-slate-100">
+          <div id="image" className="flex flex-col items-center sm:flex-row gap-6 p-6 bg-slate-50 rounded-3xl border border-slate-100">
             <div className="relative group">
-                <div className="w-24 h-24 rounded-2xl bg-white shadow-inner flex items-center justify-center overflow-hidden border-2 border-dashed border-slate-200 group-hover:border-blue-500 transition-colors">
+                <div className={`w-24 h-24 rounded-2xl bg-white shadow-inner flex items-center justify-center overflow-hidden border-2 border-dashed ${errors.image ? 'border-red-500' : 'border-slate-200'} group-hover:border-blue-500 transition-colors`}>
                     {previewImage ? (
                         <img src={previewImage} className="w-full h-full object-cover" />
                     ) : (
@@ -355,8 +371,9 @@ const StudentAddEditModal: React.FC<Props> = ({
                 />
             </div>
             <div className="text-center sm:text-left">
-                <p className="font-bold text-gray-900">Student Photo</p>
+                <p className={`font-bold ${errors.image ? 'text-red-500' : 'text-gray-900'}`}>Student Photo</p>
                 <p className="text-xs text-gray-500 max-w-[200px]">Upload a clear photo. Recommended size: 500x500px.</p>
+                {errors.image && <p className="text-red-500 text-[10px] font-bold mt-1">{errors.image[0]}</p>}
                 {previewImage && (
                     <button onClick={() => { setPreviewImage(null); setForm({...form, image: null}); }} className="mt-2 text-[10px] font-bold text-red-500 uppercase tracking-tighter hover:underline">Remove Photo</button>
                 )}
@@ -366,6 +383,7 @@ const StudentAddEditModal: React.FC<Props> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField
               label="Full Name"
+              id="name"
               required
               icon={User}
               value={form.name}
@@ -375,6 +393,7 @@ const StudentAddEditModal: React.FC<Props> = ({
             />
             <InputField
               label="Phone Number"
+              id="phone"
               required
               icon={Phone}
               value={form.phone}
@@ -384,6 +403,7 @@ const StudentAddEditModal: React.FC<Props> = ({
             />
             <InputField
               label="Email Address"
+              id="email"
               icon={Mail}
               value={form.email}
               onChange={(e) => handleChange("email", e.target.value)}
@@ -403,6 +423,7 @@ const StudentAddEditModal: React.FC<Props> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <InputField
               label="Date of Birth"
+              id="dob"
               type="date"
               icon={Calendar}
               value={form.dob}
@@ -425,6 +446,7 @@ const StudentAddEditModal: React.FC<Props> = ({
             />
              <InputField
               label="Preferred Time"
+              id="time"
               icon={Clock}
               placeholder="e.g. 7:00 AM"
               value={form.time}
@@ -446,6 +468,7 @@ const StudentAddEditModal: React.FC<Props> = ({
             />
             <InputField
               label="Reference/Notes"
+              id="offer_enroll_reference"
               icon={Star}
               placeholder="How did they find us?"
               value={form.offer_enroll_reference}
@@ -524,6 +547,7 @@ const StudentAddEditModal: React.FC<Props> = ({
 
           <InputField
             label="Enrollment Status"
+            id="status"
             type="select"
             value={form.status}
             onChange={(e) => handleChange("status", e.target.value)}

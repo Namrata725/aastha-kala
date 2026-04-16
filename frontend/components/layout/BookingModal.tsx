@@ -32,10 +32,10 @@ interface Program {
 
 const formatTime12h = (time24: string) => {
   if (!time24) return "";
-  const [hours, minutes] = time24.split(':').map(Number);
-  const period = hours >= 12 ? 'PM' : 'AM';
+  const [hours, minutes] = time24.split(":").map(Number);
+  const period = hours >= 12 ? "PM" : "AM";
   const displayHours = hours % 12 || 12;
-  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
 };
 
 interface BookingModalProps {
@@ -59,7 +59,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
     custom_end_time: "",
     duration_value: "",
     duration_unit: "",
-    instructor_id: "",
     message: "",
     current_address: "",
   });
@@ -69,6 +68,18 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Basic end > start guard
+    if (
+      bookingType === "customization" &&
+      form.custom_start_time &&
+      form.custom_end_time &&
+      form.custom_end_time <= form.custom_start_time
+    ) {
+      toast.error("End time must be after start time.");
+      return;
+    }
+
     setLoading(true);
     try {
       const payload: any = {
@@ -79,7 +90,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
         class_mode: form.class_mode,
         booking_date: form.booking_date,
         duration_value: parseInt(form.duration_value) || 1,
-        duration_unit: form.duration_unit,
+        duration_unit: form.duration_unit || undefined,
         type: bookingType,
         address: form.current_address,
         message: form.message,
@@ -114,11 +125,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-[1000] flex items-start justify-center p-4 overflow-y-auto">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl mt-20 md:mt-24 mb-10 max-h-[calc(100vh-120px)] overflow-y-auto transform transition-all animate-in fade-in zoom-in duration-300">
         {/* Header */}
@@ -166,10 +173,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
                     key={value}
                     type="button"
                     onClick={() => setBookingType(value as any)}
-                    className={`flex items-center gap-2.5 justify-center p-3.5 rounded-xl border-2 font-semibold text-sm transition ${bookingType === value
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-gray-100 text-gray-500 hover:border-gray-300"
-                      }`}
+                    className={`flex items-center gap-2.5 justify-center p-3.5 rounded-xl border-2 font-semibold text-sm transition ${
+                      bookingType === value
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-gray-100 text-gray-500 hover:border-gray-300"
+                    }`}
                   >
                     {icon} {label}
                   </button>
@@ -205,10 +213,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
                     key={value}
                     type="button"
                     onClick={() => set("class_mode", value)}
-                    className={`flex items-center gap-2.5 justify-center p-3.5 rounded-xl border-2 font-semibold text-sm transition ${form.class_mode === value
-                      ? "border-secondary bg-secondary/5 text-secondary"
-                      : "border-gray-100 text-gray-500 hover:border-gray-300"
-                      }`}
+                    className={`flex items-center gap-2.5 justify-center p-3.5 rounded-xl border-2 font-semibold text-sm transition ${
+                      form.class_mode === value
+                        ? "border-secondary bg-secondary/5 text-secondary"
+                        : "border-gray-100 text-gray-500 hover:border-gray-300"
+                    }`}
                   >
                     {icon} {label}
                   </button>
@@ -229,18 +238,20 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
               />
             </div>
 
-            {/* Schedule (regular) or Custom Time (private) */}
+            {/* Schedule or Custom Time */}
             {bookingType === "regular" ? (
               <div>
                 {program.schedules && program.schedules.length > 0 ? (
                   <div className="space-y-2">
+                    <p className={labelCls}>Select Schedule(s)</p>
                     {program.schedules.map((s) => (
                       <label
                         key={s.id}
-                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition ${form.schedule_ids.includes(String(s.id))
-                          ? "border-primary bg-primary/5"
-                          : "border-gray-100 hover:border-gray-200"
-                          }`}
+                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition ${
+                          form.schedule_ids.includes(String(s.id))
+                            ? "border-primary bg-primary/5"
+                            : "border-gray-100 hover:border-gray-200"
+                        }`}
                       >
                         <input
                           type="checkbox"
@@ -252,7 +263,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
                             if (e.target.checked) {
                               setForm({ ...form, schedule_ids: [...current, val] });
                             } else {
-                              setForm({ ...form, schedule_ids: current.filter(id => id !== val) });
+                              setForm({ ...form, schedule_ids: current.filter((id) => id !== val) });
                             }
                           }}
                           className="accent-primary w-4 h-4 rounded"
@@ -280,14 +291,29 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
             ) : (
               <div>
                 <label className={labelCls}>Preferred Time *</label>
+                <p className="text-xs text-gray-400 mb-3">
+                  Enter your preferred time slot. Our admin will contact you to confirm and finalize the schedule.
+                </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">From</p>
-                    <input required type="time" className={inputCls} value={form.custom_start_time} onChange={(e) => set("custom_start_time", e.target.value)} />
+                    <input
+                      required
+                      type="time"
+                      className={inputCls}
+                      value={form.custom_start_time}
+                      onChange={(e) => set("custom_start_time", e.target.value)}
+                    />
                   </div>
                   <div>
                     <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">To</p>
-                    <input required type="time" className={inputCls} value={form.custom_end_time} onChange={(e) => set("custom_end_time", e.target.value)} />
+                    <input
+                      required
+                      type="time"
+                      className={inputCls}
+                      value={form.custom_end_time}
+                      onChange={(e) => set("custom_end_time", e.target.value)}
+                    />
                   </div>
                 </div>
               </div>
@@ -340,7 +366,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
               />
             </div>
 
-            {/* Comment */}
+            {/* Message */}
             <div>
               <label className={labelCls}>Additional Message</label>
               <textarea

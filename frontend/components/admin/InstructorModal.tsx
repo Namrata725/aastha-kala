@@ -54,6 +54,7 @@ const InstructorModal: React.FC<Props> = ({
   const [loading, setLoading] = useState(false);
   const [allPrograms, setAllPrograms] = useState<any[]>([]);
   const [selectedPrograms, setSelectedPrograms] = useState<number[]>([]);
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     fetchAllPrograms();
@@ -106,6 +107,7 @@ const InstructorModal: React.FC<Props> = ({
 
       setImage(null);
       setRemoveImage(false);
+      setErrors({});
     } else {
       setForm({
         name: "",
@@ -121,6 +123,7 @@ const InstructorModal: React.FC<Props> = ({
       setPreview(null);
       setImage(null);
       setRemoveImage(false);
+      setErrors({});
     }
   }, [instructor, isOpen]);
 
@@ -131,6 +134,14 @@ const InstructorModal: React.FC<Props> = ({
       ...prev,
       [key]: typeof value === "string" ? value : "",
     }));
+    // Clear error for this field
+    if (errors[key as string]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[key as string];
+        return newErrors;
+      });
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,23 +202,24 @@ const InstructorModal: React.FC<Props> = ({
       });
 
       const result = await res.json();
+      setErrors({});
 
       if (!res.ok) {
         if (result.errors) {
-          Object.entries(result.errors).forEach(([field, messages]: any) => {
-            const formattedField = field
-              .split(".")
-              .map((part: string) => {
-                if (part === "availabilities") return "Availability";
-                if (!isNaN(parseInt(part))) return `Slot ${parseInt(part) + 1}`;
-                return part.replace(/_/g, " ");
-              })
-              .join(": ");
-
-            messages.forEach((msg: string) => {
-              toast.error(`${formattedField}: ${msg}`);
-            });
-          });
+          setErrors(result.errors);
+          
+          // Scroll to the first error field
+          const firstErrorKey = Object.keys(result.errors)[0];
+          // Map backend field name to frontend ID
+          const elementId = firstErrorKey.replace(/\./g, "_");
+          
+          setTimeout(() => {
+            const element = document.getElementById(elementId);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }, 100);
+          
           return;
         }
 
@@ -299,6 +311,7 @@ const InstructorModal: React.FC<Props> = ({
             value={form.name}
             onChange={(e) => handleChange("name", e.target.value)}
             disabled={loading}
+            error={errors.name}
           />
 
           <InputField
@@ -308,6 +321,7 @@ const InstructorModal: React.FC<Props> = ({
             value={form.title}
             onChange={(e) => handleChange("title", e.target.value)}
             disabled={loading}
+            error={errors.title}
           />
 
           <InputField
@@ -317,6 +331,7 @@ const InstructorModal: React.FC<Props> = ({
             value={form.phone}
             onChange={(e) => handleChange("phone", e.target.value)}
             disabled={loading}
+            error={errors.phone}
           />
 
           <InputField
@@ -326,6 +341,7 @@ const InstructorModal: React.FC<Props> = ({
             value={form.email}
             onChange={(e) => handleChange("email", e.target.value)}
             disabled={loading}
+            error={errors.email}
           />
 
           <InputField
@@ -334,6 +350,7 @@ const InstructorModal: React.FC<Props> = ({
             value={form.facebook_url || ""}
             onChange={(e) => handleChange("facebook_url", e.target.value)}
             disabled={loading}
+            error={errors.facebook_url}
           />
 
           <InputField
@@ -342,6 +359,7 @@ const InstructorModal: React.FC<Props> = ({
             value={form.instagram_url || ""}
             onChange={(e) => handleChange("instagram_url", e.target.value)}
             disabled={loading}
+            error={errors.instagram_url}
           />
 
           <div className="md:col-span-2">
@@ -353,6 +371,7 @@ const InstructorModal: React.FC<Props> = ({
               value={form.about}
               onChange={(e) => handleChange("about", e.target.value)}
               disabled={loading}
+              error={errors.about}
             />
           </div>
         </div>
@@ -417,7 +436,7 @@ const InstructorModal: React.FC<Props> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {availabilities.map((avail, index) => (
-              <div key={index} className="bg-white/40 border border-primary/20 rounded-2xl p-4 flex flex-col gap-3 group hover:border-primary/40 transition shadow-sm">
+              <div key={index} id={`availabilities_${index}`} className="bg-white/40 border border-primary/20 rounded-2xl p-4 flex flex-col gap-3 group hover:border-primary/40 transition shadow-sm">
                 <div className="flex justify-between items-center">
                    <div className="bg-primary/10 border border-primary/20 rounded-lg px-3 py-1 text-[10px] font-bold text-primary/60 uppercase tracking-widest italic">
                      Set your time slot

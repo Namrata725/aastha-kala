@@ -19,7 +19,7 @@ interface Gallery {
   video?: string;
   category_id?: string;
   description?: string;
-  images?: File[] | string[];
+  images?: (File | string)[];
 }
 
 interface Props {
@@ -105,20 +105,44 @@ const GalleryAddEditModal: React.FC<Props> = ({
 
   const handleFileChange = (files: File[]) => {
     if (loading) return;
-    handleChange("images", files);
-    const previews = files.map((file) => URL.createObjectURL(file));
-    setPreviewImages(previews);
+    
+    // Update form state by appending new files
+    setForm(prev => ({
+      ...prev,
+      images: [...(Array.isArray(prev.images) ? prev.images : []) as (File | string)[], ...files]
+    }));
+
+    // Update previewImages by appending new blob URLs
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setPreviewImages((prev) => [...prev, ...newPreviews]);
   };
 
 
-  const handleRemoveImage = (img: string) => {
+  const handleRemoveImage = (img: string, index: number) => {
     if (loading) return;
-    setPreviewImages((prev) => prev.filter((i) => i !== img));
+    
+    // 1. Remove from preview list using index
+    setPreviewImages((prev) => prev.filter((_, i) => i !== index));
 
-    if (typeof img === "string") {
+    // 2. Handle removal logic based on image type
+    if (img.startsWith("blob:")) {
+      // It's a newly added local file
+      // Count how many blobs were before this one in the preview list to find its index in form.images
+      const blobIndex = previewImages.slice(0, index).filter(url => url.startsWith("blob:")).length;
+      
+      setForm(prev => {
+        const currentImages = [...(Array.isArray(prev.images) ? prev.images : []) as (File | string)[]];
+        currentImages.splice(blobIndex, 1);
+        return { ...prev, images: currentImages };
+      });
+      
+      // Revoke the blob URL to free up memory
+      URL.revokeObjectURL(img);
+    } else {
+      // It's an existing server-side image
       const relativePath = img.startsWith("http")
         ? img.replace(`${IMAGE_BASE?.replace(/\/$/, "")}/`, "")
-        : img;
+        : img.replace(/^\/+/, "");
 
       setRemovedImages((prev) => [...prev, relativePath]);
     }
@@ -274,7 +298,7 @@ const GalleryAddEditModal: React.FC<Props> = ({
               onChange={(e) => handleChange("position", e.target.value)}
               options={[
                 { label: "slider-home", value: "slider-home" },
-                { label: "about-home", value: "about-home" },
+                // { label: "about-home", value: "about-home" },
                 { label: "about-intro", value: "about-intro" },
                 { label: "gallery", value: "gallery" },
               ]}
@@ -340,8 +364,8 @@ const GalleryAddEditModal: React.FC<Props> = ({
                       {/* remove button */}
                       <button
                         type="button"
-                        onClick={() => handleRemoveImage(img)}
-                        className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 rounded-full"
+                        onClick={() => handleRemoveImage(img, index)}
+                        className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 rounded-full cursor-pointer hover:bg-red-600 transition-colors"
                       >
                         ✕
                       </button>

@@ -588,12 +588,6 @@ const Settings: React.FC = () => {
                     disabled={isSaving}
                     error={errors.admission_fee}
                   />
-                  <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                    <span className="text-amber-500 text-xs mt-0.5">⚠️</span>
-                    <p className="text-[11px] text-amber-700 font-medium">
-                      Changing this fee will only affect <strong>new students</strong> enrolled after saving. Existing student fee records are not retroactively changed.
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
