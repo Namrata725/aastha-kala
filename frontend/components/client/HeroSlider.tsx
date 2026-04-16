@@ -41,14 +41,17 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ heroImages, fill = false }) => 
 
       {/* Pagination dots */}
       {heroImages.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30 text-white text-lg font-bold">
           {heroImages.map((_, idx) => (
-            <button
+            <span
               key={idx}
               onClick={() => setCurrentIndex(idx)}
-              className={`h-2 rounded-full transition-all duration-300 ${idx === currentIndex ? "bg-white w-6" : "bg-white/50 w-2"
-                }`}
-            />
+              className={`cursor-pointer transition-all duration-300 ${
+                idx === currentIndex ? "opacity-100" : "opacity-50"
+              }`}
+            >
+              {idx === currentIndex ? "-" : "."}
+            </span>
           ))}
         </div>
       )}

@@ -1,4 +1,3 @@
-import React from "react";
 import Dashboard from "./DashboardClient";
 import { Metadata } from "next";
 

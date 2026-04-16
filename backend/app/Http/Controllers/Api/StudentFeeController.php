@@ -12,14 +12,35 @@ class StudentFeeController extends Controller
 {
     public function index(Request $request)
     {
-        $query = StudentFee::with(['student', 'program'])->latest();
+        // Select consolidated records grouped by student and month/period
+        $query = StudentFee::with(['student'])
+            ->selectRaw('
+                MAX(id) as id, 
+                student_id, 
+                month_year, 
+                SUM(total_amount) as total_amount, 
+                SUM(paid_amount) as paid_amount, 
+                SUM(pending_amount) as pending_amount,
+                GROUP_CONCAT(DISTINCT fee_type) as fee_types,
+                MAX(remarks) as remarks,
+                MAX(payment_method) as payment_method,
+                CASE WHEN SUM(pending_amount) <= 0 THEN "paid" ELSE "pending" END as status,
+                MAX(created_at) as created_at
+            ')
+            ->groupBy('student_id', 'month_year')
+            ->orderByDesc('created_at');
 
         if ($request->filled('student_id')) {
             $query->where('student_id', $request->student_id);
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            // Because status is calculated, we filter by the SUM of pending_amount
+            if ($request->status === 'paid') {
+                $query->having('pending_amount', '<=', 0);
+            } else {
+                $query->having('pending_amount', '>', 0);
+            }
         }
 
         if ($request->filled('fee_type')) {
@@ -30,15 +51,37 @@ class StudentFeeController extends Controller
             $search = $request->search;
             $query->whereHas('student', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
-        $fees = $query->paginate(15);
+        // For complex grouped queries with HAVING, paginate handles it better if we explicitly tell it to wrap
+        $fees = $query->paginate(10);
+
+        // Accurate summary stats for ALL records matching filters (ignoring pagination)
+        $baseStatsQuery = StudentFee::query();
+        if ($request->filled('student_id')) $baseStatsQuery->where('student_id', $request->student_id);
+        if ($request->filled('fee_type')) $baseStatsQuery->where('fee_type', $request->fee_type);
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $baseStatsQuery->whereHas('student', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        // Summary for dashboard
+        $totals = [
+            'total_collected' => (float) $baseStatsQuery->sum('paid_amount'),
+            'total_pending' => (float) $baseStatsQuery->sum('pending_amount'),
+            'paid_count' => (int) StudentFee::where('status', 'paid')->count(), 
+            'pending_count' => (int) StudentFee::where('status', 'pending')->count(),
+        ];
 
         return response()->json([
             'message' => 'Fees fetched successfully',
-            'data' => $fees
+            'data' => $fees,
+            'summary' => $totals
         ]);
     }
 
@@ -53,20 +96,61 @@ class StudentFeeController extends Controller
             return response()->json(['message' => 'Student not found'], 404);
         }
 
+        $requestedMonth = $request->query('month_year');
+
+        // Fetch all payment records for this student in this month to get individual program statuses
+        $monthRecords = collect();
+        if ($requestedMonth) {
+            $monthRecords = StudentFee::where('student_id', $studentId)
+                ->where('month_year', $requestedMonth)
+                ->get();
+        }
+
         // Get global admission fee from settings
         $setting = \App\Models\Setting::first();
         $globalAdmissionFee = $setting ? (float) $setting->admission_fee : null;
 
-        $admissionRecord = StudentFee::where('student_id', $studentId)
-            ->where(function($q) {
+        // Find admission record - prioritize the requested month if available, otherwise find any
+        $admissionRecord = null;
+        if ($requestedMonth) {
+            $admissionRecord = StudentFee::where('student_id', $studentId)
+                ->where('month_year', $requestedMonth)
+                ->where(function ($q) {
+                    $q->where('fee_type', 'admission')
+                        ->orWhere('fee_type', 'billing');
+                })
+                ->first();
+        }
+
+        if (!$admissionRecord) {
+            $admissionRecord = StudentFee::where('student_id', $studentId)
+                ->where(function ($q) {
+                    $q->where('fee_type', 'admission')
+                        ->orWhere('fee_type', 'billing');
+                })
+                ->orderByRaw("CASE WHEN status = 'paid' THEN 0 ELSE 1 END") // Prioritize paid status
+                ->orderByDesc('id') // Then most recent
+                ->first();
+        }
+
+        // Calculate global admission totals to handle existing historical duplicates
+        $globalAdmTotals = StudentFee::where('student_id', $studentId)
+            ->where(function ($q) {
                 $q->where('fee_type', 'admission')
-                  ->orWhere('fee_type', 'billing');
+                    ->orWhere('fee_type', 'billing');
             })
+            ->selectRaw('SUM(paid_amount) as total_paid, SUM(total_amount) as net_amount')
             ->first();
 
-        $admissionPaid = $admissionRecord ? ($admissionRecord->status === 'paid') : false;
-        $admissionAmount = $admissionRecord ? $admissionRecord->total_amount : null;
+        $admissionPaid = $globalAdmTotals && $globalAdmTotals->net_amount > 0 && ($globalAdmTotals->total_paid >= $globalAdmTotals->net_amount);
+        $admissionAmount = $admissionRecord ? ($admissionRecord->admission_fee ?? $admissionRecord->total_amount) : $globalAdmissionFee;
         $admissionExists = $admissionRecord ? true : false;
+        $admissionPaidAmount = $globalAdmTotals ? (float)$globalAdmTotals->total_paid : 0;
+
+        // Force paid status if cumulative total matches net
+        if ($admissionPaid) {
+            $admissionPaid = true;
+        }
 
         // Try to get program fees from proper relations first
         $programFees = null;
@@ -85,19 +169,19 @@ class StudentFeeController extends Controller
         } else if ($student->classes) {
             // Fallback to legacy comma-separated field
             $classTitles = array_map('trim', array_filter(explode(',', $student->classes)));
-            
+
             if (!empty($classTitles)) {
                 $matchingPrograms = \App\Models\Program::where('is_active', true)
-                    ->where(function($q) use ($classTitles) {
+                    ->where(function ($q) use ($classTitles) {
                         foreach ($classTitles as $title) {
                             $q->orWhereRaw('LOWER(title) = ?', [strtolower($title)]);
                         }
                     })
                     ->get();
-                
+
                 if ($matchingPrograms->isEmpty()) {
                     $matchingPrograms = \App\Models\Program::where('is_active', true)
-                        ->where(function($q) use ($classTitles) {
+                        ->where(function ($q) use ($classTitles) {
                             foreach ($classTitles as $title) {
                                 $q->orWhere('title', 'LIKE', "%{$title}%");
                             }
@@ -108,26 +192,33 @@ class StudentFeeController extends Controller
         }
 
         if ($matchingPrograms->isNotEmpty() || !empty($classTitles)) {
+            $breakdown = [];
             $totalFee = 0;
             $totalAdm = 0;
-            $breakdown = [];
             $matchedTitles = [];
-            
+
             foreach ($matchingPrograms as $p) {
-                // If it's the new relation flow, we can use the actual fee. If legacy flow, it works the same.
                 $fee = (float) ($p->program_fee ?? 0);
                 $adm = (float) ($p->admission_fee ?? 0);
+
+                // Find existing payment for THIS specific program in THIS month
+                $existing = $monthRecords->where('program_id', $p->id)->first();
+
                 $totalFee += $fee;
                 $totalAdm += $adm;
                 $matchedTitles[] = strtolower($p->title);
                 $breakdown[] = [
-                    'id'          => $p->id,
-                    'title'       => $p->title,
+                    'id' => $p->id,
+                    'title' => $p->title,
                     'program_fee' => $fee,
                     'admission_fee' => $adm,
+                    'paid_amount' => $existing ? (float) $existing->paid_amount : 0,
+                    'discount' => $existing ? (float) $existing->program_discount : 0,
+                    'discount_type' => $existing ? $existing->program_discount_type : 'cash',
+                    'status' => $existing ? $existing->status : 'pending',
                 ];
             }
-            
+
             if ($enrollments->isEmpty() && !empty($classTitles)) {
                 foreach ($classTitles as $originalTitle) {
                     if (!in_array(strtolower($originalTitle), $matchedTitles)) {
@@ -135,41 +226,35 @@ class StudentFeeController extends Controller
                     }
                 }
             }
-            
-            $programFees = [
-                'program_titles'     => $matchingPrograms->pluck('title')->toArray(),
-                'programs_breakdown' => $breakdown,
-                'enrolled_count'     => count($classTitles),
-                'matched_count'      => $matchingPrograms->count(),
-                'unmatched_titles'   => $unmatched,
-                'admission_fee'      => $totalAdm > 0 ? $totalAdm : $globalAdmissionFee,
-                'program_fee'        => $totalFee,
-            ];
-        }
 
-        $requestedMonth = $request->query('month_year');
-        $periodRecord = null;
-        if ($requestedMonth) {
-            $periodRecord = StudentFee::where('student_id', $studentId)
-                ->where('month_year', $requestedMonth)
-                ->where('fee_type', '!=', 'admission')
-                ->first();
+            $programFees = [
+                'program_titles' => $matchingPrograms->pluck('title')->toArray(),
+                'programs_breakdown' => $breakdown,
+                'enrolled_count' => count($classTitles),
+                'matched_count' => $matchingPrograms->count(),
+                'unmatched_titles' => $unmatched,
+                'admission_fee' => $totalAdm > 0 ? $totalAdm : $globalAdmissionFee,
+                'program_fee' => $totalFee,
+            ];
         }
 
         return response()->json([
             'message' => 'Student fee info fetched',
-            'data'    => [
+            'data' => [
                 'student' => [
-                    'id'      => $studentId,
-                    'name'    => $student->name,
+                    'id' => $studentId,
+                    'name' => $student->name,
                     'classes' => $student->classes,
                 ],
-                'admission_paid'       => $admissionPaid,
-                'admission_exists'     => $admissionExists,
-                'admission_amount'     => $admissionAmount,
+                'admission_paid' => $admissionPaid,
+                'admission_exists' => $admissionExists,
+                'admission_amount' => $admissionAmount,
+                'admission_paid_amount' => $admissionPaidAmount,
+                'admission_discount' => $admissionRecord ? $admissionRecord->admission_discount : 0,
+                'admission_discount_type' => $admissionRecord ? $admissionRecord->admission_discount_type : 'cash',
                 'global_admission_fee' => $globalAdmissionFee,
-                'program_fees'         => $programFees,
-                'period_record'        => $periodRecord,
+                'program_fees' => $programFees,
+                'period_record' => $monthRecords->first(),
             ]
         ]);
     }
@@ -177,172 +262,139 @@ class StudentFeeController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'student_id'              => 'required|exists:students,id',
-            'fee_type'                => 'required|in:admission,program,billing',
-            'month_year'              => 'nullable|string|required_if:fee_type,program|required_if:fee_type,billing',
-            'total_amount'            => 'required|numeric|min:0',
-            'paid_amount'             => 'required|numeric|min:0',
-            'payment_method'          => 'nullable|string',
-            'remarks'                 => 'nullable|string',
-            'admission_fee'           => 'nullable|numeric|min:0',
-            'admission_discount'      => 'nullable|numeric|min:0',
+            'student_id' => 'required|exists:students,id',
+            'fee_type' => 'required|in:admission,program,billing',
+            'month_year' => 'required|string',
+            'payment_method' => 'nullable|string',
+            'remarks' => 'nullable|string',
+            'selected_programs' => 'nullable|array',
+            'program_payments' => 'nullable|array',
+            'program_discounts' => 'nullable|array',
+            'admission_fee' => 'nullable|numeric|min:0',
+            'admission_discount' => 'nullable|numeric|min:0',
             'admission_discount_type' => 'nullable|in:cash,percentage',
-            'admission_paid'          => 'nullable|boolean',
-            'program_fee'             => 'nullable|numeric|min:0',
-            'program_discount'        => 'nullable|numeric|min:0',
-            'program_discount_type'   => 'nullable|in:cash,percentage',
-            'selected_programs'       => 'nullable|array',
-            'selected_programs.*'     => 'exists:programs,id',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $data = $validator->validated();
-        $selectedPrograms = $request->input('selected_programs', []);
-        
-        // Single record logic (Admission only or no programs selected)
-        if (empty($selectedPrograms) || $data['fee_type'] === 'admission') {
-            $data['pending_amount'] = max(0, $data['total_amount'] - $data['paid_amount']);
-            $data['status'] = $data['pending_amount'] <= 0 ? 'paid' : 'pending';
-            $fee = StudentFee::create($data);
-            return response()->json([
-                'message' => 'Fee recorded successfully',
-                'data' => $fee
-            ], 201);
-        }
+        $studentId = $request->student_id;
+        $monthYear = $request->month_year;
 
-        // Program-wise creation logic
-        $totalPaidRemaining = (float) $data['paid_amount'];
-        
-        // Find programs to get their individual fees
-        $programs = \App\Models\Program::whereIn('id', $selectedPrograms)->get();
-        // Admission fee is processed first if billing includes admission
-        if ($data['fee_type'] === 'billing' && isset($data['admission_fee'])) {
-            $admFee = (float) $data['admission_fee'];
-            $admDisc = (float) ($data['admission_discount'] ?? 0);
-            if (($data['admission_discount_type'] ?? 'cash') === 'percentage') {
-                $admDisc = $admFee * ($admDisc / 100);
-            }
-            $admNet = max(0, $admFee - $admDisc);
-            $admPaid = min($admNet, $totalPaidRemaining);
-            $totalPaidRemaining -= $admPaid;
+        // Common data for all records in this billing session
+        $baseData = [
+            'student_id' => $studentId,
+            'month_year' => $monthYear,
+            'payment_method' => $request->payment_method ?? 'Cash',
+            'remarks' => $request->remarks,
+        ];
 
-            StudentFee::create(array_merge($data, [
-                'fee_type' => 'admission',
-                'total_amount' => $admNet,
-                'paid_amount' => $admPaid,
-                'pending_amount' => max(0, $admNet - $admPaid),
-                'status' => ($admNet - $admPaid) <= 0 ? 'paid' : 'pending',
-                'program_id' => null
-            ]));
-        }
+        // 1. Handle Admission Fee Record
+        if ($request->fee_type === 'admission' || $request->fee_type === 'billing') {
+            // Force pull admission fee from settings to prevent tampering
+            $setting = \App\Models\Setting::first();
+            $admBase = $setting ? (float) $setting->admission_fee : (float) $request->input('admission_fee', 0);
 
-        // Now distribute precisely what was paid for each program based on frontend inputs
-        $programPayments = $request->input('program_payments', []);
-        $programDiscountsInput = $request->input('program_discounts', []);
+            if ($admBase > 0) {
+                $admDisc = (float) $request->input('admission_discount', 0);
+                $admDiscType = $request->input('admission_discount_type', 'cash');
 
-        foreach ($programs as $prog) {
-            $progFee = (float) $prog->program_fee;
-            $progNet = $progFee; 
-
-            // Check if individual discount is provided
-            if (isset($programDiscountsInput[$prog->id])) {
-                $discAmt = (float) ($programDiscountsInput[$prog->id]['amount'] ?? 0);
-                $discType = $programDiscountsInput[$prog->id]['type'] ?? 'cash';
-                if ($discType === 'percentage') {
-                    $progNet = max(0, $progFee - ($progFee * ($discAmt / 100)));
-                } else {
-                    $progNet = max(0, $progFee - $discAmt);
+                // Calculate Net
+                $admNet = $admBase;
+                if ($admDisc > 0) {
+                    $admNet = ($admDiscType === 'percentage')
+                        ? max(0, $admBase - ($admBase * $admDisc / 100))
+                        : max(0, $admBase - $admDisc);
                 }
-            } 
-            // Fallback to global proportional discount (legacy/simplified support)
-            else if (isset($data['program_discount']) && $data['program_discount'] > 0) {
-               $totalBase = $programs->sum('program_fee');
-               if ($totalBase > 0) {
-                   $ratio = $progFee / $totalBase;
-                   $allocatedDisc = (float)$data['program_discount'];
-                   if (($data['program_discount_type'] ?? 'cash') === 'percentage') {
-                       $allocatedDisc = $totalBase * ($allocatedDisc / 100);
-                   }
-                   $progNet = max(0, $progFee - ($allocatedDisc * $ratio));
-               }
+
+                $admPaid = (float) $request->input('admission_paid_amount', $admNet); // Default to full pay if not specified
+
+                StudentFee::updateOrCreate(
+                    ['student_id' => $studentId, 'fee_type' => 'admission'],
+                    array_merge($baseData, [
+                        'total_amount' => $admNet,
+                        'paid_amount' => $admPaid,
+                        'pending_amount' => max(0, $admNet - $admPaid),
+                        'status' => ($admNet - $admPaid) <= 0 ? 'paid' : 'pending',
+                        'admission_fee' => $admBase,
+                        'admission_discount' => $admDisc,
+                        'admission_discount_type' => $admDiscType,
+                        'admission_paid' => ($admNet - $admPaid) <= 0,
+                    ])
+                );
             }
-
-            // EXACT tracking of what user entered in the individual Box:
-            $progPaid = isset($programPayments[$prog->id]) ? (float) $programPayments[$prog->id] : 0;
-
-            StudentFee::create(array_merge($data, [
-                'fee_type' => 'program',
-                'program_id' => $prog->id,
-                'total_amount' => $progNet,
-                'paid_amount' => $progPaid,
-                'pending_amount' => max(0, $progNet - $progPaid),
-                'status' => ($progNet - $progPaid) <= 0 ? 'paid' : 'pending',
-                // Store individual discount info if needed (assuming model supports it or just use remarks)
-                'program_discount' => isset($programDiscountsInput[$prog->id]) ? $programDiscountsInput[$prog->id]['amount'] : null,
-                'program_discount_type' => isset($programDiscountsInput[$prog->id]) ? $programDiscountsInput[$prog->id]['type'] : null,
-            ]));
         }
 
-        return response()->json([
-            'message' => 'Program-wise fees recorded successfully',
-        ], 201);
+        // 2. Handle Program-wise Records
+        if ($request->fee_type === 'program' || $request->fee_type === 'billing') {
+            $selectedIds = $request->selected_programs ?? [];
+            $programPayments = $request->program_payments ?? [];
+            $programDiscounts = $request->program_discounts ?? [];
+
+            foreach ($selectedIds as $progId) {
+                $prog = \App\Models\Program::find($progId);
+                if (!$prog)
+                    continue;
+
+                $progBase = (float) $prog->program_fee;
+                $discInfo = $programDiscounts[$progId] ?? ['amount' => 0, 'type' => 'cash'];
+                $progDisc = (float) $discInfo['amount'];
+                $progDiscType = $discInfo['type'];
+
+                // Calculate Net
+                $progNet = $progBase;
+                if ($progDisc > 0) {
+                    $progNet = ($progDiscType === 'percentage')
+                        ? max(0, $progBase - ($progBase * $progDisc / 100))
+                        : max(0, $progBase - $progDisc);
+                }
+
+                $progPaid = isset($programPayments[$progId]) ? (float) $programPayments[$progId] : 0;
+
+                StudentFee::updateOrCreate(
+                    ['student_id' => $studentId, 'month_year' => $monthYear, 'fee_type' => 'program', 'program_id' => $progId],
+                    array_merge($baseData, [
+                        'total_amount' => $progNet,
+                        'paid_amount' => $progPaid,
+                        'pending_amount' => max(0, $progNet - $progPaid),
+                        'status' => ($progNet - $progPaid) <= 0 ? 'paid' : 'pending',
+                        'program_fee' => $progBase,
+                        'program_discount' => $progDisc,
+                        'program_discount_type' => $progDiscType,
+                    ])
+                );
+            }
+        }
+
+        return response()->json(['message' => 'Fees processed successfully'], 201);
     }
 
     public function update(Request $request, $id)
     {
-        $fee = StudentFee::findOrFail($id);
+        // For consolidated updates, we find the representative record, then update its entire group
+        $reproFee = StudentFee::findOrFail($id);
 
-        $validator = Validator::make($request->all(), [
-            'paid_amount'             => 'sometimes|required|numeric|min:0',
-            'total_amount'            => 'sometimes|required|numeric|min:0',
-            'payment_method'          => 'nullable|string',
-            'remarks'                 => 'nullable|string',
-            'month_year'              => 'nullable|string',
-            'admission_discount'      => 'nullable|numeric|min:0',
-            'admission_discount_type' => 'nullable|in:cash,percentage',
-            'program_discount'        => 'nullable|numeric|min:0',
-            'program_discount_type'   => 'nullable|in:cash,percentage',
+        // We redirect to the store logic but ensuring we use the same student and month
+        $request->merge([
+            'student_id' => $reproFee->student_id,
+            'month_year' => $reproFee->month_year,
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $total = $request->input('total_amount', $fee->total_amount);
-        $paid  = $request->input('paid_amount', $fee->paid_amount);
-
-        $updateData = array_filter([
-            'total_amount'            => $total,
-            'paid_amount'             => $paid,
-            'pending_amount'          => max(0, $total - $paid),
-            'status'                  => ($total - $paid) <= 0 ? 'paid' : 'pending',
-            'payment_method'          => $request->input('payment_method'),
-            'remarks'                 => $request->input('remarks'),
-            'month_year'              => $request->input('month_year'),
-            'admission_discount'      => $request->input('admission_discount'),
-            'admission_discount_type' => $request->input('admission_discount_type'),
-            'program_discount'        => $request->input('program_discount'),
-            'program_discount_type'   => $request->input('program_discount_type'),
-        ], fn($val) => !is_null($val));
-
-        $fee->update($updateData);
-
-        return response()->json([
-            'message' => 'Fee updated successfully',
-            'data' => $fee
-        ]);
+        return $this->store($request);
     }
 
     public function destroy($id)
     {
         $fee = StudentFee::findOrFail($id);
-        $fee->delete();
+
+        // Delete the entire billing group for this month/period
+        StudentFee::where('student_id', $fee->student_id)
+            ->where('month_year', $fee->month_year)
+            ->delete();
 
         return response()->json([
-            'message' => 'Fee record deleted successfully'
+            'message' => 'Consolidated billing record deleted successfully'
         ]);
     }
 }

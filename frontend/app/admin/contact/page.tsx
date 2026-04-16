@@ -104,6 +104,9 @@ const [messages, setMessages] = useState<Message[]>([]);
   const formattedData = filteredMessages.map((msg, index) => ({
     ...msg,
     sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
+
+    phone_number: msg.phone_number?.trim() ? msg.phone_number: "-",
+
     message_preview: (
       <div className="max-w-[200px] truncate" title={msg.message}>
         {msg.message}

@@ -52,8 +52,20 @@ const InstructorAvailabilityModal: React.FC<InstructorAvailabilityModalProps> = 
         },
         body: JSON.stringify(newSlot),
       });
-      if (res.ok) { fetchAvailabilities(); toast.success("Slot added"); }
-    } catch (error) { toast.error("Failed to add slot"); }
+      const result = await res.json();
+      if (res.ok) { 
+        fetchAvailabilities(); 
+        toast.success("Slot added"); 
+      } else {
+        if (result.errors) {
+            Object.values(result.errors).flat().forEach((msg: any) => toast.error(msg));
+        } else {
+            toast.error(result.message || "Failed to add slot");
+        }
+      }
+    } catch (error) { 
+        toast.error("Failed to add slot"); 
+    }
   };
 
   const deleteSlot = async (id: number) => {
@@ -68,7 +80,7 @@ const InstructorAvailabilityModal: React.FC<InstructorAvailabilityModalProps> = 
 
   const updateSlot = async (id: number, field: string, value: any) => {
     try {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructor-availabilities/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructor-availabilities/${id}`, {
             method: "PUT",
             headers: { 
                 "Content-Type": "application/json",
@@ -76,6 +88,14 @@ const InstructorAvailabilityModal: React.FC<InstructorAvailabilityModalProps> = 
             },
             body: JSON.stringify({ [field]: value }),
         });
+        const result = await res.json();
+        if (!res.ok) {
+            if (result.errors) {
+                Object.values(result.errors).flat().forEach((msg: any) => toast.error(msg));
+            } else {
+                toast.error(result.message || "Sync failed");
+            }
+        }
         fetchAvailabilities();
     } catch (error) { toast.error("Sync failed"); }
   };
