@@ -271,7 +271,7 @@ const FeesPage = () => {
           columns={columns}
           data={formattedData}
           loading={loading}
-          actions={["view", "edit", "delete"]}
+          actions={["view", "edit"]}
           onView={row => { const original = fees.find(f => f.id === row.id); setFeeToView(original); setViewModalOpen(true); }}
           onEdit={row => { const original = fees.find(f => f.id === row.id); setFeeToEdit(original); setFeeModalOpen(true); }}
           onDelete={row => { const original = fees.find(f => f.id === row.id); setSelectedFee(original || null); setDeleteModalOpen(true); }}
@@ -310,14 +310,14 @@ const FeesPage = () => {
         onClose={() => setViewModalOpen(false)}
       />
 
-      <DeleteConfirmationModal
+      {/* <DeleteConfirmationModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleDelete}
         title="Delete Payment Record"
         loading={deleting}
         description={`Are you sure you want to delete the payment record for ${selectedFee?.student?.name ?? "this student"}? This cannot be undone.`}
-      />
+      /> */}
     </div>
   );
 };

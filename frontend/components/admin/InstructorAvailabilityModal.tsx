@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { X, Plus, Trash2, Clock, Calendar } from "lucide-react";
+import { X, Plus, Trash2, Clock, Calendar, CheckCircle2, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { to12h } from "@/lib/timeFormat";
 
@@ -11,7 +11,15 @@ interface InstructorAvailabilityModalProps {
   instructor: any;
 }
 
-const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+/** Convert "HH:MM" or "HH:MM:SS" → integer minutes since midnight */
+const toMinutes = (t: string): number => {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+};
+
+/** Convert integer minutes → "HH:MM" */
+const fromMinutes = (m: number): string =>
+  `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 
 const InstructorAvailabilityModal: React.FC<InstructorAvailabilityModalProps> = ({
   isOpen,
@@ -20,84 +28,135 @@ const InstructorAvailabilityModal: React.FC<InstructorAvailabilityModalProps> = 
 }) => {
   const [loading, setLoading] = useState(false);
   const [availabilities, setAvailabilities] = useState<any[]>([]);
+  const [freeSegments, setFreeSegments] = useState<any[]>([]);
+  const [loadingFree, setLoadingFree] = useState(false);
 
   const fetchAvailabilities = async () => {
     if (!instructor) return;
     try {
       setLoading(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructor-availabilities/instructor/${instructor.id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/instructor-availabilities/instructor/${instructor.id}`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
       const data = await res.json();
       setAvailabilities(data.data || []);
-    } catch (error) { toast.error("Failed to load availabilities"); }
-    finally { setLoading(false); }
+    } catch {
+      toast.error("Failed to load availabilities");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { if (isOpen) fetchAvailabilities(); }, [isOpen, instructor]);
+  const fetchFreeSegments = async () => {
+    if (!instructor) return;
+    try {
+      setLoadingFree(true);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/instructor-availabilities/instructor/${instructor.id}/free-slots`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
+      const data = await res.json();
+      setFreeSegments(data.free_segments || []);
+    } catch {
+      /* silent */
+    } finally {
+      setLoadingFree(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchAvailabilities();
+      fetchFreeSegments();
+    }
+  }, [isOpen, instructor]);
 
   const addSlot = async () => {
-    const newSlot = { 
-        instructor_id: instructor.id, 
-        day_of_week: "Monday", 
-        start_time: "09:00", 
-        end_time: "10:00" 
+    const newSlot = {
+      instructor_id: instructor.id,
+      day_of_week: "Monday",
+      start_time: "09:00",
+      end_time: "12:00",
     };
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructor-availabilities`, {
-        method: "POST",
-        headers: { 
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/instructor-availabilities`,
+        {
+          method: "POST",
+          headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}` 
-        },
-        body: JSON.stringify(newSlot),
-      });
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(newSlot),
+        }
+      );
       const result = await res.json();
-      if (res.ok) { 
-        fetchAvailabilities(); 
-        toast.success("Slot added"); 
+      if (res.ok) {
+        fetchAvailabilities();
+        fetchFreeSegments();
+        toast.success("Availability range added");
       } else {
         if (result.errors) {
-            Object.values(result.errors).flat().forEach((msg: any) => toast.error(msg));
+          Object.values(result.errors)
+            .flat()
+            .forEach((msg: any) => toast.error(msg));
         } else {
-            toast.error(result.message || "Failed to add slot");
+          toast.error(result.message || "Failed to add slot");
         }
       }
-    } catch (error) { 
-        toast.error("Failed to add slot"); 
+    } catch {
+      toast.error("Failed to add slot");
     }
   };
 
   const deleteSlot = async (id: number) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructor-availabilities/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      if (res.ok) { fetchAvailabilities(); toast.success("Slot removed"); }
-    } catch (error) { toast.error("Failed to delete slot"); }
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/instructor-availabilities/${id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      if (res.ok) {
+        fetchAvailabilities();
+        fetchFreeSegments();
+        toast.success("Availability range removed");
+      }
+    } catch {
+      toast.error("Failed to delete slot");
+    }
   };
 
   const updateSlot = async (id: number, field: string, value: any) => {
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructor-availabilities/${id}`, {
-            method: "PUT",
-            headers: { 
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}` 
-            },
-            body: JSON.stringify({ [field]: value }),
-        });
-        const result = await res.json();
-        if (!res.ok) {
-            if (result.errors) {
-                Object.values(result.errors).flat().forEach((msg: any) => toast.error(msg));
-            } else {
-                toast.error(result.message || "Sync failed");
-            }
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/instructor-availabilities/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ [field]: value }),
         }
-        fetchAvailabilities();
-    } catch (error) { toast.error("Sync failed"); }
+      );
+      const result = await res.json();
+      if (!res.ok) {
+        if (result.errors) {
+          Object.values(result.errors)
+            .flat()
+            .forEach((msg: any) => toast.error(msg));
+        } else {
+          toast.error(result.message || "Sync failed");
+        }
+      }
+      fetchAvailabilities();
+      fetchFreeSegments();
+    } catch {
+      toast.error("Sync failed");
+    }
   };
 
   if (!isOpen || !instructor) return null;
@@ -107,7 +166,7 @@ const InstructorAvailabilityModal: React.FC<InstructorAvailabilityModalProps> = 
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg cursor-pointer"
     >
-      <div 
+      <div
         onClick={(e) => e.stopPropagation()}
         className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-2xl p-8 bg-white/50 relative cursor-default"
         style={{
@@ -115,74 +174,193 @@ const InstructorAvailabilityModal: React.FC<InstructorAvailabilityModalProps> = 
           border: "1px solid rgba(255,255,255,0.1)",
         }}
       >
+        {/* Header */}
         <div className="flex justify-between items-center mb-10 border-b border-primary/20 pb-6">
           <div className="space-y-1">
-             <h2 className="text-xl font-bold text-primary flex items-center gap-3 italic">
-                <Calendar className="w-5 h-5 text-primary" /> {instructor.name}'s Free Hours
-             </h2>
-             <p className="text-[10px] text-primary/60 uppercase tracking-widest font-bold italic">Define slots for private class bookings</p>
+            <h2 className="text-xl font-bold text-primary flex items-center gap-3 italic">
+              <Calendar className="w-5 h-5 text-primary" /> {instructor.name}'s Availability Ranges
+            </h2>
+            <p className="text-[10px] text-primary/60 uppercase tracking-widest font-bold italic">
+              Define continuous time blocks — students can book any interval within these
+            </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-primary/60 hover:text-primary transition group">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/10 rounded-full text-primary/60 hover:text-primary transition group"
+          >
             <X className="w-5 h-5 group-hover:rotate-90 transition duration-300" />
           </button>
         </div>
 
         <div className="space-y-6">
+          {/* ── Defined Ranges ─────────────────────────────────────────── */}
           <div className="grid grid-cols-1 gap-4">
-            {availabilities.map((s, index) => (
-              <div key={index} className="flex flex-row items-center gap-4 bg-white/40 p-4 rounded-2xl border border-primary/20 shadow-sm group hover:border-primary/40 transition">
-                  <div className="flex-1 space-y-3">
-                     <div className="grid grid-cols-2 gap-4">
+            {availabilities.map((s, index) => {
+              // Find free segments that sit within this availability range
+              const availStart = toMinutes(s.start_time.substring(0, 5));
+              const availEnd   = toMinutes(s.end_time.substring(0, 5));
+              const localFree  = freeSegments.filter(
+                (seg: any) =>
+                  toMinutes(seg.start) >= availStart && toMinutes(seg.end) <= availEnd
+              );
+              const totalMins = availEnd - availStart;
+              const freeMins  = localFree.reduce(
+                (acc: number, seg: any) =>
+                  acc + toMinutes(seg.end) - toMinutes(seg.start),
+                0
+              );
+              const bookedMins = totalMins - freeMins;
+
+              return (
+                <div
+                  key={index}
+                  className="bg-white/40 p-5 rounded-2xl border border-primary/20 shadow-sm group hover:border-primary/40 transition"
+                >
+                  {/* Time range inputs */}
+                  <div className="flex flex-row items-start gap-4">
+                    <div className="flex-1 space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <span className="text-[9px] text-primary/60 font-black uppercase ml-1 italic tracking-wider">Start Time</span>
-                          <input 
-                            type="time" 
+                          <span className="text-[9px] text-primary/60 font-black uppercase ml-1 italic tracking-wider">
+                            Available From
+                          </span>
+                          <input
+                            type="time"
                             value={s.start_time?.substring(0, 5)}
-                            onChange={(e) => updateSlot(s.id, 'start_time', e.target.value)}
+                            onChange={(e) => updateSlot(s.id, "start_time", e.target.value)}
                             className="w-full bg-white/60 border border-primary/20 rounded-xl px-4 py-3 text-sm text-primary font-bold focus:outline-none focus:border-primary transition"
                           />
-                          <p className="text-[9px] text-primary/40 font-medium italic ml-1">{to12h(s.start_time)}</p>
+                          <p className="text-[9px] text-primary/40 font-medium italic ml-1">
+                            {to12h(s.start_time)}
+                          </p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[9px] text-primary/60 font-black uppercase ml-1 italic tracking-wider">End Time</span>
-                          <input 
-                            type="time" 
+                          <span className="text-[9px] text-primary/60 font-black uppercase ml-1 italic tracking-wider">
+                            Available Until
+                          </span>
+                          <input
+                            type="time"
                             value={s.end_time?.substring(0, 5)}
-                            onChange={(e) => updateSlot(s.id, 'end_time', e.target.value)}
+                            onChange={(e) => updateSlot(s.id, "end_time", e.target.value)}
                             className="w-full bg-white/60 border border-primary/20 rounded-xl px-4 py-3 text-sm text-primary font-bold focus:outline-none focus:border-primary transition"
                           />
-                          <p className="text-[9px] text-primary/40 font-medium italic ml-1">{to12h(s.end_time)}</p>
+                          <p className="text-[9px] text-primary/40 font-medium italic ml-1">
+                            {to12h(s.end_time)}
+                          </p>
                         </div>
                       </div>
-                   </div>
-                  <button 
-                    onClick={() => deleteSlot(s.id)}
-                    className="p-3 text-red-500 hover:bg-red-500/10 rounded-xl transition shadow-lg group-hover:scale-110"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-              </div>
-            ))}
-            {!availabilities.length && !loading && (
-                <div className="text-center py-10 border-2 border-dashed border-primary/20 rounded-3xl bg-white/20">
-                   <p className="text-sm text-primary/40 font-bold italic uppercase tracking-widest px-6">No free slots defined yet. Add hours to allow private bookings.</p>
+
+                      {/* Booking capacity bar */}
+                      {totalMins > 0 && (
+                        <div className="mt-3">
+                          <div className="flex justify-between text-[9px] font-black uppercase tracking-widest mb-1">
+                            <span className="text-green-600">
+                              Free: {freeMins} min
+                            </span>
+                            <span className="text-amber-600">
+                              Booked: {bookedMins} min
+                            </span>
+                          </div>
+                          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden flex">
+                            {bookedMins > 0 && (
+                              <div
+                                className="h-full bg-amber-400 rounded-l-full"
+                                style={{ width: `${(bookedMins / totalMins) * 100}%` }}
+                              />
+                            )}
+                            {freeMins > 0 && (
+                              <div
+                                className="h-full bg-green-400 rounded-r-full"
+                                style={{ width: `${(freeMins / totalMins) * 100}%` }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Free sub-segments */}
+                      {!loadingFree && localFree.length > 0 && (
+                        <div className="mt-3 space-y-1.5">
+                          <p className="text-[9px] font-black text-green-600 uppercase tracking-widest flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Remaining Free Slots
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {localFree.map((seg: any, i: number) => (
+                              <span
+                                key={i}
+                                className="text-[10px] bg-green-50 border border-green-200 text-green-700 font-bold px-3 py-1 rounded-lg"
+                              >
+                                {to12h(seg.start + ":00")} – {to12h(seg.end + ":00")}
+                                <span className="ml-1 text-green-400 font-normal">
+                                  ({seg.duration_mins ?? (toMinutes(seg.end) - toMinutes(seg.start))} min)
+                                </span>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {!loadingFree && localFree.length === 0 && bookedMins > 0 && (
+                        <div className="mt-3 flex items-center gap-2 text-[9px] font-black text-amber-600 uppercase tracking-widest">
+                          <AlertCircle className="w-3 h-3" /> Fully booked within this range
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => deleteSlot(s.id)}
+                      className="p-3 text-red-500 hover:bg-red-500/10 rounded-xl transition shadow-lg group-hover:scale-110 mt-1"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
+              );
+            })}
+
+            {!availabilities.length && !loading && (
+              <div className="text-center py-10 border-2 border-dashed border-primary/20 rounded-3xl bg-white/20">
+                <p className="text-sm text-primary/40 font-bold italic uppercase tracking-widest px-6">
+                  No availability ranges defined yet. Add a time range to allow bookings.
+                </p>
+              </div>
             )}
-            {loading && <div className="text-center py-10 animate-pulse text-xs text-primary/40 uppercase font-black tracking-widest italic">Syncing with server...</div>}
+            {loading && (
+              <div className="text-center py-10 animate-pulse text-xs text-primary/40 uppercase font-black tracking-widest italic">
+                Syncing with server...
+              </div>
+            )}
           </div>
 
-          <button 
-            type="button" 
+          {/* ── Add Slot Button ────────────────────────────────────────── */}
+          <button
+            type="button"
             disabled={loading}
             onClick={addSlot}
             className="w-full py-4 bg-linear-to-r from-primary to-secondary text-white rounded-2xl hover:opacity-90 hover:scale-[1.01] transition-all flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-widest shadow-2xl active:scale-95 disabled:opacity-50"
           >
-            <Plus className="w-5 h-5" /> Add Availability Slot
+            <Plus className="w-5 h-5" /> Add Availability Range
           </button>
+
+          {/* ── Legend ─────────────────────────────────────────────────── */}
+          <div className="flex items-center gap-6 px-2 text-[9px] font-black uppercase tracking-widest">
+            <span className="flex items-center gap-1.5 text-green-600">
+              <span className="w-3 h-3 rounded-full bg-green-400 inline-block" /> Free / Available
+            </span>
+            <span className="flex items-center gap-1.5 text-amber-600">
+              <span className="w-3 h-3 rounded-full bg-amber-400 inline-block" /> Already Booked
+            </span>
+          </div>
         </div>
 
+        {/* Footer */}
         <div className="flex justify-end pt-8 mt-10 border-t border-primary/20">
-             <button onClick={onClose} className="px-10 py-3 bg-white/60 text-primary/60 rounded-xl hover:bg-white/80 hover:text-primary border border-primary/10 transition duration-300 font-bold uppercase tracking-widest text-[10px] italic">Close</button>
+          <button
+            onClick={onClose}
+            className="px-10 py-3 bg-white/60 text-primary/60 rounded-xl hover:bg-white/80 hover:text-primary border border-primary/10 transition duration-300 font-bold uppercase tracking-widest text-[10px] italic"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

@@ -77,7 +77,7 @@ const BookingManagementPage = () => {
 
     useEffect(() => { fetchBookings(); }, []);
 
-    const updateBookingStatus = async (id: number, status: string, instructorId?: number) => {
+    const updateBookingStatus = async (id: number, status: string, instructorId?: number, customStartTime?: string, customEndTime?: string) => {
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings/${id}/status`, {
                 method: "PATCH",
@@ -85,7 +85,7 @@ const BookingManagementPage = () => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
-                body: JSON.stringify({ status, instructor_id: instructorId }),
+                body: JSON.stringify({ status, instructor_id: instructorId, custom_start_time: customStartTime, custom_end_time: customEndTime }),
             });
             if (!res.ok) throw new Error("Update failed");
             toast.success(`Booking ${status}`);
@@ -215,8 +215,8 @@ const BookingManagementPage = () => {
                 isOpen={viewModalOpen}
                 onClose={() => setViewModalOpen(false)}
                 booking={selectedBooking}
-                onStatusUpdate={(status, instructorId) => {
-                    if (selectedBooking) updateBookingStatus(selectedBooking.id, status, instructorId);
+                onStatusUpdate={(status, instructorId, customStartTime, customEndTime) => {
+                    if (selectedBooking) updateBookingStatus(selectedBooking.id, status, instructorId, customStartTime, customEndTime);
                 }}
             />
 

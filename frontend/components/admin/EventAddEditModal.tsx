@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import InputField from "@/components/layout/InputField";
 import EditorComponent from "@/components/layout/EditorComponent";
-import { X, AlignLeft } from "lucide-react";
+import { X, AlignLeft, Captions, MapPin, Calendar, User, Phone, CheckCircle, Info, Image as ImageIcon } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface EventData {
@@ -187,8 +187,18 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
         if (result.errors) {
           const validationErrors = result.errors as Record<string, string[]>;
           setErrors(validationErrors);
-          const firstError = Object.values(validationErrors)[0]?.[0] || result.message || "Validation failed";
-          toast.error(firstError);
+          
+          // Scroll to the first error field
+          const firstErrorKey = Object.keys(validationErrors)[0];
+          const elementId = firstErrorKey.replace(/\./g, "_");
+          
+          setTimeout(() => {
+            const element = document.getElementById(elementId);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }, 100);
+          
           return;
         }
         throw new Error(result.message || "Something went wrong");
@@ -224,9 +234,10 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
         </h2>
 
         <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
-<InputField
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField
               label="Title"
+              icon={Captions}
               required={true}
               value={form.title}
               onChange={(e) => handleChange("title", e.target.value)}
@@ -234,8 +245,9 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
               error={errors.title}
             />
 
-<InputField
+            <InputField
               label="Location"
+              icon={MapPin}
               required={true}
               value={form.location}
               onChange={(e) => handleChange("location", e.target.value)}
@@ -244,9 +256,10 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-<InputField
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField
               label="Event Date"
+              icon={Calendar}
               type="datetime-local"
               required={true}
               value={form.event_date}
@@ -257,6 +270,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
 
             <InputField
               label="Status"
+              icon={Info}
               type="select"
               value={form.status}
               onChange={(e) => handleChange("status", e.target.value)}
@@ -265,12 +279,39 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
                 { label: "Published", value: "published" },
               ]}
               disabled={loading}
+              error={errors.status}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField
+              label="Contact Person Name"
+              icon={User}
+              id="contact_person_name"
+              value={form.contact_person_name || ""}
+              onChange={(e) => handleChange("contact_person_name", e.target.value)}
+              disabled={loading}
+              error={errors.contact_person_name}
+              placeholder="e.g. John Doe"
+            />
+
+            <InputField
+              label="Contact Person Phone"
+              icon={Phone}
+              id="contact_person_phone"
+              value={form.contact_person_phone || ""}
+              onChange={(e) => handleChange("contact_person_phone", e.target.value)}
+              disabled={loading}
+              error={errors.contact_person_phone}
+              placeholder="e.g. +977-9800000000"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField
               label="Overlay Ad Active"
+              icon={CheckCircle}
+              id="is_active"
               type="select"
               value={form.is_active ? "1" : "0"}
               onChange={(e) => handleChange("is_active", e.target.value === "1")}
@@ -279,6 +320,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
                 { label: "Active (Show as Popup)", value: "1" },
               ]}
               disabled={loading}
+              error={errors.is_active}
             />
           </div>
 
@@ -291,27 +333,38 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
 
 
           {/* Banner Upload */}
-          <div>
-            <label className="text-sm text-primary font-bold mb-1 block uppercase tracking-wider italic">
-              Banner Image
+          <div id="banner">
+            <label className="text-sm text-primary font-bold mb-1 block uppercase tracking-wider italic flex items-center gap-2">
+              <ImageIcon className="w-4 h-4" /> Banner Image
             </label>
 
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e: any) =>
-                handleBannerChange(e.target.files?.[0] || null)
-              }
-              disabled={loading}
-              className="text-black/60 file:mr-4 cursor-pointer file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            />
-
+            <div className="p-0.5 rounded-xl bg-linear-to-r from-primary/20 to-secondary/20">
+              <div className="rounded-xl px-3 py-1.5 bg-primary/10 backdrop-blur-md border border-primary/10 shadow-sm transition-all duration-300">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e: any) =>
+                    handleBannerChange(e.target.files?.[0] || null)
+                  }
+                  disabled={loading}
+                  className="text-black/60 file:mr-4 cursor-pointer file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                />
+              </div>
+            </div>
+            
+            <div className="min-h-[14px]">
+              {errors.banner && (
+                <p className="text-red-500 text-[10px] font-bold leading-none mt-1">
+                  {errors.banner[0]}
+                </p>
+              )}
+            </div>
 
             {previewBanner && (
-              <div className="mt-3 relative w-32 h-20">
+              <div className="mt-3 relative w-full sm:w-48 aspect-video rounded-xl overflow-hidden border border-primary/20 bg-white/10 group">
                 <img
                   src={previewBanner}
-                  className="w-32 h-20 object-cover rounded"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
 
                 {/* Remove button */}
@@ -319,11 +372,10 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
                   type="button"
                   onClick={handleRemoveBanner}
                   disabled={loading}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="absolute top-2 right-2 bg-red-500/80 hover:bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg backdrop-blur-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
-
               </div>
             )}
           </div>

@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, Captions, FileTypeCorner, Wallet, Activity, Hash } from "lucide-react";
 import toast from "react-hot-toast";
+import InputField from "../layout/InputField";
 
 interface Instructor {
   id: number;
@@ -41,6 +42,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
   const [isActive, setIsActive] = useState(true);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [programFee, setProgramFee] = useState("");
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -61,6 +63,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
       } else {
         resetForm();
       }
+      setErrors({});
     }
   }, [isOpen, program]);
 
@@ -73,6 +76,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
     setIsActive(true);
     setSchedules([]);
     setProgramFee("");
+    setErrors({});
   };
 
   const fetchInstructors = async () => {
@@ -187,6 +191,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
     });
 
     schedules.forEach((s, i) => {
+      if (s.id) formData.append(`schedules[${i}][id]`, s.id.toString());
       formData.append(`schedules[${i}][start_time]`, s.start_time);
       formData.append(`schedules[${i}][end_time]`, s.end_time);
       if (s.instructor_id) formData.append(`schedules[${i}][instructor_id]`, s.instructor_id.toString());
@@ -207,7 +212,27 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to save program");
+      setErrors({});
+
+      if (!res.ok) {
+        if (data.errors) {
+          setErrors(data.errors);
+          
+          // Scroll to the first error field
+          const firstErrorKey = Object.keys(data.errors)[0];
+          const elementId = firstErrorKey.replace(/\./g, "_");
+          
+          setTimeout(() => {
+            const element = document.getElementById(elementId);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }, 100);
+          
+          return;
+        }
+        throw new Error(data.message || "Failed to save program");
+      }
       
       toast.success(program ? "Program updated" : "Program created");
       onSuccess();
@@ -246,31 +271,35 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-primary mb-1 italic">Program Title<span className="text-red-500 ml-1">*</span></label>
-                  <input
-                  type="text"
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  disabled={loading}
-                  className="w-full bg-white/40 border border-primary/20 rounded-lg px-4 py-2 text-primary focus:outline-none focus:border-primary transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="e.g. Vocal Training"
-                />
+              <InputField
+                label="Program Title"
+                id="title"
+                icon={Captions}
+                required
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (errors.title) setErrors(prev => ({ ...prev, title: [] }));
+                }}
+                disabled={loading}
+                error={errors.title}
+                placeholder="e.g. Vocal Training"
+              />
 
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-primary mb-1 italic">Description</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  disabled={loading}
-                  className="w-full bg-white/40 border border-primary/20 rounded-lg px-4 py-2 text-primary h-32 focus:outline-none focus:border-primary transition resize-none font-light italic disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="Describe the program highlights..."
-                />
-
-              </div>
+              <InputField
+                label="Description"
+                id="description"
+                icon={FileTypeCorner}
+                textarea
+                value={description}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  if (errors.description) setErrors(prev => ({ ...prev, description: [] }));
+                }}
+                disabled={loading}
+                error={errors.description}
+                placeholder="Describe the program highlights..."
+              />
 
               <div>
                 <label className="block text-sm font-semibold text-primary mb-1 italic">Program Cover Image</label>
@@ -311,24 +340,27 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                 </div>
                 <div className="space-y-2 max-h-80 overflow-y-auto pr-2 hide-scrollbar">
                   {speciality.map((s, index) => (
-                    <div key={index} className="flex gap-2 group">
-                      <input
-                        type="text"
+                    <div key={index} id={`speciality_${index}`} className="flex gap-2 group">
+                      <InputField
+                        label={`Detail ${index + 1}`}
+                        icon={Hash}
                         value={s}
                         onChange={(e) => {
-                        const newSpec = [...speciality];
-                        newSpec[index] = e.target.value;
-                        setSpeciality(newSpec);
-                      }}
-                      disabled={loading}
-                      className="flex-1 bg-white/40 border border-primary/20 rounded-lg px-4 py-2 text-primary text-sm focus:outline-none focus:border-primary transition font-medium italic disabled:opacity-50 disabled:cursor-not-allowed"
-                      placeholder="e.g. Stage Performance Skills"
-                    />
+                          const newSpec = [...speciality];
+                          newSpec[index] = e.target.value;
+                          setSpeciality(newSpec);
+                          if (errors[`speciality.${index}`]) {
+                            setErrors(prev => ({ ...prev, [`speciality.${index}`]: [] }));
+                          }
+                        }}
+                        disabled={loading}
+                        error={errors[`speciality.${index}`]}
+                        placeholder="e.g. Stage Performance Skills"
+                      />
 
-<button type="button" onClick={loading ? undefined : () => removeSpeciality(index)} disabled={loading} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition opacity-60 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed">
+                      <button type="button" onClick={loading ? undefined : () => removeSpeciality(index)} disabled={loading} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition mt-6 disabled:opacity-30 disabled:cursor-not-allowed">
                         <Trash2 className="w-4 h-4" />
                       </button>
-
                     </div>
                   ))}
                 </div>
@@ -336,18 +368,19 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
 
               {/* Fee Settings */}
               <div className="bg-white/60 border border-primary/20 rounded-xl p-4 space-y-3">
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-primary/40 mb-1 tracking-widest italic">Program Fee (Rs.)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={programFee}
-                    onChange={(e) => setProgramFee(e.target.value)}
-                    disabled={loading}
-                    placeholder="e.g. 2000"
-                    className="w-full bg-white/40 border border-primary/20 rounded-lg px-3 py-2 text-primary text-sm focus:outline-none focus:border-primary transition disabled:opacity-50"
-                  />
-                </div>
+                <InputField
+                  label="Program Fee"
+                  icon={Wallet}
+                  type="number"
+                  value={programFee}
+                  onChange={(e) => {
+                    setProgramFee(e.target.value);
+                    if (errors.program_fee) setErrors(prev => ({ ...prev, program_fee: [] }));
+                  }}
+                  disabled={loading}
+                  error={errors.program_fee}
+                  placeholder="e.g. 2000"
+                />
               </div>
 
               <div className="flex items-center gap-3 bg-white/40 p-4 rounded-xl border border-primary/20 group cursor-pointer hover:border-primary transition shadow-sm" onClick={loading ? undefined : () => setIsActive(!isActive)}>
@@ -383,7 +416,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
 
             <div className="space-y-4">
               {schedules.map((s, index) => (
-                <div key={index} className="grid grid-cols-1 sm:grid-cols-7 gap-4 p-5 bg-white/40 rounded-2xl border border-primary/20 group hover:border-primary/40 transition relative overflow-hidden shadow-sm">
+                <div key={index} id={`schedules_${index}`} className="grid grid-cols-1 sm:grid-cols-7 gap-4 p-5 bg-white/40 rounded-2xl border border-primary/20 group hover:border-primary/40 transition relative overflow-hidden shadow-sm">
                   <div className="sm:col-span-2">
                     <label className="text-[10px] font-black uppercase text-primary/40 block mb-2 tracking-widest italic">Start Time</label>
                     <input

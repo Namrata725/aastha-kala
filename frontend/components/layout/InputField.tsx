@@ -20,6 +20,7 @@ interface Props {
   disabled?: boolean;
   error?: string | string[];
   placeholder?: string;
+  id?: string;
 }
 
 const InputField: React.FC<Props & { multiple?: boolean }> = ({
@@ -35,15 +36,16 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
   error,
   multiple = false,
   placeholder,
+  id,
 }) => {
-  const inputId = label.replace(/\s+/g, "_").toLowerCase();
+  const inputId = id || label.replace(/\s+/g, "_").toLowerCase();
   const isSelect = type === "select";
   
   // Normalize error to string
   const errorMessage = Array.isArray(error) ? error[0] : error;
 
   return (
-    <div className="w-full flex flex-col gap-0.5">
+    <div id={inputId} className="w-full flex flex-col gap-0.5">
       {/* Label */}
       <label className="flex items-center text-[11px] mb-0.5 font-bold uppercase tracking-wider gap-2">
         <div className="flex items-center gap-2 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent italic">
