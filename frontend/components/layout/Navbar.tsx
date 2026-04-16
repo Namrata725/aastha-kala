@@ -49,7 +49,7 @@ const Navbar: React.FC = () => {
     <nav className="w-full bg-primary text-white sticky top-0 z-[100] shadow-sm">
       <div className="px-4 md:px-5 lg:px-6 py-1.5 flex items-center justify-between max-w-7xl mx-auto">
         {/* Logo — far left, fixed width */}
-         <div className="flex items-center shrink-0">
+        <div className="flex items-center shrink-0">
           <Link href="/">
             {logo && <img src={logo} alt="Logo" className="h-14 w-auto" />}
           </Link>
@@ -70,9 +70,8 @@ const Navbar: React.FC = () => {
               <Link
                 key={item.name}
                 href={item.path}
-                className={`whitespace-nowrap transition hover:text-gray-200 ${
-                  isActive ? "font-semibold underline underline-offset-4" : ""
-                }`}
+                className={`whitespace-nowrap transition hover:text-gray-200 ${isActive ? "font-semibold underline underline-offset-4" : ""
+                  }`}
               >
                 {item.name}
               </Link>
@@ -96,11 +95,10 @@ const Navbar: React.FC = () => {
                   key={item.name}
                   href={item.path}
                   onClick={() => setIsOpen(false)}
-                  className={`py-2 px-3 rounded-md transition ${
-                    isActive
+                  className={`py-2 px-3 rounded-md transition ${isActive
                       ? "bg-white text-blue-700 font-semibold"
                       : "hover:bg-blue-600"
-                  }`}
+                    }`}
                 >
                   {item.name}
                 </Link>

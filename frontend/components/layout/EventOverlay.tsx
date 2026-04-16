@@ -79,7 +79,7 @@ const EventOverlay = () => {
                 <button
                     onClick={dismissOverlay}
                     className="absolute top-4 right-4 z-20 p-2 bg-white/30 backdrop-blur-md rounded-full"
-                    style={{filter: "invert(1)"}}
+                    style={{ filter: "invert(1)" }}
                     aria-label="Close"
                 >
                     <X className="w-5 h-5" />
