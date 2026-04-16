@@ -28,10 +28,11 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (showLoading) setLoading(true);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/dashboard`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        cache:"no-store"
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Failed to fetch dashboard data");
-      setData(result.data);
+      setData({...result.data});
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -43,6 +44,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/gallery-categories`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        cache:"no-store"
       });
       const result = await res.json();
       if (res.ok) {
@@ -55,14 +57,15 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token && !data) {
+    if (token) {
       fetchData();
       fetchCategories();
     }
-  }, [fetchData, fetchCategories, data]);
+  }, [fetchData, fetchCategories]);
 
   const refreshData = async () => {
-    await Promise.all([fetchData(false), fetchCategories()]);
+    await fetchData(false);
+    await fetchCategories();
   };
 
   return (

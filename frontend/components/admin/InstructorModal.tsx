@@ -195,8 +195,17 @@ const InstructorModal: React.FC<Props> = ({
       if (!res.ok) {
         if (result.errors) {
           Object.entries(result.errors).forEach(([field, messages]: any) => {
+            const formattedField = field
+              .split(".")
+              .map((part: string) => {
+                if (part === "availabilities") return "Availability";
+                if (!isNaN(parseInt(part))) return `Slot ${parseInt(part) + 1}`;
+                return part.replace(/_/g, " ");
+              })
+              .join(": ");
+
             messages.forEach((msg: string) => {
-              toast.error(`${field}: ${msg}`);
+              toast.error(`${formattedField}: ${msg}`);
             });
           });
           return;

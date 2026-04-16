@@ -47,6 +47,7 @@ const BookingManagementPage = () => {
             setLoading(true);
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings?page=${page}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                cache: "no-store"
             });
             const result = await res.json();
             if (!res.ok) throw new Error(result.message || "Failed to fetch bookings");

@@ -358,14 +358,17 @@ const BookingViewModal: React.FC<BookingViewModalProps> = ({
         <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-primary/20 mt-8">
            <button 
              onClick={() => onStatusUpdate('accepted', selectedInstructorId ? Number(selectedInstructorId) : undefined)}
-             disabled={booking.status === 'pending' && !selectedInstructorId}
-             className={`flex-1 px-6 py-3.5 rounded-xl transition duration-300 font-black uppercase tracking-widest text-[10px] flex items-center cursor-pointer justify-center gap-2 italic shadow-md active:scale-95 ${
-               booking.status === 'pending' && !selectedInstructorId 
+             disabled={booking.status === 'accepted' || (booking.status === 'pending' && !selectedInstructorId)}
+             className={`flex-1 px-6 py-3.5 rounded-xl transition duration-300 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 italic shadow-md active:scale-95 ${
+               booking.status === 'accepted'
+               ? 'bg-green-500/20 text-green-600 border border-green-500/30 cursor-not-allowed shadow-none'
+               : booking.status === 'pending' && !selectedInstructorId 
                ? 'bg-white/40 text-primary/30 border border-primary/10 cursor-not-allowed shadow-none' 
-               : 'bg-green-500/10 text-green-600 border border-green-500/20 hover:bg-green-500 hover:text-white shadow-green-500/10'
+               : 'bg-green-500/10 text-green-600 border border-green-500/20 hover:bg-green-500 hover:text-white shadow-green-500/10 cursor-pointer'
              }`}
            >
-             <CheckCircle2 className="w-4 h-4 " /> Approve Booking
+             <CheckCircle2 className="w-4 h-4" />
+             {booking.status === 'accepted' ? 'Booking Approved' : 'Approve Booking'}
            </button>
            <button 
              onClick={() => onStatusUpdate('rejected')}

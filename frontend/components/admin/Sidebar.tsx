@@ -83,10 +83,6 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
       className={`fixed top-0 left-0 h-screen flex flex-col transition-all duration-300 bg-gray-400 ${
         collapsed ? "w-20" : "w-64"
       }`}
-      style={{
-        borderRight: "1px solid #e2e8f0",
-        boxShadow: "4px 0 15px rgba(0,0,0,0.03)",
-      }}
     >
       {/* Sidebar content */}
       <div className="flex flex-col h-screen relative z-10">
@@ -106,13 +102,35 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
         </div>
 
         {/* Menu */}
-        <nav className="flex-1 overflow-y-auto mt-4">
-          <ul className="flex flex-col space-y-2 px-2">
+        <nav
+          className="flex-1 overflow-y-auto mt-4 hide-scrollbar cursor-grab active:cursor-grabbing select-none"
+          onMouseDown={(e) => {
+            const nav = e.currentTarget;
+            nav.dataset.isDragging = "true";
+            nav.dataset.startY = (e.pageY - nav.offsetTop).toString();
+            nav.dataset.scrollTop = nav.scrollTop.toString();
+          }}
+          onMouseMove={(e) => {
+            const nav = e.currentTarget;
+            if (nav.dataset.isDragging !== "true") return;
+            e.preventDefault();
+            const y = e.pageY - nav.offsetTop;
+            const walk = (y - parseInt(nav.dataset.startY || "0")) * 2;
+            nav.scrollTop = parseInt(nav.dataset.scrollTop || "0") - walk;
+          }}
+          onMouseUp={(e) => {
+            e.currentTarget.dataset.isDragging = "false";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.dataset.isDragging = "false";
+          }}
+        >
+          <ul className="flex flex-col space-y-2 px-2 pointer-events-none group-active:pointer-events-none">
             {menuItems.map((item) => {
               const isActive = pathname === item.href;
 
               return (
-                <li key={item.name} className="relative group">
+                <li key={item.name} className="relative group pointer-events-auto">
                   <Link
                     href={item.href}
                     className={`flex items-center p-2 rounded-xl transition-all duration-300 text-sm font-semibold

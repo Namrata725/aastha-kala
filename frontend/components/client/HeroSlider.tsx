@@ -39,15 +39,19 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ heroImages, fill = false }) => 
       {/* Subtle theme-color vignette at very bottom to blend into stats */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-brand-deep to-transparent z-20 pointer-events-none" />
 
-      {/* Pagination dots */}
+      {/* Pagination indicators - Styled as modern dash/dots */}
       {heroImages.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30">
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-3 z-30">
           {heroImages.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentIndex(idx)}
-              className={`h-2 rounded-full transition-all duration-300 ${idx === currentIndex ? "bg-white w-6" : "bg-white/50 w-2"
-                }`}
+              className={`transition-all duration-500 rounded-full cursor-pointer h-1.5 ${
+                idx === currentIndex
+                  ? "w-8 bg-primary shadow-[0_0_10px_rgba(39,160,207,0.5)]"
+                  : "w-2 bg-brand-deep/30 hover:bg-brand-deep/50"
+              }`}
+              title={`Slide ${idx + 1}`}
             />
           ))}
         </div>

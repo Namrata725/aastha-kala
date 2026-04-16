@@ -141,7 +141,15 @@ const StudentPage = () => {
         });
         if (!res.ok) throw new Error("Delete failed");
         toast.success("Student deleted");
-        fetchStudents(pagination.currentPage);
+
+          // If this was the last item on the page → go to previous page
+          const isLastItemOnPage = students.length === 1;
+
+          if (isLastItemOnPage && pagination.currentPage > 1) {
+            fetchStudents(pagination.currentPage - 1);
+          } else {
+            fetchStudents(pagination.currentPage);
+          }
       } catch (error: any) {
         toast.error(error.message);
       } finally {

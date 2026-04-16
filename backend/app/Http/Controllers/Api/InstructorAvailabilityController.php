@@ -26,6 +26,9 @@ class InstructorAvailabilityController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'is_available' => 'nullable|boolean'
+        ], [], [
+            'start_time' => 'start time',
+            'end_time' => 'end time',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -66,6 +69,9 @@ class InstructorAvailabilityController extends Controller
             'start_time' => 'nullable|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i|after:start_time',
             'is_available' => 'nullable|boolean'
+        ], [], [
+            'start_time' => 'start time',
+            'end_time' => 'end time',
         ]);
 
         if ($validator->fails()) {

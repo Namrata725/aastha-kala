@@ -15,7 +15,6 @@ import {
   MessageSquare,
   AlertCircle
 } from "lucide-react";
-import toast from "react-hot-toast";
 import Link from 'next/link';
 import { useDashboard } from "@/lib/DashboardContext";
 
@@ -73,7 +72,10 @@ const Dashboard = () => {
         if (user.name) setAdminName(user.name);
       } catch (e) {}
     }
-  }, []);
+
+    // Refresh data on mount
+    refreshData();
+  }, [refreshData]);
 
   const openModal = (type: keyof typeof modals) => {
     setModals(prev => ({ ...prev, [type]: true }));

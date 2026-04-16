@@ -41,6 +41,9 @@ class InstructorController extends Controller
             'availabilities.*.end_time' => 'required|date_format:H:i|after:availabilities.*.start_time',
             'program_ids' => 'nullable|array',
             'program_ids.*' => 'exists:programs,id',
+        ], [], [
+            'availabilities.*.start_time' => 'start time',
+            'availabilities.*.end_time' => 'end time',
         ]);
 
         if ($validator->fails()) {
@@ -140,6 +143,9 @@ public function update(Request $request, $id)
         'availabilities.*.end_time' => 'required|date_format:H:i|after:availabilities.*.start_time',
         'program_ids' => 'nullable|array',
         'program_ids.*' => 'exists:programs,id',
+    ], [], [
+        'availabilities.*.start_time' => 'start time',
+        'availabilities.*.end_time' => 'end time',
     ]);
 
     if ($validator->fails()) {

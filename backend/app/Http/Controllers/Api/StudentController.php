@@ -66,42 +66,27 @@ class StudentController extends Controller
 
         $student = Student::create($data);
 
-        // Auto-create an initial fee record for every new student.
-        // Uses the global admission_fee from Settings and matches program fees from classes.
+        // 1. Handle Admission Fee Record
         $setting = \App\Models\Setting::first();
         $admissionFee = $setting ? (float) ($setting->admission_fee ?? 0) : 0;
         
-        $programFeeTotal = 0;
-        $classTitles = [];
-        if (!empty($student->classes)) {
-            $classTitles = array_map('trim', array_filter(explode(',', $student->classes)));
-            if (!empty($classTitles)) {
-                $programFeeTotal = \App\Models\Program::where('is_active', true)
-                    ->where(function($q) use ($classTitles) {
-                        foreach ($classTitles as $title) {
-                            $q->orWhereRaw('LOWER(title) = ?', [strtolower($title)]);
-                        }
-                    })
-                    ->sum('program_fee');
-            }
+        if ($admissionFee > 0) {
+            \App\Models\StudentFee::create([
+                'student_id'     => $student->id,
+                'fee_type'       => 'admission',
+                'total_amount'   => $admissionFee,
+                'paid_amount'    => 0,
+                'pending_amount' => $admissionFee,
+                'status'         => 'pending',
+                'admission_fee'  => $admissionFee,
+                'month_year'     => date('j F Y'),
+                'payment_method' => 'Cash',
+                'remarks'        => 'Auto-generated admission fee on enrollment',
+            ]);
         }
 
-        $totalInitialAmount = $admissionFee + $programFeeTotal;
-        $feeType = ($admissionFee > 0 && $programFeeTotal > 0) ? 'billing' : ($programFeeTotal > 0 ? 'program' : 'admission');
-
-        \App\Models\StudentFee::create([
-            'student_id'     => $student->id,
-            'fee_type'       => $feeType,
-            'total_amount'   => $totalInitialAmount,
-            'paid_amount'    => 0,
-            'pending_amount' => $totalInitialAmount,
-            'status'         => $totalInitialAmount > 0 ? 'pending' : 'paid',
-            'admission_fee'  => $admissionFee > 0 ? $admissionFee : null,
-            'program_fee'    => $programFeeTotal > 0 ? $programFeeTotal : null,
-            'month_year'     => date('F Y'), // Default to current month for initial record
-            'payment_method' => 'Cash',
-            'remarks'        => 'Auto-generated billing record on enrollment',
-        ]);
+        // 2. Handle Program Enrollments & Fees
+        $this->syncProgramsAndFees($student);
 
         return response()->json([
             'message' => 'Student created successfully',
@@ -155,44 +140,87 @@ class StudentController extends Controller
 
         $student->update($data);
         
-        // If classes were updated, re-calculate and match program fees for pending records
+        // If classes were updated, sync enrollments and generate missing fees
         if (isset($data['classes'])) {
-            $classTitles = array_map('trim', array_filter(explode(',', $student->classes)));
-            $newProgramFeeTotal = 0;
-            if (!empty($classTitles)) {
-                $newProgramFeeTotal = \App\Models\Program::where('is_active', true)
-                    ->where(function($q) use ($classTitles) {
-                        foreach ($classTitles as $title) {
-                            $q->orWhereRaw('LOWER(title) = ?', [strtolower($title)]);
-                        }
-                    })
-                    ->sum('program_fee');
-            }
-
-            // Find the most recent pending fee record and update its program_fee and total_amount
-            $pendingRecord = \App\Models\StudentFee::where('student_id', $student->id)
-                ->where('status', 'pending')
-                ->latest()
-                ->first();
-
-            if ($pendingRecord) {
-                // Keep the existing admission_fee if it exists on that record
-                $adm = (float) ($pendingRecord->admission_fee ?? 0);
-                $newTotal = $adm + $newProgramFeeTotal;
-                
-                $pendingRecord->update([
-                    'program_fee'    => $newProgramFeeTotal > 0 ? $newProgramFeeTotal : null,
-                    'total_amount'   => $newTotal,
-                    'pending_amount' => max(0, $newTotal - (float)$pendingRecord->paid_amount),
-                    'status'         => ($newTotal - (float)$pendingRecord->paid_amount) <= 0 ? 'paid' : 'pending',
-                ]);
-            }
+            $this->syncProgramsAndFees($student);
         }
 
         return response()->json([
             'message' => 'Student updated successfully',
             'data' => $student
         ]);
+    }
+
+    /**
+     * Syncs student_programs table and auto-generates student_fees records
+     * for any active enrollment that doesn't have a record for the current month.
+     */
+    private function syncProgramsAndFees($student)
+    {
+        if (empty($student->classes)) {
+            \App\Models\StudentProgram::where('student_id', $student->id)->delete();
+            return;
+        }
+
+        $classTitles = array_map('trim', array_filter(explode(',', $student->classes)));
+        
+        // 1. Identify valid matching programs
+        $programs = \App\Models\Program::where('is_active', true)
+            ->where(function ($q) use ($classTitles) {
+                foreach ($classTitles as $title) {
+                    $q->orWhereRaw('LOWER(title) = ?', [strtolower($title)]);
+                }
+            })
+            ->get();
+            
+        $programIds = $programs->pluck('id')->toArray();
+        $currentMonth = date('j F Y');
+
+        // 2. Sync StudentProgram (enrollments table)
+        // Remove programs no longer in the CSV classes string
+        \App\Models\StudentProgram::where('student_id', $student->id)
+            ->whereNotIn('program_id', $programIds)
+            ->delete();
+
+        // Add new programs to enrollment table
+        foreach ($programs as $prog) {
+            $exists = \App\Models\StudentProgram::where('student_id', $student->id)
+                ->where('program_id', $prog->id)
+                ->exists();
+
+            if (!$exists) {
+                \App\Models\StudentProgram::create([
+                    'student_id' => $student->id,
+                    'program_id' => $prog->id,
+                    'status' => 'active',
+                    'enrolled_at' => now(),
+                ]);
+            }
+
+            // 3. Auto-generate Fee Record if missing for this month
+            // This ensures that even if a student has paid all previous fees,
+            // adding a new program creates a new 'Pending' entry in Fees & Billing.
+            $feeExists = \App\Models\StudentFee::where('student_id', $student->id)
+                ->where('program_id', $prog->id)
+                ->where('month_year', $currentMonth)
+                ->exists();
+
+            if (!$feeExists) {
+                \App\Models\StudentFee::create([
+                    'student_id'     => $student->id,
+                    'program_id'     => $prog->id,
+                    'fee_type'       => 'program',
+                    'total_amount'   => $prog->program_fee,
+                    'paid_amount'    => 0,
+                    'pending_amount' => $prog->program_fee,
+                    'status'         => 'pending',
+                    'program_fee'    => $prog->program_fee,
+                    'month_year'     => $currentMonth,
+                    'payment_method' => 'Cash',
+                    'remarks'        => 'Auto-generated for program enrollment',
+                ]);
+            }
+        }
     }
 
     public function destroy($id)

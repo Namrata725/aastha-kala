@@ -52,42 +52,49 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (event) {
-      setForm({
-        title: event.title || "",
-        description: event.description || "",
-        event_date: event.event_date
-          ? new Date(event.event_date).toISOString().slice(0, 16)
-          : "",
-        location: event.location || "",
-        status: event.status || "draft",
-        contact_person_name: event.contact_person_name || "",
-        contact_person_phone: event.contact_person_phone || "",
-        is_active: event.is_active || false,
-        banner: null,
-      });
+  if (!isOpen) return;
 
-      setPreviewBanner(
-        event.banner
-          ? event.banner.startsWith("http")
-            ? event.banner
-            : `${IMAGE_BASE}/${event.banner}`
-          : null,
-      );
-    } else {
-      setForm({
-        title: "",
-        description: "",
-        event_date: "",
-        location: "",
-        status: "draft",
-        contact_person_phone: "",
-        is_active: false,
-        banner: null,
-      });
-      setPreviewBanner(null);
-    }
-  }, [event, isOpen]);
+  if (event) {
+    setForm({
+      title: event.title || "",
+      description: event.description || "",
+      event_date: event.event_date
+        ? new Date(event.event_date).toISOString().slice(0, 16)
+        : "",
+      location: event.location || "",
+      status: event.status || "draft",
+      contact_person_name: event.contact_person_name || "",
+      contact_person_phone: event.contact_person_phone || "",
+      is_active: event.is_active || false,
+      banner: null,
+    });
+
+    setPreviewBanner(
+      event.banner
+        ? event.banner.startsWith("http")
+          ? event.banner
+          : `${IMAGE_BASE}/${event.banner}`
+        : null
+    );
+  } else {
+    setForm({
+      title: "",
+      description: "",
+      event_date: "",
+      location: "",
+      status: "draft",
+      contact_person_name: "",
+      contact_person_phone: "",
+      is_active: false,
+      banner: null,
+    });
+
+    setPreviewBanner(null);
+  }
+
+  //  clear errors when opening
+  setErrors({});
+}, [isOpen]); 
 
   if (!isOpen) return null;
 
@@ -97,6 +104,13 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
       ...prev,
       [key]: value,
     }));
+
+    //clear efrror fo rthat field
+    setErrors((prev) =>{
+      const newErrors = {...prev};
+      delete newErrors[key];
+      return newErrors;
+    })
   };
 
 
@@ -220,8 +234,6 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
               error={errors.title}
             />
 
-            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title[0]}</p>}
-
 <InputField
               label="Location"
               required={true}
@@ -230,8 +242,6 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
               disabled={loading}
               error={errors.location}
             />
-
-            {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location[0]}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

@@ -39,7 +39,14 @@ const FeesPage = () => {
   const [typeFilter, setTypeFilter] = useState<"all" | "admission" | "program">("all");
 
   const [pagination, setPagination] = useState({
-    currentPage: 1, totalPages: 1, totalItems: 0, itemsPerPage: 15,
+    currentPage: 1, totalPages: 1, totalItems: 0, itemsPerPage: 10,
+  });
+
+  const [summary, setSummary] = useState({
+    total_collected: 0,
+    total_pending: 0,
+    paid_count: 0,
+    pending_count: 0
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -74,6 +81,7 @@ const FeesPage = () => {
 
       const res = await fetch(url, {
         headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+        cache: "no-store"
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message ?? "Failed to fetch fees");
@@ -85,6 +93,10 @@ const FeesPage = () => {
         totalItems: result.data.total,
         itemsPerPage: result.data.per_page,
       });
+
+      if (result.summary) {
+        setSummary(result.summary);
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -92,7 +104,10 @@ const FeesPage = () => {
     }
   };
 
-  useEffect(() => { fetchFees(); }, [statusFilter, typeFilter, studentIdParam, searchTerm]);
+  useEffect(() => {
+    setLoading(true);
+    fetchFees();
+  }, [statusFilter, typeFilter, studentIdParam, searchTerm]);
 
   const handleDelete = async () => {
     if (!selectedFee) return;
@@ -106,7 +121,14 @@ const FeesPage = () => {
       if (!res.ok) throw new Error("Failed to delete record");
       toast.success("Record deleted");
       setDeleteModalOpen(false);
-      fetchFees(pagination.currentPage);
+
+      // If this was the last item on the page → go to previous page
+      const isLastItemOnPage = fees.length === 1;
+      if (isLastItemOnPage && pagination.currentPage > 1) {
+        fetchFees(pagination.currentPage - 1);
+      } else {
+        fetchFees(pagination.currentPage);
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -114,13 +136,7 @@ const FeesPage = () => {
     }
   };
 
-  // Summary stats (from current page — server-side pagination)
-  const totalCollected = fees.reduce((acc, f) => acc + Number(f.paid_amount), 0);
-  const totalPending = fees.reduce((acc, f) => acc + Number(f.pending_amount), 0);
-  const paidCount = fees.filter(f => f.status === "paid").length;
-  const pendingCount = fees.filter(f => f.status === "pending").length;
-
-  const formattedData = fees.map((fee, index) => ({
+  const formattedData = React.useMemo(() => fees.map((fee, index) => ({
     ...fee,
     sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
     student_name: (
@@ -155,28 +171,28 @@ const FeesPage = () => {
         {fee.status}
       </span>
     ),
-  }));
+  })), [fees, pagination.currentPage, pagination.itemsPerPage]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
 
-      {/* Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900">Fees & Billing</h1>
-          <p className="text-xs text-gray-400 font-medium mt-0.5 uppercase tracking-widest">
-            Manage student payments and billing records
-          </p>
+      <header className="flex flex-col lg:flex-row justify-between items-center p-6 bg-white border border-gray-200 rounded-3xl gap-6 shadow-sm">
+        <div className="flex flex-col text-center lg:text-left">
+          <h1 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
+            Fees & Billing
+          </h1>
+          <p className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-1">Manage student payments and billing records</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative group">
+
+        <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto">
+          <div className="relative flex-1 lg:w-64 group">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-600 transition-colors" />
             <input
               type="text"
-              placeholder="Search student..."
+              placeholder="Search student or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 w-full sm:w-64 transition-all shadow-sm"
+              className="w-full bg-slate-50 border-none rounded-2xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-purple-500/20 transition shadow-inner"
             />
           </div>
 
@@ -184,7 +200,7 @@ const FeesPage = () => {
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value as any)}
-              className="text-xs border border-gray-200 bg-white rounded-xl px-3 py-2.5 text-gray-700 font-bold focus:outline-none focus:ring-2 focus:ring-purple-400/30 cursor-pointer shadow-sm"
+              className="px-4 py-3 text-sm bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-purple-500/20 transition shadow-inner cursor-pointer font-bold"
             >
               <option value="all">All Status</option>
               <option value="paid">Paid</option>
@@ -194,20 +210,20 @@ const FeesPage = () => {
 
           <button
             onClick={() => { setFeeToEdit(null); setFeeModalOpen(true); }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-secondary hover:bg-secondary/90 text-white text-sm font-bold rounded-xl shadow-md shadow-secondary/20 transition-all active:scale-95 whitespace-nowrap"
+            className="px-6 py-3 text-sm bg-secondary text-white rounded-2xl shadow-lg shadow-secondary/20 hover:bg-black active:scale-95 flex items-center gap-2 transition-all font-bold whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             Record Payment
           </button>
         </div>
-      </div>
+      </header>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Collected</p>
-            <p className="text-xl font-black text-gray-900 mt-1">Rs. {totalCollected.toLocaleString()}</p>
+            <p className="text-xl font-black text-gray-900 mt-1">Rs. {summary.total_collected.toLocaleString()}</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
             <TrendingUp className="w-5 h-5 text-success" />
@@ -216,7 +232,7 @@ const FeesPage = () => {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pending</p>
-            <p className="text-xl font-black text-orange-500 mt-1">Rs. {totalPending.toLocaleString()}</p>
+            <p className="text-xl font-black text-orange-500 mt-1">Rs. {summary.total_pending.toLocaleString()}</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
             <TrendingDown className="w-5 h-5 text-warning" />
@@ -225,7 +241,7 @@ const FeesPage = () => {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Paid Entries</p>
-            <p className="text-xl font-black text-emerald-600 mt-1">{paidCount}</p>
+            <p className="text-xl font-black text-emerald-600 mt-1">{summary.paid_count}</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
             <BarChart3 className="w-5 h-5 text-success" />
@@ -234,7 +250,7 @@ const FeesPage = () => {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Unpaid</p>
-            <p className="text-xl font-black text-amber-500 mt-1">{pendingCount}</p>
+            <p className="text-xl font-black text-amber-500 mt-1">{summary.pending_count}</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
             <CreditCard className="w-5 h-5 text-warning" />
@@ -276,7 +292,16 @@ const FeesPage = () => {
         isOpen={feeModalOpen}
         fee={feeToEdit}
         onClose={() => setFeeModalOpen(false)}
-        onSuccess={() => fetchFees(pagination.currentPage)}
+        onSuccess={() => {
+          if (searchTerm === "" && statusFilter === "all" && typeFilter === "all") {
+            fetchFees(pagination.currentPage);
+          } else {
+            setSearchTerm("");
+            setStatusFilter("all");
+            setTypeFilter("all");
+            // useEffect will trigger fetchFees()
+          }
+        }}
       />
 
       <FeeViewModal

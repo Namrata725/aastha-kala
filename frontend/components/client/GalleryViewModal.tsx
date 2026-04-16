@@ -69,8 +69,8 @@ const GalleryViewModal = ({
   const maxSlide = getTotalSlides() - 1;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-      <div className="bg-white/90 border border-primary/20 backdrop-blur-xl w-full max-w-3xl rounded-xl relative overflow-y-auto max-h-[90vh] min-h-120">
+    <div className="fixed top-[68px] inset-x-0 bottom-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-8">
+       <div className="px-4 md:px-6 lg:px-8 py-3 flex items-center justify-between max-w-7xl mx-auto">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -108,40 +108,40 @@ const GalleryViewModal = ({
             {(() => {
               const mediaIndex = currentSlide;
 
-                // Images
-                if (
-                  item.type === "images" &&
-                  item.images &&
-                  item.images[mediaIndex]
-                ) {
-                  return (
-                    <img
-                      src={item.images[mediaIndex]}
-                      className="max-h-[80vh] object-contain"
-                      alt=""
-                    />
-                  );
-                }
-
-                // Video
-                if (item.type === "video" && item.video && mediaIndex === 0) {
-                  return (
-                    <iframe
-                      src={getYouTubeEmbedUrl(item.video)}
-                      className="w-full h-[80vh]"
-                      allowFullScreen
-                    />
-                  );
-                }
-
+              // Images
+              if (
+                item.type === "images" &&
+                item.images &&
+                item.images[mediaIndex]
+              ) {
                 return (
-                  <div className="text-gray-500 flex flex-col items-center">
-                    <ImageOff className="w-10 h-10 animate-infinite-bounce" />
-                    <p className="mt-2 text-sm">No media available</p>
-                  </div>
+                  <img
+                    src={item.images[mediaIndex]}
+                    className="max-h-[80vh] object-contain"
+                    alt=""
+                  />
                 );
-              })()}
-            </div>
+              }
+
+              // Video
+              if (item.type === "video" && item.video && mediaIndex === 0) {
+                return (
+                  <iframe
+                    src={getYouTubeEmbedUrl(item.video)}
+                    className="w-full h-[80vh]"
+                    allowFullScreen
+                  />
+                );
+              }
+
+              return (
+                <div className="text-gray-500 flex flex-col items-center">
+                  <ImageOff className="w-10 h-10 animate-infinite-bounce" />
+                  <p className="mt-2 text-sm">No media available</p>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       </div>
     </div>
