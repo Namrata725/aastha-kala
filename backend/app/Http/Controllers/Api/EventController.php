@@ -61,11 +61,11 @@ class EventController extends Controller
         }
 
         if ($request->hasFile('banner')) {
-            $path = $request->file('banner')->store('events', 'public');
-            $data['banner'] = asset('storage/' . $path);
+            $data['banner'] = $request->file('banner')->store('events', 'public');
         }
 
         $event = Event::create($data);
+        $event->banner = $this->getBannerUrl($event->banner);
 
         return response()->json([
             'message' => 'Event created successfully',
@@ -116,20 +116,17 @@ class EventController extends Controller
 
         if ($request->boolean('remove_banner')) {
             if ($event->banner) {
-                $oldPath = str_replace(asset('storage/'), '', $event->banner);
-                Storage::disk('public')->delete($oldPath);
+                Storage::disk('public')->delete($this->getStoragePath($event->banner));
             }
             $data['banner'] = null;
         }
 
         if ($request->hasFile('banner')) {
             if ($event->banner) {
-                $oldPath = str_replace(asset('storage/'), '', $event->banner);
-                Storage::disk('public')->delete($oldPath);
+                Storage::disk('public')->delete($this->getStoragePath($event->banner));
             }
 
-            $path = $request->file('banner')->store('events', 'public');
-            $data['banner'] = asset('storage/' . $path);
+            $data['banner'] = $request->file('banner')->store('events', 'public');
         }
 
         if ($request->filled('title') && !$request->filled('slug')) {
@@ -137,6 +134,7 @@ class EventController extends Controller
         }
 
         $event->update($data);
+        $event->banner = $this->getBannerUrl($event->banner);
 
         return response()->json([
             'message' => 'Event updated successfully',
@@ -150,8 +148,7 @@ class EventController extends Controller
     public function destroy(Event $event)
     {
         if ($event->banner) {
-            $oldPath = str_replace(asset('storage/'), '', $event->banner);
-            Storage::disk('public')->delete($oldPath);
+                Storage::disk('public')->delete($this->getStoragePath($event->banner));
         }
 
         $event->delete();
@@ -200,7 +197,7 @@ class EventController extends Controller
 
 
     /**
-     * Convert banner path to full URL
+     * Convert banner path to full URL for API responses
      */
     private function getBannerUrl($path)
     {
@@ -213,5 +210,23 @@ class EventController extends Controller
         }
 
         return asset('storage/' . $path);
+    }
+
+    /**
+     * Extract storage-relative path from either a full URL or a relative path.
+     * Handles legacy records that stored full URLs and new records that store relative paths.
+     */
+    private function getStoragePath($path): string
+    {
+        if (!$path) return '';
+
+        // Already a relative path (new format)
+        if (!Str::startsWith($path, 'http')) {
+            return $path;
+        }
+
+        // Legacy full URL — strip the storage URL prefix
+        $storageUrl = rtrim(asset('storage'), '/') . '/';
+        return Str::after($path, $storageUrl);
     }
 }

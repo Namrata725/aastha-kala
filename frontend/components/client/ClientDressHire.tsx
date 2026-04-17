@@ -14,7 +14,7 @@ type ClientDressHireProps = {
 };
 
 const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
-  const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL;
+  const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL?.replace(/\/$/, "");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [currentImages, setCurrentImages] = useState<string[]>([]);
@@ -29,12 +29,10 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
   const closeModal = () => setModalOpen(false);
 
   const prevImage = () =>
-    setCurrentIndex((prev) =>
-      prev === 0 ? currentImages.length - 1 : prev - 1,
-    );
+    setCurrentIndex((prev) => Math.max(prev - 1, 0));
   const nextImage = () =>
     setCurrentIndex((prev) =>
-      prev === currentImages.length - 1 ? 0 : prev + 1,
+      Math.min(prev + 1, currentImages.length - 1)
     );
 
   useEffect(() => {
@@ -50,16 +48,24 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [modalOpen, currentImages]);
 
-  const getImageUrl = (images?: string[]) => {
-    if (!images || images.length === 0) return null;
-    const path = images[0];
-    if (path.startsWith("http")) return path;
-    return `${IMAGE_BASE?.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}`;
+  const getFullImageUrl = (path: string) => {
+    if (!path) return "";
+    
+    if (path.startsWith("http")) {
+      // Defensive check: If production returns localhost URL due to misconfigured APP_URL, fix it
+      if (typeof window !== "undefined" && !window.location.host.includes("localhost") && path.includes("localhost")) {
+        const relativePath = path.split("/storage/")[1] || "";
+        return `${IMAGE_URL}/${relativePath}`;
+      }
+      return path;
+    }
+
+    return `${IMAGE_URL}/${path.replace(/^\/+/, "")}`;
   };
 
-  const getFullImageUrl = (path: string) => {
-    if (path.startsWith("http")) return path;
-    return `${IMAGE_BASE?.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}`;
+  const getImageUrl = (images?: string[]) => {
+    if (!images || images.length === 0) return null;
+    return getFullImageUrl(images[0]);
   };
 
   return (
@@ -94,45 +100,58 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
 
       {/* modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center">
-          <button
-            className="absolute top-4 right-4 text-white p-2"
-            onClick={closeModal}
-          >
-            <X className="w-6 h-6" />
-          </button>
+        <div className="fixed top-[68px] inset-x-0 bottom-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 transition-all duration-300">
+          <div className="w-full h-full flex items-center justify-center">
+             {/* Close Button */}
+            <button
+              className="absolute top-3 right-3 z-20 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-all"
+              onClick={closeModal}
+            >
+              <X size={18} />
+            </button>
 
-          {currentImages.length > 0 ? (
-            <div className="relative max-w-3xl max-h-[80vh] w-full flex items-center justify-center">
-              <button
-                className="absolute left-0 text-white p-2"
-                onClick={prevImage}
-              >
-                <ChevronLeft className="w-8 h-8" />
-              </button>
-              <img
-                src={getFullImageUrl(currentImages[currentIndex])}
-                alt={`Image ${currentIndex + 1}`}
-                className="max-h-[80vh] object-contain"
-              />
-              <button
-                className="absolute right-0 text-white p-2"
-                onClick={nextImage}
-              >
-                <ChevronRight className="w-8 h-8" />
-              </button>
+            {currentImages.length > 0 ? (
+              <div className="relative w-full h-full flex items-center justify-center p-6">
+                {/* Prev Button */}
+                {currentIndex > 0 && (
+                  <button
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-all"
+                    onClick={prevImage}
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                )}
 
-              {/* Image counter */}
-              <div className="absolute bottom-4 text-white text-sm bg-black/50 px-2 py-1 rounded">
-                {currentIndex + 1} / {currentImages.length}
+                <img
+                  src={getFullImageUrl(currentImages[currentIndex])}
+                  alt={`Image ${currentIndex + 1}`}
+                  className="max-h-[80vh] object-contain shadow-2xl rounded-sm"
+                />
+
+                {/* Next Button */}
+                {currentIndex < currentImages.length - 1 && (
+                  <button
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-all"
+                    onClick={nextImage}
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                )}
+
+                {/* Optional: Subtle Indicator if you want it (Gallery doesn't, but helpful) */}
+                {currentImages.length > 1 && (
+                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/40 text-[9px] font-black tracking-[0.3em] uppercase transition-opacity">
+                      {currentIndex + 1} / {currentImages.length}
+                   </div>
+                )}
               </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center text-white">
-              <ImageIcon className="w-16 h-16 mb-2" />
-              <p>No images available</p>
-            </div>
-          )}
+            ) : (
+              <div className="flex flex-col items-center justify-center text-white/50">
+                <ImageIcon className="w-16 h-16 mb-4 opacity-10" />
+                <p className="text-xs uppercase tracking-widest font-bold">No images available</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </section>

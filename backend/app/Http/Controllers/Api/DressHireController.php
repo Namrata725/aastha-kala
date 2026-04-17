@@ -65,7 +65,7 @@ class DressHireController extends Controller
         ]);
 
         if(!empty($dress->images)){
-            $dress->images=array_map(fn($img)=>asset('storage/'.$img),$dress->images);
+            $dress->images=array_map(fn($img)=>str_starts_with($img,'http')?$img:asset('storage/'.$img),$dress->images);
         }
         return response()->json([
             'success'=>true,
@@ -142,9 +142,9 @@ class DressHireController extends Controller
 
             
             if (!empty($dress->images)) {
-                $dress->images = array_map(fn($img) => asset('storage/' . $img), $dress->images);
+                $dress->images = array_map(fn($img) => str_starts_with($img, 'http') ? $img : asset('storage/' . $img), $dress->images);
             }
-
+            
             return response()->json([
                 'success' => true,
                 'data' => $dress,
