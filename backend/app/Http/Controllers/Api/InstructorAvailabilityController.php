@@ -71,6 +71,10 @@ class InstructorAvailabilityController extends Controller
             ->with(['schedules', 'schedule'])
             ->get();
 
+        // 2b. All fixed program schedules assigned to this instructor (committed time)
+        $fixedSchedules = \App\Models\ProgramSchedule::where('instructor_id', $instructorId)->get();
+
+
         // Build list of booked intervals in minutes
         $bookedIntervals = [];
         foreach ($acceptedBookings as $booking) {
@@ -88,6 +92,13 @@ class InstructorAvailabilityController extends Controller
                     $bookedIntervals[] = [$bs, $be];
                 }
             }
+        }
+        
+        // Add fixed schedules to booked intervals
+        foreach ($fixedSchedules as $s) {
+            $bs = $this->toMinutes(substr($s->start_time, 0, 5));
+            $be = $this->toMinutes(substr($s->end_time, 0, 5));
+            $bookedIntervals[] = [$bs, $be];
         }
 
         // Sort booked intervals by start time
@@ -123,7 +134,48 @@ class InstructorAvailabilityController extends Controller
         // Sort free segments by start time
         usort($freeSegments, fn($a, $b) => $a['start'] <=> $b['start']);
 
-        return $freeSegments;
+        // Collect intersections of bookings and availability slots
+        $intersections = [];
+        foreach ($availabilities as $avail) {
+            $aS = $this->toMinutes(substr($avail->start_time, 0, 5));
+            $aE = $this->toMinutes(substr($avail->end_time, 0, 5));
+            
+            foreach ($bookedIntervals as [$bS, $bE]) {
+                // Check for overlap
+                if ($bS < $aE && $bE > $aS) {
+                    // Calculate intersection
+                    $intersections[] = [max($aS, $bS), min($aE, $bE)];
+                }
+            }
+        }
+
+        // Merge and format booked segments (intersections)
+        $mergedBooked = [];
+        if (!empty($intersections)) {
+            usort($intersections, fn($a, $b) => $a[0] <=> $b[0]);
+            foreach ($intersections as $interval) {
+                if (empty($mergedBooked)) {
+                    $mergedBooked[] = $interval;
+                } else {
+                    $last = &$mergedBooked[count($mergedBooked) - 1];
+                    if ($interval[0] <= $last[1]) {
+                        $last[1] = max($last[1], $interval[1]);
+                    } else {
+                        $mergedBooked[] = $interval;
+                    }
+                }
+            }
+        }
+
+        $bookedFormatted = array_map(fn($b) => [
+            'start' => $this->fromMinutes($b[0]),
+            'end'   => $this->fromMinutes($b[1])
+        ], $mergedBooked);
+
+        return [
+            'free'   => $freeSegments,
+            'booked' => $bookedFormatted,
+        ];
     }
 
     public function index($instructor_id)
@@ -141,7 +193,7 @@ class InstructorAvailabilityController extends Controller
      */
     public function freeSlots($instructor_id)
     {
-        $freeSegments = $this->computeFreeSegments((int)$instructor_id);
+        $res = $this->computeFreeSegments((int)$instructor_id);
 
         // Also return raw availabilities for reference
         $rawAvailabilities = InstructorAvailability::where('instructor_id', $instructor_id)
@@ -156,7 +208,8 @@ class InstructorAvailabilityController extends Controller
 
         return response()->json([
             'success'           => true,
-            'free_segments'     => $freeSegments,
+            'free_segments'     => $res['free'],
+            'booked_segments'   => $res['booked'],
             'raw_availabilities' => $rawAvailabilities,
         ]);
     }

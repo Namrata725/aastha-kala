@@ -38,4 +38,9 @@ class Program extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    public function enrollments()
+    {
+        return $this->hasMany(StudentProgram::class);
+    }
 }

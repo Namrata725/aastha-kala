@@ -14,6 +14,7 @@ class StudentProgram extends Model
         'program_id',
         'enrolled_at',
         'status',
+        'booking_id',
     ];
 
     protected $casts = [
@@ -28,6 +29,11 @@ class StudentProgram extends Model
     public function program()
     {
         return $this->belongsTo(Program::class);
+    }
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class);
     }
 
     /**

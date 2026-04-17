@@ -266,7 +266,7 @@ class BookingController extends Controller
             'custom_end_time'  => 'nullable|date_format:H:i',
             'duration_value'   => 'nullable|integer|min:1',
             'duration_unit'    => 'nullable|in:days,months,years',
-            'status'           => 'nullable|in:pending,accepted,rejected',
+            'status'           => 'nullable|in:pending,accepted,rejected,completed',
         ]);
 
         if ($validator->fails()) {
@@ -307,7 +307,7 @@ class BookingController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'status'             => 'required|in:pending,accepted,rejected',
+            'status'             => 'required|in:pending,accepted,rejected,completed',
             'instructor_id'      => 'nullable|exists:instructors,id',
             'custom_start_time'  => 'nullable|date_format:H:i',
             'custom_end_time'    => 'nullable|date_format:H:i',

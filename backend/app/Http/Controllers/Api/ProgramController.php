@@ -16,7 +16,7 @@ class ProgramController extends Controller
     // GET /api/programs
     public function index()
     {
-        $programs = Program::with(['schedules', 'instructors'])
+        $programs = Program::with(['schedules.instructor', 'instructors'])
             ->latest()
             ->paginate(10);
 
@@ -92,7 +92,7 @@ class ProgramController extends Controller
             }
         }
 
-        $program->load(['schedules', 'instructors']);
+        $program->load(['schedules.instructor', 'instructors']);
 
         return response()->json([
             'success' => true,
@@ -104,7 +104,7 @@ class ProgramController extends Controller
     // GET /api/programs/{id}
     public function show($id)
     {
-        $program = Program::with(['schedules', 'instructors'])->find($id);
+        $program = Program::with(['schedules.instructor', 'instructors'])->find($id);
 
         if (!$program) {
             return response()->json([
@@ -207,7 +207,7 @@ class ProgramController extends Controller
             }
         }
 
-        $program->load(['schedules', 'instructors']);
+        $program->load(['schedules.instructor', 'instructors']);
 
         return response()->json([
             'success' => true,

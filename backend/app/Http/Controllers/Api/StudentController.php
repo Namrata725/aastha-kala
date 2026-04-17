@@ -12,7 +12,11 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Student::latest();
+        $query = Student::with([
+            'enrollments.program', 
+            'enrollments.booking.instructor', 
+            'enrollments.booking.schedules'
+        ])->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -52,6 +56,15 @@ class StudentController extends Controller
             'enrollment_date' => 'nullable|date',
             'duration_value' => 'nullable|numeric|min:0',
             'duration_unit' => 'nullable|string',
+            'enrollments' => 'nullable|array',
+            'enrollments.*.program_id' => 'required|exists:programs,id',
+            'enrollments.*.instructor_id' => 'nullable|exists:instructors,id',
+            'enrollments.*.schedule_id' => 'nullable|exists:program_schedules,id',
+            'enrollments.*.schedule_ids' => 'nullable|array',
+            'enrollments.*.type' => 'nullable|in:regular,customization',
+            'enrollments.*.status' => 'nullable|in:active,inactive,graduated',
+            'enrollments.*.custom_start_time' => 'nullable|date_format:H:i',
+            'enrollments.*.custom_end_time' => 'nullable|date_format:H:i',
         ]);
 
         if ($validator->fails()) {
@@ -96,7 +109,13 @@ class StudentController extends Controller
 
     public function show($id)
     {
-        $student = Student::with('fees')->findOrFail($id);
+        $student = Student::with([
+            'fees', 
+            'enrollments.program', 
+            'enrollments.booking.instructor', 
+            'enrollments.booking.schedules'
+        ])->findOrFail($id);
+        
         $student->image_url = $student->image ? asset('storage/' . $student->image) : null;
 
         return response()->json([
@@ -123,6 +142,15 @@ class StudentController extends Controller
             'enrollment_date' => 'nullable|date',
             'duration_value' => 'nullable|numeric|min:0',
             'duration_unit' => 'nullable|string',
+            'enrollments' => 'nullable|array',
+            'enrollments.*.program_id' => 'required|exists:programs,id',
+            'enrollments.*.instructor_id' => 'nullable|exists:instructors,id',
+            'enrollments.*.schedule_id' => 'nullable|exists:program_schedules,id',
+            'enrollments.*.schedule_ids' => 'nullable|array',
+            'enrollments.*.type' => 'nullable|in:regular,customization',
+            'enrollments.*.status' => 'nullable|in:active,inactive,graduated',
+            'enrollments.*.custom_start_time' => 'nullable|date_format:H:i',
+            'enrollments.*.custom_end_time' => 'nullable|date_format:H:i',
         ]);
 
         if ($validator->fails()) {
@@ -140,9 +168,9 @@ class StudentController extends Controller
 
         $student->update($data);
         
-        // If classes were updated, sync enrollments and generate missing fees
-        if (isset($data['classes'])) {
-            $this->syncProgramsAndFees($student);
+        // If classes or enrollments were updated, sync enrollments and generate missing fees
+        if (isset($data['classes']) || isset($data['enrollments'])) {
+            $this->syncProgramsAndFees($student, $request->enrollments ?? []);
         }
 
         return response()->json([
@@ -152,65 +180,111 @@ class StudentController extends Controller
     }
 
     /**
-     * Syncs student_programs table and auto-generates student_fees records
-     * for any active enrollment that doesn't have a record for the current month.
+     * Syncs student_programs table, links to bookings, and auto-generates student_fees records.
      */
-    private function syncProgramsAndFees($student)
+    private function syncProgramsAndFees($student, array $enrollmentData = [])
     {
-        if (empty($student->classes)) {
-            \App\Models\StudentProgram::where('student_id', $student->id)->delete();
-            return;
+        $currentMonth = date('j F Y');
+        $studentStatus = $student->status;
+
+        // 1. Determine which programs we are dealing with
+        $programIdsToSync = [];
+        
+        if (!empty($enrollmentData)) {
+            $programIdsToSync = array_column($enrollmentData, 'program_id');
+        } elseif (!empty($student->classes)) {
+            $classTitles = array_map('trim', array_filter(explode(',', $student->classes)));
+            $programIdsToSync = \App\Models\Program::where('is_active', true)
+                ->where(function ($q) use ($classTitles) {
+                    foreach ($classTitles as $title) {
+                        $q->orWhereRaw('LOWER(title) = ?', [strtolower($title)]);
+                    }
+                })
+                ->pluck('id')
+                ->toArray();
         }
 
-        $classTitles = array_map('trim', array_filter(explode(',', $student->classes)));
-        
-        // 1. Identify valid matching programs
-        $programs = \App\Models\Program::where('is_active', true)
-            ->where(function ($q) use ($classTitles) {
-                foreach ($classTitles as $title) {
-                    $q->orWhereRaw('LOWER(title) = ?', [strtolower($title)]);
-                }
-            })
+        // 2. Remove programs no longer in the list
+        $oldEnrollments = \App\Models\StudentProgram::where('student_id', $student->id)
+            ->whereNotIn('program_id', $programIdsToSync)
             ->get();
+
+        foreach ($oldEnrollments as $oe) {
+            // Delete related shadow booking if it exists
+            if ($oe->booking_id) {
+                \App\Models\Booking::where('id', $oe->booking_id)->delete();
+            }
+            $oe->delete();
+        }
+
+        // 3. Sync each program
+        foreach ($programIdsToSync as $pId) {
+            $prog = \App\Models\Program::find($pId);
+            if (!$prog) continue;
+
+            // Find enrollment info for this program. Loose comparison handles string vs int IDs from request.
+            $enrollInfo = collect($enrollmentData)->first(fn($item) => (int)($item['program_id'] ?? 0) === (int)$pId);
+
             
-        $programIds = $programs->pluck('id')->toArray();
-        $currentMonth = date('j F Y');
+            $spStatus = $enrollInfo['status'] ?? 
+                        ($studentStatus === 'graduated' ? 'graduated' : 
+                        ($studentStatus === 'inactive' ? 'inactive' : 'active'));
+            
+            $sp = \App\Models\StudentProgram::updateOrCreate(
+                ['student_id' => $student->id, 'program_id' => $pId],
+                ['status' => $spStatus]
+            );
 
-        // 2. Sync StudentProgram (enrollments table)
-        // Remove programs no longer in the CSV classes string
-        \App\Models\StudentProgram::where('student_id', $student->id)
-            ->whereNotIn('program_id', $programIds)
-            ->delete();
+            // Handle Shadow Booking to block instructor's time
+            // Only 'active' status blocks the instructor; graduated or inactive frees it.
+            $bookingStatus = ($spStatus === 'active' ? 'accepted' : 'completed');
+            
+            $bookingData = [
+                'student_id'    => $student->id,
+                'program_id'    => $pId,
+                'status'        => $bookingStatus,
+                'booking_date'  => $student->enrollment_date ?: date('Y-m-d'),
+                'name'          => $student->name,
+                'phone'         => $student->phone,
+                'email'         => $student->email,
+                'address'       => $student->address,
+                'class_mode'    => 'physical', // default
+                'type'          => $enrollInfo['type'] ?? 'regular',
+                'instructor_id' => !empty($enrollInfo['instructor_id']) ? $enrollInfo['instructor_id'] : null,
+                'schedule_id'   => !empty($enrollInfo['schedule_id']) ? $enrollInfo['schedule_id'] : null,
+                'custom_start_time' => !empty($enrollInfo['custom_start_time']) ? $enrollInfo['custom_start_time'] : null,
+                'custom_end_time'   => !empty($enrollInfo['custom_end_time']) ? $enrollInfo['custom_end_time'] : null,
+            ];
 
-        // Add new programs to enrollment table
-        foreach ($programs as $prog) {
-            $exists = \App\Models\StudentProgram::where('student_id', $student->id)
-                ->where('program_id', $prog->id)
-                ->exists();
-
-            if (!$exists) {
-                \App\Models\StudentProgram::create([
-                    'student_id' => $student->id,
-                    'program_id' => $prog->id,
-                    'status' => 'active',
-                    'enrolled_at' => now(),
-                ]);
+            if ($sp->booking_id) {
+                $booking = \App\Models\Booking::find($sp->booking_id);
+                if ($booking) {
+                    $booking->update($bookingData);
+                } else {
+                    $booking = \App\Models\Booking::create($bookingData);
+                    $sp->update(['booking_id' => $booking->id]);
+                }
+            } else {
+                $booking = \App\Models\Booking::create($bookingData);
+                $sp->update(['booking_id' => $booking->id]);
             }
 
-            // 3. Auto-generate Fee Record if missing for this month
-            // This ensures that even if a student has paid all previous fees,
-            // adding a new program creates a new 'Pending' entry in Fees & Billing.
+            // Sync schedule_ids if provided (for regular programs with multiple slots)
+            if (isset($enrollInfo['schedule_ids']) && is_array($enrollInfo['schedule_ids'])) {
+                $booking->schedules()->sync($enrollInfo['schedule_ids']);
+            }
+
+            // 4. Handle Fees
             $feeExists = \App\Models\StudentFee::where('student_id', $student->id)
-                ->where('program_id', $prog->id)
+                ->where('program_id', $pId)
                 ->where('month_year', $currentMonth)
                 ->exists();
 
             if (!$feeExists) {
                 $feeAmount = (float) ($prog->program_fee ?? 0);
-
                 \App\Models\StudentFee::create([
                     'student_id'     => $student->id,
-                    'program_id'     => $prog->id,
+                    'program_id'     => $pId,
                     'fee_type'       => 'program',
                     'total_amount'   => $feeAmount,
                     'paid_amount'    => 0,

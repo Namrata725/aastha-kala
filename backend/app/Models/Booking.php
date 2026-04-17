@@ -26,6 +26,7 @@ class Booking extends Model
         'duration_value',
         'duration_unit',
         'status',
+        'student_id',
     ];
 
     protected $casts = [
@@ -51,5 +52,10 @@ class Booking extends Model
     public function schedules()
     {
         return $this->belongsToMany(ProgramSchedule::class, 'booking_schedule', 'booking_id', 'program_schedule_id');
+    }
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
     }
 }

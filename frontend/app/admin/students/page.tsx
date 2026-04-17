@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { Pagination } from "@/components/global/Pagination";
 import StudentAddEditModal from "@/components/admin/StudentAddEditModal";
 import StudentViewModal from "@/components/admin/StudentViewModal";
+import ProgramManagementView from "@/components/admin/ProgramManagementView";
 
 interface Student {
   id: number;
@@ -30,6 +31,7 @@ const StudentPage = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "graduated">("all");
+    const [viewMode, setViewMode] = useState<"students" | "programs">("students");
   
     const [pagination, setPagination] = useState({
       currentPage: 1,
@@ -165,7 +167,16 @@ const StudentPage = () => {
             <h1 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
               Student Management
             </h1>
-            <p className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-1">Manage enrollments, status, and details</p>
+            <div className="flex bg-slate-100 p-1 rounded-2xl mt-3 w-fit">
+                <button 
+                    onClick={() => setViewMode("students")}
+                    className={`px-6 py-1.5 text-xs font-black rounded-xl transition-all ${viewMode === "students" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                >STUDENT LIST</button>
+                <button 
+                    onClick={() => setViewMode("programs")}
+                    className={`px-6 py-1.5 text-xs font-black rounded-xl transition-all ${viewMode === "programs" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                >PROGRAM VIEW</button>
+            </div>
           </div>
           <div className="flex items-center gap-4 w-full lg:w-auto">
             <div className="relative flex-1 lg:w-64">
@@ -198,34 +209,42 @@ const StudentPage = () => {
           </div>
         </header>
   
-        <div className="overflow-hidden">
-          <Table
-            columns={columns}
-            data={formattedData}
-            loading={loading}
-            actions={["view", "edit", "delete"]}
-            onView={handleView}
-            onEdit={handleEdit}
-            onDelete={handleDeleteClick}
-            customActions={[
-              {
-                icon: <CreditCard className="w-4 h-4" />,
-                label: "Fees & Billing",
-                onClick: (row) => router.push(`/admin/fees?student_id=${row.id}`),
-                color: "text-blue-600"
-              }
-            ]}
-          />
-          <div className="p-4 border-gray-100">
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              itemsPerPage={pagination.itemsPerPage}
-              onPageChange={(page) => fetchStudents(page)}
+        {viewMode === "students" ? (
+            <div className="overflow-hidden">
+                <Table
+                    columns={columns}
+                    data={formattedData}
+                    loading={loading}
+                    actions={["view", "edit", "delete"]}
+                    onView={handleView}
+                    onEdit={handleEdit}
+                    onDelete={handleDeleteClick}
+                    customActions={[
+                    {
+                        icon: <CreditCard className="w-4 h-4" />,
+                        label: "Fees & Billing",
+                        onClick: (row) => router.push(`/admin/fees?student_id=${row.id}`),
+                        color: "text-blue-600"
+                    }
+                    ]}
+                />
+                <div className="p-4 border-gray-100">
+                    <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    totalItems={pagination.totalItems}
+                    itemsPerPage={pagination.itemsPerPage}
+                    onPageChange={(page) => fetchStudents(page)}
+                    />
+                </div>
+            </div>
+        ) : (
+            <ProgramManagementView 
+              searchTerm={searchTerm} 
+              statusFilter={statusFilter} 
+              onRefresh={() => fetchStudents(pagination.currentPage)} 
             />
-          </div>
-        </div>
+        )}
 
         <StudentAddEditModal
           isOpen={formModalOpen}

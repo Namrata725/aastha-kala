@@ -56,21 +56,16 @@ class EventController extends Controller
 
         $data = $validator->validated();
 
-        
         if (empty($data['slug'])) {
             $data['slug'] = $this->generateUniqueSlug($data['title']);
         }
 
-        
         if ($request->hasFile('banner')) {
             $path = $request->file('banner')->store('events', 'public');
-            $data['banner'] = $path;
+            $data['banner'] = asset('storage/' . $path);
         }
 
         $event = Event::create($data);
-
-        
-        $event->banner = $this->getBannerUrl($event->banner);
 
         return response()->json([
             'message' => 'Event created successfully',
@@ -119,33 +114,29 @@ class EventController extends Controller
 
         $data = $validator->validated();
 
-        
         if ($request->boolean('remove_banner')) {
             if ($event->banner) {
-                Storage::disk('public')->delete($event->banner);
+                $oldPath = str_replace(asset('storage/'), '', $event->banner);
+                Storage::disk('public')->delete($oldPath);
             }
             $data['banner'] = null;
         }
 
-        
         if ($request->hasFile('banner')) {
             if ($event->banner) {
-                Storage::disk('public')->delete($event->banner);
+                $oldPath = str_replace(asset('storage/'), '', $event->banner);
+                Storage::disk('public')->delete($oldPath);
             }
 
             $path = $request->file('banner')->store('events', 'public');
-            $data['banner'] = $path;
+            $data['banner'] = asset('storage/' . $path);
         }
 
-        
         if ($request->filled('title') && !$request->filled('slug')) {
             $data['slug'] = $this->generateUniqueSlug($data['title'], $event->id);
         }
 
         $event->update($data);
-
-        
-        $event->banner = $this->getBannerUrl($event->banner);
 
         return response()->json([
             'message' => 'Event updated successfully',
@@ -159,7 +150,8 @@ class EventController extends Controller
     public function destroy(Event $event)
     {
         if ($event->banner) {
-            Storage::disk('public')->delete($event->banner);
+            $oldPath = str_replace(asset('storage/'), '', $event->banner);
+            Storage::disk('public')->delete($oldPath);
         }
 
         $event->delete();
@@ -172,17 +164,17 @@ class EventController extends Controller
     /**
      * PUBLIC: GET by slug
      */
- public function showBySlug($slug)
-{
-    $event = Event::where('slug', $slug)->firstOrFail();
+    public function showBySlug($slug)
+    {
+        $event = Event::where('slug', $slug)->firstOrFail();
 
-    $event->banner = $this->getBannerUrl($event->banner);
+        $event->banner = $this->getBannerUrl($event->banner);
 
-    return response()->json([
-        'message' => 'Event fetched successfully',
-        'data' => $event
-    ]);
-}
+        return response()->json([
+            'message' => 'Event fetched successfully',
+            'data' => $event
+        ]);
+    }
 
     /**
      * Generate unique slug
@@ -214,6 +206,10 @@ class EventController extends Controller
     {
         if (!$path) {
             return null;
+        }
+
+        if (Str::startsWith($path, 'http')) {
+            return $path;
         }
 
         return asset('storage/' . $path);
