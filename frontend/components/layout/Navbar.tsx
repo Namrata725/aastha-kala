@@ -7,7 +7,7 @@ import { Menu, X } from "lucide-react";
 
 const Navbar: React.FC = () => {
   const pathname = usePathname();
-  const [logo, setLogo] = useState<string | null>("/logo.jpg");
+  const [logo, setLogo] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const getLogoUrl = (logoPath: string | null | undefined) => {
@@ -27,9 +27,14 @@ const Navbar: React.FC = () => {
         const settings = json?.data?.setting || json?.setting;
         if (settings?.logo) {
           setLogo(getLogoUrl(settings.logo));
+        } else {
+          // Fall back to the static logo in the public directory
+          setLogo("/images/logo.png");
         }
       } catch (error) {
         console.error("Failed to fetch settings for logo:", error);
+        // Fall back to the static logo on network/parse error
+        setLogo("/images/logo.png");
       }
     };
     fetchSettings();
