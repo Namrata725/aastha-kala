@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DressHireController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\StudentFeeController;
+use App\Http\Controllers\Api\StudentEnrollmentController;
 
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -93,6 +94,8 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     });
 
     Route::apiResource('students', StudentController::class);
+    Route::get('/student-management/enrollments', [StudentEnrollmentController::class, 'index']);
+    Route::patch('/student-management/enrollments/{id}/status', [StudentEnrollmentController::class, 'updateStatus']);
     Route::apiResource('student-fees', StudentFeeController::class);
     Route::get('/students/{studentId}/fee-info', [StudentFeeController::class, 'studentFeeInfo']);
 });

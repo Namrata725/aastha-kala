@@ -17,6 +17,8 @@ import {
   Timer,
   CheckCircle2,
   XCircle,
+  GraduationCap,
+  CreditCard
 } from "lucide-react";
 import Link from "next/link";
 import { useDashboard } from "@/lib/DashboardContext";
@@ -25,6 +27,8 @@ import ProgramAddEditModal from "@/components/admin/ProgramAddEditModal";
 import InstructorModal from "@/components/admin/InstructorModal";
 import EventAddEditModal from "@/components/admin/EventAddEditModal";
 import GalleryAddEditModal from "@/components/admin/GalleryAddEditModal";
+import StudentAddEditModal from "@/components/admin/StudentAddEditModal";
+import { useRouter } from "next/navigation";
 
 /* ───────────────────────── helpers ───────────────────────── */
 
@@ -65,7 +69,7 @@ const statusConfig: Record<
 
 /* ─────────────────────── animated counter ─────────────────── */
 
-const AnimatedNumber = ({ value, duration = 700 }: { value: number; duration?: number }) => {
+const AnimatedNumber = ({ value, duration = 700, prefix = "" }: { value: number; duration?: number; prefix?: string }) => {
   const [display, setDisplay] = useState(0);
   useEffect(() => {
     let start = 0;
@@ -81,41 +85,68 @@ const AnimatedNumber = ({ value, duration = 700 }: { value: number; duration?: n
     }, 16);
     return () => clearInterval(id);
   }, [value, duration]);
-  return <>{fmt(display)}</>;
+  return <>{prefix}{fmt(display)}</>;
 };
 
-/* ─────────────────────── stat card ────────────────────────── */
+/* ─────────────────────── stat card (COMPACT) ────────────────────────── */
 
 const StatCard = ({
   title,
   value,
   icon: Icon,
   accent,
+  prefix = "",
+  trend = "",
 }: {
   title: string;
   value: number;
   icon: React.ElementType;
   accent: string;
+  prefix?: string;
+  trend?: string;
 }) => (
-  <div className="relative bg-white border border-gray-200/80 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:border-gray-300/80 transition-all duration-300 group overflow-hidden">
+  <div className="relative bg-white border border-gray-100 rounded-[1.5rem] p-5 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-500 group overflow-hidden">
+    
+    {/* Background glow */}
     <div
-      className={`absolute -right-8 -top-8 w-28 h-28 rounded-full blur-3xl opacity-[0.07] group-hover:opacity-[0.12] transition-opacity ${accent}`}
+      className="absolute -right-10 -top-10 w-32 h-32 rounded-full blur-[60px] opacity-[0.08] group-hover:opacity-[0.15] transition-opacity duration-700"
+      style={{ backgroundColor: accent }}
     />
+
     <div className="relative z-10">
-      <div className="flex items-center justify-between mb-5">
-        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em]">
+      {/* Title + Icon in same row */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
           {title}
         </span>
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center border"
-          style={{ backgroundColor: `${accent}0D`, borderColor: `${accent}1A` }}
+          className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm shrink-0"
+          style={{
+            background: `linear-gradient(135deg, ${accent}1A 0%, ${accent}0D 100%)`,
+            border: `1px solid ${accent}26`,
+          }}
         >
-          <Icon className="w-4 h-4" style={{ color: accent }} />
+          <Icon className="w-5 h-5" style={{ color: accent }} />
         </div>
       </div>
-      <p className="text-[32px] font-extrabold text-gray-900 leading-none tracking-tight">
-        <AnimatedNumber value={value} />
-      </p>
+
+      {/* Value */}
+      <div className="flex items-baseline gap-2">
+        <p className="text-[28px] font-black text-gray-900 leading-none tracking-tight">
+          <AnimatedNumber value={value} prefix={prefix} />
+        </p>
+        {trend && (
+          <span className="text-[9px] font-bold tracking-wider text-emerald-600 bg-emerald-50 px-2 py-[2px] rounded-full whitespace-nowrap">
+            {trend}
+          </span>
+        )}
+      </div>
+
+      {/* Bottom accent line */}
+      <div
+        className="absolute bottom-0 left-0 h-[2px] w-0 group-hover:w-full transition-all duration-700 rounded-full"
+        style={{ backgroundColor: accent }}
+      />
     </div>
   </div>
 );
@@ -205,6 +236,7 @@ const ActivityItem = ({
 
 const Dashboard = () => {
   const { data, loading, categories, refreshData } = useDashboard();
+  const router = useRouter();
   const [adminName, setAdminName] = useState("Admin");
   const [currentTime, setCurrentTime] = useState("");
 
@@ -213,6 +245,7 @@ const Dashboard = () => {
     instructor: false,
     event: false,
     gallery: false,
+    student: false,
   });
 
   useEffect(() => {
@@ -252,7 +285,7 @@ const Dashboard = () => {
         <div className="h-8 w-64 bg-gray-200 rounded-lg" />
         <div className="grid grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-32 bg-gray-100 rounded-2xl" />
+            <div key={i} className="h-28 bg-gray-100 rounded-2xl" />
           ))}
         </div>
         <div className="grid grid-cols-3 gap-6">
@@ -309,30 +342,31 @@ const Dashboard = () => {
       </div>
 
       {/* ──── KPI STATS (all values from API) ──── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Bookings"
           value={stats.total_bookings || 0}
           icon={CalendarCheck}
-          accent="#3B82F6"
+          accent="#2563EB"
         />
         <StatCard
           title="Pending Requests"
           value={stats.pending_bookings || 0}
           icon={Clock}
-          accent="#F59E0B"
+          accent="#D97706"
         />
         <StatCard
-          title="Instructors"
-          value={stats.total_instructors || 0}
-          icon={Users}
-          accent="#8B5CF6"
+          title="Total Students"
+          value={stats.total_students || 0}
+          icon={GraduationCap}
+          accent="#4F46E5"
         />
         <StatCard
-          title="Programs"
-          value={stats.total_programs || 0}
-          icon={BookOpen}
-          accent="#EC4899"
+          title="Total Revenue"
+          value={stats.total_revenue || 0}
+          icon={CreditCard}
+          accent="#059669"
+          prefix="Rs. "
         />
       </div>
 
@@ -347,18 +381,18 @@ const Dashboard = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <QuickAction
-            title="Add Program"
-            desc="Create a new training program"
-            icon={PlusCircle}
+            title="New Student"
+            desc="Register a new student"
+            icon={UserPlus}
             accent="#0EA5E9"
-            onClick={() => openModal("program")}
+            onClick={() => openModal("student")}
           />
           <QuickAction
-            title="New Instructor"
-            desc="Onboard a team member"
-            icon={UserPlus}
-            accent="#8B5CF6"
-            onClick={() => openModal("instructor")}
+            title="Manage Fees"
+            desc="View billing & payments"
+            icon={CreditCard}
+            accent="#10B981"
+            onClick={() => router.push("/admin/fees")}
           />
           <QuickAction
             title="Create Event"
@@ -546,51 +580,6 @@ const Dashboard = () => {
               )}
             </div>
           </div>
-
-          {/* Activity Feed — derived from real bookings only */}
-          {/* <div className="space-y-4">
-            <div className="flex items-center gap-2.5">
-              <Timer className="w-4 h-4 text-gray-400" />
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-[0.15em]">
-                Activity Feed
-              </h2>
-            </div>
-            <div className="bg-white border border-gray-200/80 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] space-y-4">
-              {recentBookings.length > 0 ? (
-                recentBookings.map((b: any) => (
-                  <ActivityItem
-                    key={b.id}
-                    icon={
-                      b.status === "approved"
-                        ? CheckCircle2
-                        : b.status === "rejected"
-                        ? XCircle
-                        : Clock
-                    }
-                    color={
-                      b.status === "approved"
-                        ? "#10B981"
-                        : b.status === "rejected"
-                        ? "#EF4444"
-                        : "#F59E0B"
-                    }
-                    title={`${b.name} — ${
-                      b.status === "approved"
-                        ? "booking approved"
-                        : b.status === "rejected"
-                        ? "booking rejected"
-                        : "new booking received"
-                    }`}
-                    time={timeAgo(b.created_at)}
-                  />
-                ))
-              ) : (
-                <p className="text-[11px] text-gray-300 text-center py-4 font-medium uppercase tracking-wider">
-                  No activity yet
-                </p>
-              )}
-            </div>
-          </div> */}
         </div>
       </div>
 
@@ -619,6 +608,12 @@ const Dashboard = () => {
         onSuccess={() => refreshData()}
         categories={categories}
         editData={null}
+      />
+      <StudentAddEditModal
+        isOpen={modals.student}
+        onClose={() => closeModal("student")}
+        onSuccess={() => refreshData()}
+        student={null}
       />
     </div>
   );

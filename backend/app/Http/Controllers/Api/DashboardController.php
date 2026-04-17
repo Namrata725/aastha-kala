@@ -19,10 +19,10 @@ class DashboardController extends Controller
             'pending_bookings' => Booking::where('status', 'pending')->count(),
             'approved_bookings' => Booking::where('status', 'approved')->count(),
             'cancelled_bookings' => Booking::where('status', 'cancelled')->count(),
-            'total_instructors' => Instructor::count(),
-            'total_programs' => Program::count(),
             'total_events' => Event::count(),
             'total_messages' => Message::count(),
+            'total_students' => \App\Models\Student::count(),
+            'total_revenue' => \App\Models\StudentFee::sum('paid_amount'),
         ];
 
         $recent_bookings = Booking::with(['program', 'instructor'])

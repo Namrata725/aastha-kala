@@ -31,6 +31,13 @@ class Student extends Model
         'enrollment_date' => 'date',
     ];
 
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute()
+    {
+        return $this->image ? asset('storage/' . $this->image) : null;
+    }
+
     public function fees()
     {
         return $this->hasMany(StudentFee::class);
@@ -46,5 +53,10 @@ class Student extends Model
         return $this->belongsToMany(Program::class, 'student_programs')
                     ->withPivot(['enrolled_at', 'status'])
                     ->withTimestamps();
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
     }
 }

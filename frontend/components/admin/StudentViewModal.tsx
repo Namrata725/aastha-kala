@@ -38,7 +38,64 @@ const StudentViewModal: React.FC<Props> = ({ isOpen, onClose, student }) => {
             </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="mt-10">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Course Enrollments</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {student.enrollments && student.enrollments.length > 0 ? student.enrollments.map((en: any) => (
+                    <div key={en.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm font-black text-gray-900">{en.program?.title}</p>
+                             <div className="flex gap-1.5">
+                                 <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${
+                                     en.status === 'graduated' ? 'bg-green-500 text-white' : 
+                                     en.status === 'inactive' ? 'bg-gray-400 text-white' : 
+                                     'bg-blue-600 text-white'
+                                 }`}>
+                                     {en.status || 'ACTIVE'}
+                                 </span>
+                                 <span className="text-[8px] px-1.5 py-0.5 bg-slate-200 text-gray-600 rounded font-bold uppercase">{en.booking?.type || 'REGULAR'}</span>
+                             </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-white rounded-lg border border-slate-200">
+                                <User className="w-3 h-3 text-secondary" />
+                            </div>
+                            <div>
+                                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Instructor</p>
+                                <p className="text-[11px] font-bold text-gray-700">{en.booking?.instructor?.name || "No instructor assigned"}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-white rounded-lg border border-slate-200">
+                                <Clock className="w-3 h-3 text-secondary" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Schedule/Timing</p>
+                                <div className="flex flex-wrap gap-1 mt-0.5">
+                                    {en.booking?.type === 'customization' ? (
+                                        <span className="text-[10px] font-bold text-gray-700">
+                                            {en.booking.custom_start_time?.substring(0,5)} - {en.booking.custom_end_time?.substring(0,5)}
+                                        </span>
+                                    ) : (
+                                        en.booking?.schedules?.length > 0 ? en.booking.schedules.map((s: any) => (
+                                            <span key={s.id} className="text-[9px] bg-white px-1.5 py-0.5 rounded border border-gray-100 text-gray-600 font-medium">
+                                                {s.day}: {s.start_time.substring(0,5)}
+                                            </span>
+                                        )) : <span className="text-[10px] text-gray-400 italic">No slot selected</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )) : (
+                    <p className="text-sm text-gray-400 italic col-span-2">No active enrollments found.</p>
+                )}
+            </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
             <div className="space-y-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Personal Details</p>
                 <DetailItem icon={Phone} label="Phone" value={student.phone} />
@@ -48,9 +105,7 @@ const StudentViewModal: React.FC<Props> = ({ isOpen, onClose, student }) => {
                 <DetailItem icon={Calendar} label="Enrollment Date" value={student.enrollment_date ? new Date(student.enrollment_date).toLocaleDateString() : "N/A"} />
             </div>
             <div className="space-y-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Enrollment Info</p>
-                <DetailItem icon={BookOpen} label="Enrolled In" value={student.classes || "N/A"} />
-                <DetailItem icon={Clock} label="Preferred Time" value={student.time || "N/A"} />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Other Info</p>
                 <DetailItem icon={Clock} label="Duration" value={student.duration_value ? `${student.duration_value} ${student.duration_unit}` : "N/A"} />
                 <DetailItem icon={Star} label="Reference" value={student.offer_enroll_reference || "N/A"} />
                 <DetailItem icon={User} label="Gender" value={student.gender || "N/A"} />

@@ -66,6 +66,13 @@ const BookingViewModal: React.FC<BookingViewModalProps> = ({
     }
   }, [isOpen, booking?.id, booking?.instructor_id, booking?.type]);
 
+  // Auto-select instructor for regular bookings if not already set once instructors are loaded
+  React.useEffect(() => {
+    if (isOpen && booking?.type === "regular" && !selectedInstructorId && availableInstructors.length > 0) {
+      setSelectedInstructorId(availableInstructors[0].id);
+    }
+  }, [availableInstructors, selectedInstructorId, booking?.type, isOpen]);
+
   const fetchAvailableInstructors = async (bookingId: number) => {
     try {
       setLoadingInstructors(true);
@@ -101,7 +108,6 @@ const BookingViewModal: React.FC<BookingViewModalProps> = ({
     isCustomBooking &&
     agreedStart &&
     agreedEnd &&
-    freeSlots.length > 0 &&
     !freeSlots.some(
       (seg) =>
         toMins(seg.start) <= toMins(agreedStart) &&
@@ -259,46 +265,96 @@ const BookingViewModal: React.FC<BookingViewModalProps> = ({
             </h4>
             <div className="bg-white/40 rounded-xl p-6 border border-primary/20 space-y-6 shadow-sm">
 
-              {/* Pre-assigned for regular bookings */}
-              {booking.type === "regular" &&
-                (booking.schedule?.instructor ||
-                  booking.schedules?.some((s: any) => s.instructor)) ? (
-                <div className="flex flex-col gap-2">
-                  <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest italic">Pre-assigned Teacher(s)</span>
-                  {(() => {
-                    const uniqueInstructors: any[] = [];
-                    const foundIds = new Set();
-                    const addToUnique = (ins: any) => {
-                      if (ins && !foundIds.has(ins.id)) { uniqueInstructors.push(ins); foundIds.add(ins.id); }
-                    };
-                    if (booking.schedule?.instructor) addToUnique(booking.schedule.instructor);
-                    if (booking.schedules) booking.schedules.forEach((s: any) => addToUnique(s.instructor));
-                    return (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {uniqueInstructors.map((instructor) => (
-                          <div
-                            key={instructor.id}
-                            onClick={() => setSelectedInstructorId(instructor.id)}
-                            className={`border rounded-xl px-4 py-3 text-sm font-bold italic shadow-sm flex items-center gap-3 cursor-pointer transition-all ${
-                              selectedInstructorId === instructor.id
-                                ? "bg-primary text-white border-primary scale-[1.02]"
-                                : "bg-primary/5 text-primary border-primary/20 hover:border-primary/40"
-                            }`}
-                          >
-                            <User className="w-4 h-4" />
-                            <div className="flex-1">
-                              <p className="line-clamp-1">{instructor.name}</p>
-                              <p className="text-[9px] font-medium uppercase tracking-tighter opacity-60">Assigned to class schedule</p>
-                            </div>
-                            {selectedInstructorId === instructor.id && <CheckCircle2 className="w-3 h-3" />}
-                          </div>
-                        ))}
+              {booking.type === "regular" ? (
+                /* Regular bookings: Show specific fixed instructors for each assigned slot */
+                <div className="space-y-6">
+                  {(booking.schedules && booking.schedules.length > 0
+                    ? booking.schedules
+                    : [booking.schedule]
+                  ).filter(Boolean).map((s: any, idx: number) => (
+                    <div key={idx} className="space-y-3">
+                      <div className="flex items-center gap-2 border-l-2 border-primary/20 pl-3">
+                        <Clock className="w-3 h-3 text-secondary" />
+                        <span className="text-[9px] text-primary/60 font-black uppercase tracking-widest italic">
+                          Class Slot: {to12h(s.start_time)} – {to12h(s.end_time)}
+                        </span>
                       </div>
-                    );
+                      
+                      {s.instructor ? (
+                        <div
+                          onClick={() => setSelectedInstructorId(s.instructor.id)}
+                          className={`border rounded-xl px-4 py-3 text-sm font-bold italic shadow-sm flex items-center gap-3 cursor-pointer transition-all ${
+                            selectedInstructorId === s.instructor.id
+                              ? "bg-primary text-white border-primary scale-[1.02]"
+                              : "bg-primary/5 text-primary border-primary/20 hover:border-primary/40 text-primary/80"
+                          }`}
+                        >
+                          <User className="w-4 h-4" />
+                          <div className="flex-1">
+                            <p className="line-clamp-1 text-xs">{s.instructor.name}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className={`text-[8px] font-medium uppercase tracking-tighter ${selectedInstructorId === s.instructor.id ? "text-white/70" : "text-primary/60"}`}>
+                                Fixed Instructor for this Slot
+                              </span>
+                            </div>
+                          </div>
+                          {selectedInstructorId === s.instructor.id && <CheckCircle2 className="w-3 h-3" />}
+                        </div>
+                      ) : (
+                        <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-3 flex items-center gap-3">
+                          <AlertTriangle className="w-4 h-4 text-amber-500" />
+                          <span className="text-[10px] text-amber-600/70 font-bold italic">
+                            No fixed lead instructor assigned to this program slot.
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Fallback: if slots don't have fixed instructors, show program-linked facilitators */}
+                  {(() => {
+                    const hasSomeNoFixed = (booking.schedules && booking.schedules.length > 0
+                      ? booking.schedules
+                      : [booking.schedule]
+                    ).filter(Boolean).some((s: any) => !s.instructor);
+
+                    if (hasSomeNoFixed && availableInstructors.length > 0) {
+                      return (
+                        <div className="pt-4 border-t border-primary/10">
+                          <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest italic block mb-3">
+                            Available Program Facilitators
+                          </span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {availableInstructors.map((ins) => (
+                              <div
+                                key={ins.id}
+                                onClick={() => setSelectedInstructorId(ins.id)}
+                                className={`border rounded-xl px-4 py-3 text-sm font-bold italic shadow-sm flex items-center gap-3 cursor-pointer transition-all ${
+                                  selectedInstructorId === ins.id
+                                    ? "bg-primary text-white border-primary scale-[1.02]"
+                                    : "bg-primary/5 text-primary border-primary/20 hover:border-primary/40 text-primary/80"
+                                }`}
+                              >
+                                <User className="w-4 h-4" />
+                                <span className="line-clamp-1 text-xs">{ins.name}</span>
+                                {selectedInstructorId === ins.id && <CheckCircle2 className="ml-auto w-3 h-3" />}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
                   })()}
+
+                  {loadingInstructors && (
+                    <span className="text-[10px] text-primary/60 animate-pulse font-bold italic block mt-4 text-center">
+                      Refreshing instructor list...
+                    </span>
+                  )}
                 </div>
               ) : (
-                /* Customization / no pre-assigned instructor */
+                /* Customization bookings: Show dynamic availability sections */
                 <div className="space-y-5">
                   {/* Available instructors */}
                   {availableInstructors.filter(ins => ins.is_available).length > 0 && (
@@ -422,12 +478,16 @@ const BookingViewModal: React.FC<BookingViewModalProps> = ({
 
                   {/* Overlap warning */}
                   {timeConflict && (
-                    <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
-                      <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-500" />
-                      <div>
-                        <strong>Time conflict:</strong> The student's preferred time{" "}
-                        <strong>{to12h(agreedStart)} – {to12h(agreedEnd)}</strong> doesn't fit within this
-                        instructor's free slots. Adjust the agreed time below or choose a different instructor.
+                    <div className="flex items-start gap-3 bg-red-500/10 border-2 border-red-500/20 rounded-2xl px-5 py-4 text-xs text-red-700 shadow-lg shadow-red-500/5 animate-pulse">
+                      <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500" />
+                      <div className="space-y-1">
+                        <strong className="text-sm font-black uppercase tracking-tighter block mb-1">⚠️ Scheduling Conflict Detected</strong>
+                        <p className="font-medium leading-normal">
+                          The agreed time <strong>{to12h(agreedStart)} – {to12h(agreedEnd)}</strong> overlaps with another booking or is outside the instructor's free segments.
+                        </p>
+                        <p className="text-[10px] font-black uppercase tracking-widest mt-2 bg-red-500 text-white w-fit px-2 py-0.5 rounded italic">
+                          Override Allowed: You can still approve this booking despite the conflict.
+                        </p>
                       </div>
                     </div>
                   )}

@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import InputField from "@/components/layout/InputField";
-import { X, User, Phone, MapPin, Mail, Calendar, Clock, BookOpen, Star, Search, ArrowRight } from "lucide-react";
+import { X, User, Phone, MapPin, Mail, Calendar, Clock, BookOpen, Star, Search, ArrowRight, AlertCircle, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
+import { to12h } from "@/lib/timeFormat";
 
 interface StudentData {
   id?: number;
@@ -21,6 +22,7 @@ interface StudentData {
   duration_unit?: string;
   status: "active" | "inactive" | "graduated";
   image?: File | string | null;
+  enrollments?: any[];
 }
 
 interface Props {
@@ -54,6 +56,7 @@ const StudentAddEditModal: React.FC<Props> = ({
     duration_unit: "",
     status: "active",
     image: null,
+    enrollments: [],
   });
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -68,6 +71,10 @@ const StudentAddEditModal: React.FC<Props> = ({
 
   // Programs State
   const [programs, setPrograms] = useState<any[]>([]);
+
+  // Instructor Availabilities map (instructor_id -> { free_segments, booked_segments })
+  const [instructorAvailabilities, setInstructorAvailabilities] = useState<{[key: number]: any}>({});
+  const [loadingAvail, setLoadingAvail] = useState<number | null>(null);
 
   const fetchBookings = async () => {
     try {
@@ -97,6 +104,17 @@ const StudentAddEditModal: React.FC<Props> = ({
       duration_value: b.duration_value !== null && b.duration_value !== undefined ? String(b.duration_value) : "",
       duration_unit: b.duration_unit || "",
       offer_enroll_reference: `Booking ID: ${b.id}`,
+      enrollments: [
+        {
+          program_id: b.program_id,
+          type: b.type || "regular",
+          instructor_id: b.instructor_id,
+          schedule_id: b.schedule_id,
+          schedule_ids: b.schedules?.map((s: any) => s.id) || (b.schedule_id ? [b.schedule_id] : []),
+          custom_start_time: b.custom_start_time,
+          custom_end_time: b.custom_end_time,
+        }
+      ]
     });
     setShowBookingList(false);
     toast.success(`Imported data for ${b.name}`);
@@ -106,7 +124,6 @@ const StudentAddEditModal: React.FC<Props> = ({
     b.name.toLowerCase().includes(bookingSearch.toLowerCase()) || 
     b.phone.includes(bookingSearch)
   );
-
   const fetchPrograms = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/programs`);
@@ -114,6 +131,55 @@ const StudentAddEditModal: React.FC<Props> = ({
       setPrograms(data.data?.data || data.data || []);
     } catch (error) {
       console.error("Failed to fetch programs:", error);
+    }
+  };
+
+  const toMins = (t?: string): number => {
+    if (!t) return 0;
+    const [h, m] = t.substring(0, 5).split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  const checkConflict = (e: any) => {
+    if (e.type !== 'customization' || !e.instructor_id || !e.custom_start_time || !e.custom_end_time) return false;
+    const avail = instructorAvailabilities[Number(e.instructor_id)];
+    if (!avail || !avail.free) return false;
+
+    const start = toMins(e.custom_start_time);
+    const end = toMins(e.custom_end_time);
+
+    // Conflict if it doesn't fit IN any free segment. 
+    // If avail.free is empty, every time is a conflict.
+    return !avail.free.some((seg: any) => toMins(seg.start) <= start && toMins(seg.end) >= end);
+  };
+
+  const fetchInstructorAvailability = async (instructorId: number) => {
+    if (instructorAvailabilities[instructorId]) return;
+    try {
+        setLoadingAvail(instructorId);
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${BASE_URL}/admin/instructor-availabilities/instructor/${instructorId}/free-slots`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            setInstructorAvailabilities(prev => ({
+                ...prev,
+                [instructorId]: {
+                    free: data.free_segments || [],
+                    booked: data.booked_segments || []
+                }
+            }));
+            
+            // Re-fetch to get booked segments specifically if available, 
+            // but the current API already blocks busy time from free_segments.
+            // Let's refine the API response in our head or just show 'Busy' windows.
+            // Actually, I'll update the logic below to handle what's available.
+        }
+    } catch (e) {
+        console.error("Failed to fetch availability", e);
+    } finally {
+        setLoadingAvail(null);
     }
   };
 
@@ -135,9 +201,26 @@ const StudentAddEditModal: React.FC<Props> = ({
         duration_unit: student.duration_unit || "",
         status: student.status || "active",
         image: null,
+        enrollments: student.enrollments?.map((e: any) => ({
+          program_id: e.program_id,
+          type: e.booking?.type || "regular",
+          status: e.status || "active",
+          instructor_id: e.booking?.instructor_id,
+          schedule_id: e.booking?.schedule_id,
+          schedule_ids: e.booking?.schedules?.map((s: any) => s.id) || (e.booking?.schedule_id ? [e.booking?.schedule_id] : []),
+          custom_start_time: e.booking?.custom_start_time,
+          custom_end_time: e.booking?.custom_end_time,
+        })) || [],
       });
 
       setPreviewImage(student.image_url || null);
+
+      // Fetch availability for all enrolled instructors to ensure conflict checking works on load
+      student.enrollments?.forEach((e: any) => {
+          if (e.booking?.instructor_id) {
+              fetchInstructorAvailability(e.booking.instructor_id);
+          }
+      });
     } else {
       setForm({
         name: "",
@@ -154,6 +237,7 @@ const StudentAddEditModal: React.FC<Props> = ({
         duration_unit: "",
         status: "active",
         image: null,
+        enrollments: [],
       });
       setPreviewImage(null);
     }
@@ -174,19 +258,47 @@ const StudentAddEditModal: React.FC<Props> = ({
     }
   };
 
-  const toggleClass = (title: string) => {
-    const currentClasses = form.classes ? form.classes.split(',').map(c => c.trim()).filter(c => c) : [];
-    let newClasses;
-    if (currentClasses.includes(title)) {
-      newClasses = currentClasses.filter(c => c !== title);
+  const toggleClass = (program: any) => {
+    const currentEnrollments = form.enrollments || [];
+    const exists = currentEnrollments.some((e: any) => e.program_id === program.id);
+
+    if (exists) {
+        setForm(prev => ({ 
+            ...prev, 
+            enrollments: currentEnrollments.filter((e: any) => e.program_id !== program.id) 
+        }));
     } else {
-      newClasses = [...currentClasses, title];
+        setForm(prev => ({ 
+            ...prev, 
+            enrollments: [
+                ...currentEnrollments, 
+                { 
+                    program_id: program.id, 
+                    program_title: program.title, 
+                    type: "regular",
+                    instructor_id: null,
+                    status: "active",
+                    schedule_id: null,
+                    schedule_ids: [],
+                    custom_start_time: null,
+                    custom_end_time: null,
+                }
+            ] 
+        }));
     }
-    setForm(prev => ({ ...prev, classes: newClasses.join(', ') }));
   };
 
-  const isClassSelected = (title: string) => {
-    return form.classes ? form.classes.split(',').map(c => c.trim()).includes(title) : false;
+  const isClassSelected = (id: number) => {
+    return form.enrollments?.some((e: any) => e.program_id === id);
+  };
+
+  const updateEnrollment = (programId: number, data: any) => {
+    setForm(prev => ({
+        ...prev,
+        enrollments: prev.enrollments?.map((e: any) => 
+            e.program_id === programId ? { ...e, ...data } : e
+        )
+    }));
   };
 
   const handleImageChange = (file: File | null) => {
@@ -209,6 +321,25 @@ const StudentAddEditModal: React.FC<Props> = ({
               if (form.image instanceof File) {
                   formData.append("image", form.image);
               }
+          } else if (key === 'enrollments') {
+              form.enrollments?.forEach((e, index) => {
+                  formData.append(`enrollments[${index}][program_id]`, String(e.program_id));
+                  formData.append(`enrollments[${index}][type]`, e.type);
+                  formData.append(`enrollments[${index}][status]`, e.status || "active");
+                  if (e.instructor_id) formData.append(`enrollments[${index}][instructor_id]`, String(e.instructor_id));
+                  if (e.schedule_id) formData.append(`enrollments[${index}][schedule_id]`, String(e.schedule_id));
+                  if (e.schedule_ids?.length > 0) {
+                      e.schedule_ids.forEach((sid: any, sIdx: number) => {
+                          formData.append(`enrollments[${index}][schedule_ids][${sIdx}]`, String(sid));
+                      });
+                  }
+                  if (e.custom_start_time) {
+                      formData.append(`enrollments[${index}][custom_start_time]`, e.custom_start_time.substring(0, 5));
+                  }
+                  if (e.custom_end_time) {
+                      formData.append(`enrollments[${index}][custom_end_time]`, e.custom_end_time.substring(0, 5));
+                  }
+              });
           } else {
               formData.append(key, (form as any)[key] || "");
           }
@@ -444,16 +575,7 @@ const StudentAddEditModal: React.FC<Props> = ({
               ]}
               disabled={loading}
             />
-             <InputField
-              label="Preferred Time"
-              id="time"
-              icon={Clock}
-              placeholder="e.g. 7:00 AM"
-              value={form.time}
-              onChange={(e) => handleChange("time", e.target.value)}
-              disabled={loading}
-              error={errors.time}
-            />
+
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -490,23 +612,23 @@ const StudentAddEditModal: React.FC<Props> = ({
                     <label 
                         key={p.id}
                         className={`flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer bg-white ${
-                            isClassSelected(p.title) 
+                            isClassSelected(p.id) 
                             ? 'border-blue-500 ring-1 ring-blue-500/10 shadow-sm' 
                             : 'border-slate-200 hover:border-blue-200'
                         }`}
                     >
                         <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
-                            isClassSelected(p.title) 
+                            isClassSelected(p.id) 
                             ? 'bg-blue-600 border-blue-600' 
                             : 'bg-slate-50 border-slate-200'
                         }`}>
                             <input 
                                 type="checkbox"
                                 className="hidden"
-                                checked={isClassSelected(p.title)}
-                                onChange={() => toggleClass(p.title)}
+                                checked={isClassSelected(p.id)}
+                                onChange={() => toggleClass(p)}
                             />
-                            {isClassSelected(p.title) && (
+                            {isClassSelected(p.id) && (
                                 <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                 </svg>
@@ -517,6 +639,173 @@ const StudentAddEditModal: React.FC<Props> = ({
                         </span>
                     </label>
                 ))}
+            </div>
+
+            {/* Config for selected programs */}
+            <div className="space-y-4 mt-6">
+                {form.enrollments?.map((e: any) => {
+                    const prog = programs.find(p => p.id === e.program_id);
+                    if (!prog) return null;
+                    return (
+                        <div key={e.program_id} className="p-4 bg-white rounded-2xl border border-blue-100 shadow-sm space-y-4 animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-black text-gray-900">{prog.title}</span>
+                                <div className="flex items-center gap-3">
+                                    <select 
+                                        value={e.status || "active"}
+                                        onChange={(ev) => updateEnrollment(e.program_id, { status: ev.target.value })}
+                                        className={`text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded-lg border-none focus:ring-2 focus:ring-blue-500/20 transition-all ${
+                                            e.status === 'graduated' ? 'bg-green-100 text-green-700' : 
+                                            e.status === 'inactive' ? 'bg-gray-100 text-gray-500' : 
+                                            'bg-blue-50 text-blue-600'
+                                        }`}
+                                    >
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="graduated">Graduate</option>
+                                    </select>
+
+                                    <div className="flex bg-gray-100 p-1 rounded-xl">
+                                        <button 
+                                            onClick={() => updateEnrollment(e.program_id, { type: 'regular' })}
+                                            className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all ${e.type === 'regular' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                        >REGULAR</button>
+                                        <button 
+                                            onClick={() => updateEnrollment(e.program_id, { type: 'customization' })}
+                                            className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all ${e.type === 'customization' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                        >CUSTOM</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {e.type === 'regular' ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                    <div className="space-y-1 col-span-2">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Available Slots</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {prog.schedules?.map((s: any) => (
+                                                <button 
+                                                    key={s.id}
+                                                    onClick={() => {
+                                                        const current = e.schedule_ids || [];
+                                                        const next = current.includes(s.id) ? current.filter((id: any) => id !== s.id) : [...current, s.id];
+                                                        updateEnrollment(e.program_id, { schedule_ids: next, schedule_id: next[0] || null });
+                                                    }}
+                                                    className={`px-2 py-1 rounded-lg text-[10px] font-bold border transition-all ${
+                                                        e.schedule_ids?.includes(s.id) 
+                                                        ? 'bg-blue-600 border-blue-600 text-white shadow-md' 
+                                                        : 'bg-white border-gray-100 text-gray-500 hover:border-blue-200'
+                                                    }`}
+                                                >
+                                                    {s.day}: {to12h(s.start_time)} - {to12h(s.end_time)}
+                                                    {s.instructor && (
+                                                        <span className="ml-1 text-[8px] opacity-70">({s.instructor.name})</span>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Instructor</p>
+                                            <select 
+                                                value={e.instructor_id || ""}
+                                                onChange={(ev) => {
+                                                    const instId = Number(ev.target.value);
+                                                    updateEnrollment(e.program_id, { instructor_id: instId });
+                                                    if (instId) fetchInstructorAvailability(instId);
+                                                }}
+                                                className="w-full text-xs font-bold bg-slate-50 border-none rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500/20"
+                                            >
+                                                <option value="">Select Instructor</option>
+                                                {prog.instructors?.map((inst: any) => (
+                                                    <option key={inst.id} value={inst.id}>{inst.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Start Time</p>
+                                            <input 
+                                                type="time"
+                                                value={e.custom_start_time || ""}
+                                                onChange={(ev) => updateEnrollment(e.program_id, { custom_start_time: ev.target.value })}
+                                                className="w-full text-xs font-bold bg-slate-50 border-none rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500/20"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">End Time</p>
+                                            <input 
+                                                type="time"
+                                                value={e.custom_end_time || ""}
+                                                onChange={(ev) => updateEnrollment(e.program_id, { custom_end_time: ev.target.value })}
+                                                className="w-full text-xs font-bold bg-slate-50 border-none rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500/20"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Availability Grid for Custom Mode */}
+                                    {e.instructor_id && (
+                                        <div className="pt-2 space-y-3">
+                                            {loadingAvail === Number(e.instructor_id) ? (
+                                                <p className="text-[10px] text-gray-400 animate-pulse font-bold italic">Checking instructor's busy schedule...</p>
+                                            ) : instructorAvailabilities[Number(e.instructor_id)] ? (
+                                                <div className="space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <div className="flex items-center justify-between">
+                                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Free Intervals</p>
+                                                        {checkConflict(e) && (
+                                                            <div className="flex items-center gap-1 text-[9px] text-orange-500 font-bold animate-bounce">
+                                                                <AlertTriangle className="w-3 h-3" /> Time Conflict!
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {instructorAvailabilities[Number(e.instructor_id)].free?.map((seg: any, i: number) => (
+                                                            <span key={i} className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[9px] font-black border border-green-200">
+                                                                {to12h(seg.start)} - {to12h(seg.end)}
+                                                            </span>
+                                                        ))}
+                                                        {instructorAvailabilities[Number(e.instructor_id)].free?.length === 0 && (
+                                                            <p className="text-[9px] text-red-500 font-bold italic">No free slots found for this instructor.</p>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center justify-between pt-2">
+                                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Occupied Intervals</p>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {instructorAvailabilities[Number(e.instructor_id)].booked?.map((seg: any, i: number) => (
+                                                            <span key={i} className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[9px] font-black border border-slate-200">
+                                                                {to12h(seg.start)} - {to12h(seg.end)}
+                                                            </span>
+                                                        ))}
+                                                        {instructorAvailabilities[Number(e.instructor_id)].booked?.length === 0 && (
+                                                            <p className="text-[9px] text-gray-400 font-bold italic">No occupied slots found.</p>
+                                                        )}
+                                                    </div>
+                                                    {checkConflict(e) && (
+                                                        <div className="mt-2 p-3 bg-red-500/10 border-2 border-red-500/20 rounded-xl flex items-start gap-3 animate-pulse">
+                                                            <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
+                                                            <div className="space-y-1">
+                                                                <strong className="text-[10px] font-black uppercase tracking-tighter text-red-700 block">⚠️ Scheduling Conflict</strong>
+                                                                <p className="text-[10px] text-red-700 font-medium leading-tight">
+                                                                    The selected time <strong>({to12h(e.custom_start_time)} - {to12h(e.custom_end_time)})</strong> overlaps with another booking. 
+                                                                </p>
+                                                                <span className="text-[8px] font-black uppercase tracking-widest bg-red-500 text-white px-1.5 py-0.5 rounded italic">Override Active: You can still save.</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
           </div>
 
