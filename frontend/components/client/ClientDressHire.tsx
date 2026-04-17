@@ -96,7 +96,7 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
       {modalOpen && (
         <div className="fixed inset-0 z-[200] bg-black/75 flex items-center justify-center">
           <button
-            className="absolute top-4 right-4 text-white p-2"
+            className="absolute top-20 right-4 text-white p-2"
             onClick={closeModal}
           >
             <X className="w-6 h-6" />
