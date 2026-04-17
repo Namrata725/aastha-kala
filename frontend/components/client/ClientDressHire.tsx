@@ -100,11 +100,11 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
 
       {/* modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-8 transition-all duration-300">
-          <div className="w-full h-full flex items-center justify-center pt-[68px]">
+        <div className="fixed top-[68px] inset-x-0 bottom-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 transition-all duration-300">
+          <div className="w-full h-full flex items-center justify-center">
              {/* Close Button */}
             <button
-              className="absolute top-6 right-6 z-20 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-all"
+              className="absolute top-3 right-3 z-20 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-all"
               onClick={closeModal}
             >
               <X size={18} />
