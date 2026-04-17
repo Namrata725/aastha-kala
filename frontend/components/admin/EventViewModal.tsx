@@ -27,14 +27,21 @@ const EventViewModal: React.FC<Props> = ({ isOpen, onClose, event }) => {
 
   useEffect(() => {
     if (event?.banner) {
-      const bannerUrl = event.banner.startsWith("http")
-        ? event.banner
-        : `${IMAGE_BASE}/${event.banner}`;
-      setPreviewBanner(bannerUrl);
+      if (event.banner.startsWith("http")) {
+        // Defensive check: If production returns localhost URL due to misconfigured APP_URL, fix it
+        if (typeof window !== "undefined" && !window.location.host.includes("localhost") && event.banner.includes("localhost")) {
+          const path = event.banner.split("/storage/")[1] || "";
+          setPreviewBanner(`${IMAGE_BASE}/${path}`);
+        } else {
+          setPreviewBanner(event.banner);
+        }
+      } else {
+        setPreviewBanner(`${IMAGE_BASE}/${event.banner}`);
+      }
     } else {
       setPreviewBanner(null);
     }
-  }, [event]);
+  }, [event, IMAGE_BASE]);
 
   if (!isOpen || !event) return null;
 

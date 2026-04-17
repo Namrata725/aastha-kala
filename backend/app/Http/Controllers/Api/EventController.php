@@ -65,6 +65,7 @@ class EventController extends Controller
         }
 
         $event = Event::create($data);
+        $event->banner = $this->getBannerUrl($event->banner);
 
         return response()->json([
             'message' => 'Event created successfully',
@@ -133,6 +134,7 @@ class EventController extends Controller
         }
 
         $event->update($data);
+        $event->banner = $this->getBannerUrl($event->banner);
 
         return response()->json([
             'message' => 'Event updated successfully',

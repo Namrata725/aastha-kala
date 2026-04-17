@@ -12,11 +12,22 @@ const Navbar: React.FC = () => {
 
   const getLogoUrl = (logoPath: string | null | undefined) => {
     if (!logoPath) return null;
-    if (logoPath.startsWith("http")) return logoPath;
+
+    if (logoPath.startsWith("http")) {
+      // Defensive check: If production returns localhost URL due to misconfigured APP_URL, fix it
+      if (typeof window !== "undefined" && !window.location.host.includes("localhost") && logoPath.includes("localhost")) {
+        const base = process.env.NEXT_PUBLIC_IMAGE_URL || "";
+        const cleanBase = base.endsWith("/") ? base.slice(0, -1) : base;
+        const relativePath = logoPath.split("/storage/")[1] || "";
+        return `${cleanBase}/${relativePath}`;
+      }
+      return logoPath;
+    }
+
     const base = process.env.NEXT_PUBLIC_IMAGE_URL || "http://localhost:8000/storage/";
     const cleanBase = base.endsWith("/") ? base.slice(0, -1) : base;
-    const cleanPath = logoPath.startsWith("/") ? logoPath : `/${logoPath}`;
-    return `${cleanBase}${cleanPath}`;
+    const cleanPath = logoPath.startsWith("/") ? logoPath.slice(1) : logoPath;
+    return `${cleanBase}/${cleanPath}`;
   };
 
   useEffect(() => {

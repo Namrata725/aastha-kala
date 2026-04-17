@@ -13,8 +13,8 @@ class StudentController extends Controller
     public function index(Request $request)
     {
         $query = Student::with([
-            'enrollments.program', 
-            'enrollments.booking.instructor', 
+            'enrollments.program',
+            'enrollments.booking.instructor',
             'enrollments.booking.schedules'
         ])->latest();
 
@@ -82,24 +82,24 @@ class StudentController extends Controller
         // 1. Handle Admission Fee Record
         $setting = \App\Models\Setting::first();
         $admissionFee = $setting ? (float) ($setting->admission_fee ?? 0) : 0;
-        
+
         if ($admissionFee > 0) {
             \App\Models\StudentFee::create([
-                'student_id'     => $student->id,
-                'fee_type'       => 'admission',
-                'total_amount'   => $admissionFee,
-                'paid_amount'    => 0,
+                'student_id' => $student->id,
+                'fee_type' => 'admission',
+                'total_amount' => $admissionFee,
+                'paid_amount' => 0,
                 'pending_amount' => $admissionFee,
-                'status'         => 'pending',
-                'admission_fee'  => $admissionFee,
-                'month_year'     => date('j F Y'),
+                'status' => 'pending',
+                'admission_fee' => $admissionFee,
+                'month_year' => date('j F Y'),
                 'payment_method' => 'Cash',
-                'remarks'        => 'Auto-generated admission fee on enrollment',
+                'remarks' => 'Auto-generated admission fee on enrollment',
             ]);
         }
 
         // 2. Handle Program Enrollments & Fees
-        $this->syncProgramsAndFees($student);
+        $this->syncProgramsAndFees($student, $request->enrollments ?? []);
 
         return response()->json([
             'message' => 'Student created successfully',
@@ -110,12 +110,12 @@ class StudentController extends Controller
     public function show($id)
     {
         $student = Student::with([
-            'fees', 
-            'enrollments.program', 
-            'enrollments.booking.instructor', 
+            'fees',
+            'enrollments.program',
+            'enrollments.booking.instructor',
             'enrollments.booking.schedules'
         ])->findOrFail($id);
-        
+
         $student->image_url = $student->image ? asset('storage/' . $student->image) : null;
 
         return response()->json([
@@ -167,7 +167,7 @@ class StudentController extends Controller
         }
 
         $student->update($data);
-        
+
         // If classes or enrollments were updated, sync enrollments and generate missing fees
         if (isset($data['classes']) || isset($data['enrollments'])) {
             $this->syncProgramsAndFees($student, $request->enrollments ?? []);
@@ -189,7 +189,7 @@ class StudentController extends Controller
 
         // 1. Determine which programs we are dealing with
         $programIdsToSync = [];
-        
+
         if (!empty($enrollmentData)) {
             $programIdsToSync = array_column($enrollmentData, 'program_id');
         } elseif (!empty($student->classes)) {
@@ -220,16 +220,17 @@ class StudentController extends Controller
         // 3. Sync each program
         foreach ($programIdsToSync as $pId) {
             $prog = \App\Models\Program::find($pId);
-            if (!$prog) continue;
+            if (!$prog)
+                continue;
 
             // Find enrollment info for this program. Loose comparison handles string vs int IDs from request.
-            $enrollInfo = collect($enrollmentData)->first(fn($item) => (int)($item['program_id'] ?? 0) === (int)$pId);
+            $enrollInfo = collect($enrollmentData)->first(fn($item) => (int) ($item['program_id'] ?? 0) === (int) $pId);
 
-            
-            $spStatus = $enrollInfo['status'] ?? 
-                        ($studentStatus === 'graduated' ? 'graduated' : 
-                        ($studentStatus === 'inactive' ? 'inactive' : 'active'));
-            
+
+            $spStatus = $enrollInfo['status'] ??
+                ($studentStatus === 'graduated' ? 'graduated' :
+                    ($studentStatus === 'inactive' ? 'inactive' : 'active'));
+
             $sp = \App\Models\StudentProgram::updateOrCreate(
                 ['student_id' => $student->id, 'program_id' => $pId],
                 ['status' => $spStatus]
@@ -238,22 +239,22 @@ class StudentController extends Controller
             // Handle Shadow Booking to block instructor's time
             // Only 'active' status blocks the instructor; graduated or inactive frees it.
             $bookingStatus = ($spStatus === 'active' ? 'accepted' : 'completed');
-            
+
             $bookingData = [
-                'student_id'    => $student->id,
-                'program_id'    => $pId,
-                'status'        => $bookingStatus,
-                'booking_date'  => $student->enrollment_date ?: date('Y-m-d'),
-                'name'          => $student->name,
-                'phone'         => $student->phone,
-                'email'         => $student->email,
-                'address'       => $student->address,
-                'class_mode'    => 'physical', // default
-                'type'          => $enrollInfo['type'] ?? 'regular',
+                'student_id' => $student->id,
+                'program_id' => $pId,
+                'status' => $bookingStatus,
+                'booking_date' => $student->enrollment_date ?: date('Y-m-d'),
+                'name' => $student->name,
+                'phone' => $student->phone,
+                'email' => $student->email,
+                'address' => $student->address,
+                'class_mode' => 'physical', // default
+                'type' => $enrollInfo['type'] ?? 'regular',
                 'instructor_id' => !empty($enrollInfo['instructor_id']) ? $enrollInfo['instructor_id'] : null,
-                'schedule_id'   => !empty($enrollInfo['schedule_id']) ? $enrollInfo['schedule_id'] : null,
+                'schedule_id' => !empty($enrollInfo['schedule_id']) ? $enrollInfo['schedule_id'] : null,
                 'custom_start_time' => !empty($enrollInfo['custom_start_time']) ? $enrollInfo['custom_start_time'] : null,
-                'custom_end_time'   => !empty($enrollInfo['custom_end_time']) ? $enrollInfo['custom_end_time'] : null,
+                'custom_end_time' => !empty($enrollInfo['custom_end_time']) ? $enrollInfo['custom_end_time'] : null,
             ];
 
             if ($sp->booking_id) {
@@ -283,17 +284,17 @@ class StudentController extends Controller
             if (!$feeExists) {
                 $feeAmount = (float) ($prog->program_fee ?? 0);
                 \App\Models\StudentFee::create([
-                    'student_id'     => $student->id,
-                    'program_id'     => $pId,
-                    'fee_type'       => 'program',
-                    'total_amount'   => $feeAmount,
-                    'paid_amount'    => 0,
+                    'student_id' => $student->id,
+                    'program_id' => $pId,
+                    'fee_type' => 'program',
+                    'total_amount' => $feeAmount,
+                    'paid_amount' => 0,
                     'pending_amount' => $feeAmount,
-                    'status'         => 'pending',
-                    'program_fee'    => $feeAmount,
-                    'month_year'     => $currentMonth,
+                    'status' => 'pending',
+                    'program_fee' => $feeAmount,
+                    'month_year' => $currentMonth,
                     'payment_method' => 'Cash',
-                    'remarks'        => 'Auto-generated for program enrollment',
+                    'remarks' => 'Auto-generated for program enrollment',
                 ]);
             }
         }

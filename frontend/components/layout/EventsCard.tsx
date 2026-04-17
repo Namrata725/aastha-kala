@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL?.replace(/\/$/, "");
+
 type EventItem = {
   id: number;
   title: string;
@@ -15,6 +17,21 @@ const stripHtml = (html: string) => {
   return html.replace(/<[^>]*>?/gm, "");
 };
 
+const getBannerUrl = (banner?: string | null): string => {
+  if (!banner) return "/images/program-fallback.png";
+  
+  if (banner.startsWith("http")) {
+    // Defensive check: If production returns localhost URL due to misconfigured APP_URL, fix it
+    if (typeof window !== "undefined" && !window.location.host.includes("localhost") && banner.includes("localhost")) {
+      const path = banner.split("/storage/")[1] || "";
+      return `${IMAGE_URL}/${path}`;
+    }
+    return banner;
+  }
+  
+  return `${IMAGE_URL}/${banner.replace(/^\/+/, "")}`;
+};
+
 const EventCard = ({ event }: { event: EventItem }) => {
   return (
     <Link 
@@ -24,7 +41,7 @@ const EventCard = ({ event }: { event: EventItem }) => {
       {/* Image Container */}
       <div className="relative h-64 overflow-hidden">
         <img
-          src={event.banner || "/images/program-fallback.png"}
+          src={getBannerUrl(event.banner)}
           alt={event.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
