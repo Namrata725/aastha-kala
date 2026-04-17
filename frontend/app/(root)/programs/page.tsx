@@ -42,13 +42,13 @@ const ProgramsPage = async () => {
 
   return (
     <section>
-      <Heading
+      <Heading className="text-[#27A0CF]"
         title="Our Programs"
         subtitle={
-          <>
+          <span className="text-black">
             At Aasha Kala Kendra, our programs are designed to nurture talent,
             build confidence, and develop artistic excellence. 
-          </>
+          </span>
         }
       />
 

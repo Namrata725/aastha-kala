@@ -53,7 +53,7 @@ const InstructorSection = () => {
     <section className="bg-white px-10 py-10">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center space-y-2 mb-16">
-          <h2 className="text-4xl font-bold text-blue-900">
+          <h2 className="text-4xl font-bold text-[#27A0CF]">
             Meet Our Instructors
           </h2>
           <h4 className="text-secondary text-sm max-w-2xl mx-auto">

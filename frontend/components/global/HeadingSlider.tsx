@@ -7,9 +7,10 @@ interface HeadingSliderProps {
   title: string;
   subtitle: React.ReactNode;
   media: { url: string; type: "image" | "video" }[];
+  className?: string;
 }
 
-const HeadingSlider = ({ title, subtitle, media }: HeadingSliderProps) => {
+const HeadingSlider = ({ title, subtitle, media, className }: HeadingSliderProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -61,7 +62,7 @@ const HeadingSlider = ({ title, subtitle, media }: HeadingSliderProps) => {
       {/* Title & Subtitle */}
       <div className="w-full absolute inset-0 flex items-end justify-center z-30 pb-12 px-6">
         <div className="w-full max-w-4xl text-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-blue-900 tracking-tight font-poppins mb-3">
+          <h1 className={`text-3xl md:text-5xl font-bold tracking-tight font-poppins mb-3 ${className || "text-blue-900"}`}>
             {title}
           </h1>
           <div className="font-semibold text-blue-700 tracking-wider text-sm md:text-base uppercase">

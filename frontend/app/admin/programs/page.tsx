@@ -118,7 +118,7 @@ const ProgramsPage = () => {
         schedule_count: (
             <div className="flex flex-col gap-1">
                 <span className="text-xs font-bold text-primary">{p.schedules?.length || 0} slots</span>
-                <span className="text-[10px] text-gray-500 uppercase tracking-tighter hover:text-black cursor-pointer" onClick={() => handleView(p)}>View Details</span>
+                {/* <span className="text-[10px] text-gray-500 uppercase tracking-tighter hover:text-black cursor-pointer" onClick={() => handleView(p)}>View Details</span> */}
             </div>
         ),
         status: (

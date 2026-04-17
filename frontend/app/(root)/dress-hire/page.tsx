@@ -55,9 +55,13 @@ export default async function DressHirePage() {
 
   return (
     <section className="">
-      <Heading
+      <Heading className="text-[#27A0CF]"
         title="Dress Hire"
-        subtitle="Explore our exclusive dress collection"
+        subtitle={
+          <span className="text-black">
+            Explore our exclusive dress collection
+          </span>
+        }
       />
 
       {dresses.length > 0 ? (

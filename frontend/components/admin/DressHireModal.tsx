@@ -17,6 +17,7 @@ interface Props {
   onClose: () => void;
   onSuccess?: () => void;
   dress?: Dress | null;
+  existingOrders?: number[];
 }
 
 const DressHireModal: React.FC<Props> = ({
@@ -24,6 +25,7 @@ const DressHireModal: React.FC<Props> = ({
   onClose,
   onSuccess,
   dress,
+  existingOrders = [],
 }) => {
   const isEdit = !!dress;
 
@@ -62,6 +64,17 @@ const DressHireModal: React.FC<Props> = ({
   if (!isOpen) return null;
 
   const handleSubmit = async () => {
+    // Check for duplicate order
+    const isDuplicate = existingOrders.some((o) => {
+      if (isEdit && o === dress?.order) return false;
+      return o === order;
+    });
+
+    if (isDuplicate) {
+      toast.error(`The order number ${order} is already assigned to another dress.`);
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -161,16 +174,30 @@ const DressHireModal: React.FC<Props> = ({
           </div>
 
           {/* upload */}
-          <input
-            type="file"
-            multiple
-            onChange={(e) => {
-              if (e.target.files) {
-                const files = Array.from(e.target.files);
-                setImages((prev) => [...prev, ...files]);
-              }
-            }}
-          />
+          <div className="flex items-center border border-gray-300 rounded overflow-hidden w-fit text-sm">
+            <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-3 py-1.5 text-gray-700 whitespace-nowrap">
+              Choose File
+              <input
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    const files = Array.from(e.target.files);
+                    setImages((prev) => [...prev, ...files]);
+                  }
+                }}
+              />
+            </label>
+            <span className="px-1 text-gray-400">|</span>
+            <span className="px-3 py-1.5 text-gray-400 truncate max-w-[200px]">
+              {images.length > 0
+                ? images.length === 1
+                  ? images[0].name
+                  : `${images.length} files selected`
+                : "No file chosen"}
+            </span>
+          </div>
 
           <div className="flex gap-2 flex-wrap">
             {images.map((file, i) => {
@@ -198,7 +225,12 @@ const DressHireModal: React.FC<Props> = ({
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
-          <button onClick={onClose}>Cancel</button>
+          <button
+            onClick={onClose}
+            className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50"
+          >
+            Cancel
+          </button>
 
           <button
             onClick={handleSubmit}

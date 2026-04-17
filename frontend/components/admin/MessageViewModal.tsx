@@ -28,7 +28,7 @@ const MessageViewModal: React.FC<Props> = ({ isOpen, onClose, message }) => {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl bg-white/50 border border-white/20 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 cursor-default"
+        className="w-full max-w-2xl bg-white/90 border border-white/20 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 cursor-default"
       >
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">

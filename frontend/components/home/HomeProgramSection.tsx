@@ -30,7 +30,7 @@ const HomeProgramSection = async () => {
         {/* HEADER */}
         <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-4">
           <div className="text-center md:text-left space-y-2">
-            <h2 className="text-3xl md:text-4xl font-poppins tracking-tighter text-blue-900 font-black uppercase">
+            <h2 className="text-3xl md:text-4xl font-poppins tracking-tighter text-[#27A0CF] font-black uppercase">
               What WE Offer
             </h2>
             <div className="h-1 w-20 bg-secondary mx-auto md:mx-0 rounded-full" />

@@ -182,7 +182,7 @@ const ContactPage = async () => {
             )}
           </div>
 
-          {/* Contact Form */}
+          {/*Contact Form */}
           <div className="bg-gray-50 p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
             <h2 className="text-3xl  font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary  mb-8">
               Send us a Message

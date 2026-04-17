@@ -22,9 +22,12 @@ class StudentController extends Controller
             $query->where('status', $request->status);
         }
 
-        if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('phone', 'like', '%' . $request->search . '%');
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('phone', 'like', '%' . $search . '%');
+            });
         }
 
         $students = $query->paginate(10);

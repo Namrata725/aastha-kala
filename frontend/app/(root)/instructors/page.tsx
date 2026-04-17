@@ -46,9 +46,13 @@ const InstructorPage = async () => {
 
   return (
     <section>
-      <Heading
+      <Heading className="text-[#27A0CF]"
         title="Our Instructors"
-        subtitle="Learn from industry professionals and award-winning artists dedicated to your success."
+        subtitle={
+          <span className="text-black">
+            Learn from industry professionals and award-winning artists dedicated to your success.
+          </span>
+        }
       />
 
       <ClientInstructors instructors={instructors} />

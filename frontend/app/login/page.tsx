@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,8 +31,7 @@ export default function LoginPage() {
 
       toast.success("Logged in successfully!");
 
-      // Update here to match your new backend response
-      localStorage.setItem("token", data.token); // was data.access_token
+      localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       router.push("/admin");
@@ -72,22 +73,34 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* Password field with show/hide toggle */}
           <div
             className={`relative transition ${focused === "password" ? "scale-[1.02]" : ""}`}
           >
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/80 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary transition shadow-sm"
+              className="w-full px-4 py-3 pr-11 rounded-xl border border-gray-200 bg-white/80 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary transition shadow-sm"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onFocus={() => setFocused("password")}
               onBlur={() => setFocused(null)}
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
           </div>
 
-          {/* Button */}
           <button
             type="submit"
             disabled={loading}

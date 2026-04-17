@@ -63,7 +63,7 @@ const ContactHomeSection: React.FC<ContactHomeSectionProps> = ({ settings }) => 
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-primary mb-3">
+          <h2 className="text-4xl font-bold text-[#27A0CF] mb-3">
             Get In Touch
           </h2>
           <h4 className="text-secondary text-base mx-auto">

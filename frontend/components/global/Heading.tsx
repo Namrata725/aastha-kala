@@ -10,6 +10,7 @@ export type HeroMedia = {
 interface HeadingProps {
   title: string;
   subtitle: React.ReactNode;
+  className?: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -62,7 +63,7 @@ const fetchHeroMedia = async (): Promise<HeroMedia[]> => {
   }
 };
 
-const Heading = async ({ title, subtitle }: HeadingProps) => {
+const Heading = async ({ title, subtitle, className }: HeadingProps) => {
   const media = await fetchHeroMedia();
 
   return (
@@ -70,6 +71,7 @@ const Heading = async ({ title, subtitle }: HeadingProps) => {
       title={title} 
       subtitle={subtitle} 
       media={media} 
+      className={className}
     />
   );
 };

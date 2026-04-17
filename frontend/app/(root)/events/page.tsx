@@ -61,9 +61,13 @@ export default async function EventsPage() {
 
   return (
     <section>
-      <Heading
+      <Heading className="text-[#27A0CF]"
         title="Events & Performances"
-        subtitle="Experience exciting moments and step into the rhythm of expression."
+        subtitle={
+          <span className="text-black">
+            Experience exciting moments and step into the rhythm of expression.
+          </span>
+        }
       />
 
       <ClientEvents events={events} />

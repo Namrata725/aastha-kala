@@ -26,14 +26,11 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const fetchData = useCallback(async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/dashboard?t=${new Date().getTime()}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/dashboard`, {
         headers: { 
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0"
+          'Authorization': `Bearer ${localStorage.getItem("token")}`,
+          'Accept': 'application/json'
         },
-        cache: "no-store"
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Failed to fetch dashboard data");
@@ -47,14 +44,11 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const fetchCategories = useCallback(async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/gallery-categories?t=${new Date().getTime()}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/gallery-categories`, {
         headers: { 
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0"
+          'Authorization': `Bearer ${localStorage.getItem("token")}`,
+          'Accept': 'application/json'
         },
-        cache: "no-store"
       });
       const result = await res.json();
       if (res.ok) {

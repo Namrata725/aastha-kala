@@ -1,5 +1,4 @@
 export const dynamic = "force-dynamic";
-import React from "react";
 import Heading from "@/components/global/Heading";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -87,9 +86,13 @@ const AboutPage = async () => {
 
   return (
     <div className="bg-white font-poppins">
-      <Heading
+      <Heading className="text-[#27A0CF]"
         title="About Us"
-        subtitle="Discover our story, mission, and the passion behind Aastha Kala Kendra."
+        subtitle={
+          <span className="text-black">
+            Discover our story, mission, and the passion behind Aastha Kala Kendra.
+          </span>
+        }
       />
 
       {/* ── ABOUT INTRO ── */}
@@ -98,10 +101,10 @@ const AboutPage = async () => {
 
           {/* Left: text */}
           <div>
-            <h1 className="text-4xl md:text-5xl font-bold text-blue-700 leading-tight mb-1 font-poppins">
+            <h1 className="text-4xl md:text-5xl font-bold text-[#27A0CF] leading-tight mb-1 font-poppins">
               {settings?.company_name || "Aasha Kala Kendra"}
             </h1>
-            <h2 className="text-xl text-purple-600 font-medium mb-6 font-poppins">
+            <h2 className="text-xl text-[#27A0CF] font-medium mb-6 font-poppins">
               Dance & Music School
             </h2>
             <div className="space-y-4 text-black text-lg leading-7 text-justify font-poppins">

@@ -32,7 +32,7 @@ const HomeInstructor = async () => {
   return (
     <section className="max-w-7xl mx-auto px-6 py-6 md:space-y-12">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-blue-900 tracking-wide font-poppins mb-2">
+        <h1 className="text-3xl font-bold text-[#27A0CF] tracking-wide font-poppins mb-2">
           Meet Our Instructors
         </h1>
         <h4 className=" font-semibold text-secondary tracking-wider">
