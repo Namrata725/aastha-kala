@@ -33,7 +33,7 @@ function calcNet(base: number, discount: number, type: "cash" | "percentage"): n
   if (type === "percentage") return Math.max(0, base - (base * Math.min(discount, 100)) / 100);
   return Math.max(0, base - discount);
 }
-function fmt(n: number) { return "₹" + Math.round(n).toLocaleString("en-IN"); }
+function fmt(n: number) { return "Rs. " + Math.round(n).toLocaleString("en-IN"); }
 function fmtS(n: number) { return Math.round(n).toLocaleString("en-IN"); }
 function initials(name: string) { return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(); }
 function getCurrentPeriod() {
@@ -540,7 +540,7 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
                                 <div className="flex items-center justify-end gap-1.5">
                                   <input type="number" min={0} value={admDisc || ""} onChange={e => setAdmDisc(Math.max(0, Number(e.target.value) || 0))} onKeyDown={blockNeg}
                                     className="w-14 text-right bg-gray-50 border border-gray-100 rounded-lg px-2 py-1.5 text-[12px] outline-none focus:border-gray-300 disabled:opacity-50" placeholder="0" disabled={calculations.admissionPaidGlobally} />
-                                  <TogglePill size="xs" options={[{ label: "₹", value: "cash" }, { label: "%", value: "percentage" }]} value={admDiscType} onChange={v => setAdmDiscType(v as "cash" | "percentage")} disabled={calculations.admissionPaidGlobally} />
+                                  <TogglePill size="xs" options={[{ label: "Rs.", value: "cash" }, { label: "%", value: "percentage" }]} value={admDiscType} onChange={v => setAdmDiscType(v as "cash" | "percentage")} disabled={calculations.admissionPaidGlobally} />
                                 </div>
                               </td>
                               {/* Net — this is what the student actually owes total */}
@@ -592,7 +592,7 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
                                 <div className="flex items-center justify-end gap-1.5">
                                   <input type="number" min={0} value={p.discount || ""} onChange={e => setProgEntries(prev => prev.map(o => o.id === p.id ? { ...o, discount: Math.max(0, Number(e.target.value) || 0) } : o))} onKeyDown={blockNeg}
                                     className="w-14 text-right bg-gray-50 border border-gray-100 rounded-lg px-2 py-1.5 text-[12px] outline-none focus:border-gray-300" placeholder="0" />
-                                  <TogglePill size="xs" options={[{ label: "₹", value: "cash" }, { label: "%", value: "percentage" }]} value={p.discountType} onChange={v => setProgEntries(prev => prev.map(o => o.id === p.id ? { ...o, discountType: v as "cash" | "percentage" } : o))} />
+                                  <TogglePill size="xs" options={[{ label: "Rs.", value: "cash" }, { label: "%", value: "percentage" }]} value={p.discountType} onChange={v => setProgEntries(prev => prev.map(o => o.id === p.id ? { ...o, discountType: v as "cash" | "percentage" } : o))} />
                                 </div>
                               </td>
                               <td className="px-3 py-3 text-right">
@@ -685,7 +685,7 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
 
                         {/* Total-to-pay input — auto-distributes on every keystroke */}
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] font-bold text-gray-400 pointer-events-none">₹</span>
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] font-bold text-gray-400 pointer-events-none">Rs.</span>
                           <input
                             type="number"
                             min={0}

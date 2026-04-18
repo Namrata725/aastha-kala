@@ -61,6 +61,7 @@ class StudentController extends Controller
             'duration_unit' => 'nullable|string',
             'enrollments' => 'nullable|array',
             'enrollments.*.program_id' => 'required|exists:programs,id',
+            'enrollments.*.booking_id' => 'nullable|exists:bookings,id',
             'enrollments.*.instructor_id' => 'nullable|exists:instructors,id',
             'enrollments.*.schedule_id' => 'nullable|exists:program_schedules,id',
             'enrollments.*.schedule_ids' => 'nullable|array',
@@ -147,6 +148,7 @@ class StudentController extends Controller
             'duration_unit' => 'nullable|string',
             'enrollments' => 'nullable|array',
             'enrollments.*.program_id' => 'required|exists:programs,id',
+            'enrollments.*.booking_id' => 'nullable|exists:bookings,id',
             'enrollments.*.instructor_id' => 'nullable|exists:instructors,id',
             'enrollments.*.schedule_id' => 'nullable|exists:program_schedules,id',
             'enrollments.*.schedule_ids' => 'nullable|array',
@@ -227,8 +229,7 @@ class StudentController extends Controller
                 continue;
 
             // Find enrollment info for this program. Loose comparison handles string vs int IDs from request.
-            $enrollInfo = collect($enrollmentData)->first(fn($item) => (int) ($item['program_id'] ?? 0) === (int) $pId);
-
+            $enrollInfo = collect($enrollmentData)->first(fn($item) => (int) ($item['program_id'] ?? 0) === (int) $pId) ?? [];
 
             $spStatus = $enrollInfo['status'] ??
                 ($studentStatus === 'graduated' ? 'graduated' :
@@ -260,21 +261,30 @@ class StudentController extends Controller
                 'custom_end_time' => !empty($enrollInfo['custom_end_time']) ? $enrollInfo['custom_end_time'] : null,
             ];
 
-            if ($sp->booking_id) {
-                $booking = \App\Models\Booking::find($sp->booking_id);
+            $booking = null;
+            if ($sp->booking_id || !empty($enrollInfo['booking_id'])) {
+                $bId = $sp->booking_id ?: $enrollInfo['booking_id'];
+                $booking = \App\Models\Booking::find($bId);
                 if ($booking) {
                     $booking->update($bookingData);
                 } else {
                     $booking = \App\Models\Booking::create($bookingData);
-                    $sp->update(['booking_id' => $booking->id]);
                 }
-            } else {
+                $sp->update(['booking_id' => $booking->id]);
+            } elseif (
+                ($enrollInfo['type'] ?? 'regular') === 'customization' || 
+                !empty($enrollInfo['schedule_ids']) || 
+                !empty($enrollInfo['instructor_id']) || 
+                !empty($enrollInfo['schedule_id'])
+            ) {
+                // Create a shadow booking for customization OR if specific schedules/instructors are selected.
+                // Regular types with no specific schedule selection don't need a shadow booking.
                 $booking = \App\Models\Booking::create($bookingData);
                 $sp->update(['booking_id' => $booking->id]);
             }
 
-            // Sync schedule_ids if provided (for regular programs with multiple slots)
-            if (isset($enrollInfo['schedule_ids']) && is_array($enrollInfo['schedule_ids'])) {
+            // Sync schedule_ids if provided (for programs with multiple slots)
+            if ($booking && isset($enrollInfo['schedule_ids']) && is_array($enrollInfo['schedule_ids'])) {
                 $booking->schedules()->sync($enrollInfo['schedule_ids']);
             }
 

@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   X, User, CreditCard, Calendar, Printer,
   CheckCircle2, Clock, Wallet, Info, Receipt, Layers,
-  Banknote, Building, Smartphone, FileText, BookOpen
+  Banknote, Building, Smartphone, FileText, BookOpen,
+  Loader2
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  fee: any;
+  fee: any; 
 }
 
 interface ProgramItem {
@@ -30,7 +32,7 @@ function calcNet(base: number, discount: number, type: "cash" | "percentage"): n
   if (type === "percentage") return Math.max(0, base - (base * Math.min(discount, 100)) / 100);
   return Math.max(0, base - discount);
 }
-function fmt(n: number) { return "₹" + Math.round(n).toLocaleString("en-IN"); }
+function fmt(n: number) { return "Rs. " + Math.round(n).toLocaleString("en-IN"); }
 function fmtS(n: number) { return Math.round(n).toLocaleString("en-IN"); }
 function initials(name: string) { return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(); }
 
@@ -70,28 +72,92 @@ const DiscountCell: React.FC<{ amount: number; type: "cash" | "percentage"; save
 
 /* ─── Main Modal ─────────────────────────────────────────── */
 const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
-  if (!isOpen || !fee) return null;
+  const [enrichedFee, setEnrichedFee] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  const isIntegrated = fee.fee_type === "billing";
-  const methodInfo = METHOD_MAP[fee.payment_method] || METHOD_MAP["Cash"];
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+  const fetchFullDetails = useCallback(async (studentId: number | string, monthYear: string) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${BASE_URL}/admin/students/${studentId}/fee-info?month_year=${encodeURIComponent(monthYear)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const text = await res.text();
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch {
+        console.error("Invalid response from server:", text);
+        return;
+      }
+      if (res.ok && result.data) {
+        // We merge the list record (which has the correct transaction-specific totals)
+        // with the detailed breakdown from the fee-info API
+        const data = result.data;
+        setEnrichedFee({
+          ...fee,
+          admission_fee: fee.admission_fee ?? data.admission_amount,
+          admission_discount: fee.admission_discount ?? data.admission_discount,
+          admission_discount_type: fee.admission_discount_type ?? data.admission_discount_type,
+          admission_paid_amount: fee.admission_paid_amount ?? data.admission_paid_amount,
+          programs_breakdown: data.program_fees?.programs_breakdown || [],
+          // Keep authoritative totals from the original fee record if it has them
+          total_amount: fee.total_amount,
+          paid_amount: fee.paid_amount,
+          pending_amount: fee.pending_amount
+        });
+      }
+    } catch (error) {
+      console.error("Failed to enrich fee data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [BASE_URL, fee]);
+
+  useEffect(() => {
+    if (!isOpen || !fee) {
+      setEnrichedFee(null);
+      return;
+    }
+
+    // If it's already a full record (e.g. from a recent payment), don't fetch
+    const isEnriched = fee.programs_breakdown || fee.admission_fee || fee.program_payments;
+    
+    if (!isEnriched && fee.student_id && fee.month_year) {
+      fetchFullDetails(fee.student_id, fee.month_year);
+    } else {
+      setEnrichedFee(fee);
+    }
+  }, [isOpen, fee, fetchFullDetails]);
+
+  // Use enriched data if available, fall back to passed fee
+  const activeFee = enrichedFee || fee;
+  const isIntegrated = activeFee?.fee_types?.includes("billing") || activeFee?.fee_type === "billing";
+  const methodInfo = METHOD_MAP[activeFee?.payment_method] || METHOD_MAP["Cash"];
   const MethodIcon = methodInfo.icon;
 
   /* ── Parse admission ─────────────────────────────────── */
   const adm = useMemo(() => {
-    const base = Number(fee.admission_fee) || 0;
-    const disc = Number(fee.admission_discount) || 0;
-    const discType = (fee.admission_discount_type as "cash" | "percentage") || "cash";
+    if (!activeFee) return { base: 0, disc: 0, discType: "cash" as "cash" | "percentage", net: 0, totalPaid: 0, remaining: 0, exists: false };
+    const base = Number(activeFee.admission_fee) || 0;
+    const disc = Number(activeFee.admission_discount) || 0;
+    const discType = (activeFee.admission_discount_type as "cash" | "percentage") || "cash";
     const net = calcNet(base, disc, discType);
-    const totalPaid = Number(fee.admission_paid_amount) || 0;
+    const totalPaid = Number(activeFee.admission_paid_amount) || 0;
     const remaining = net - totalPaid;
-    return { base, disc, discType, net, totalPaid, remaining, exists: base > 0 };
-  }, [fee]);
+    // Only count admission if it was part of this billing (fee_types or fee_type)
+    const wasInBilling = activeFee.fee_types?.includes("admission") || activeFee.fee_type === "admission" || isIntegrated;
+    return { base, disc, discType, net, totalPaid, remaining, exists: base > 0 && wasInBilling };
+  }, [activeFee, isIntegrated]);
 
   /* ── Parse programs ──────────────────────────────────── */
   const programs = useMemo<ProgramItem[]>(() => {
+    if (!activeFee) return [];
     // Rich breakdown from server (same shape as fee-info endpoint)
-    if (fee.programs_breakdown && Array.isArray(fee.programs_breakdown)) {
-      return fee.programs_breakdown.map((pb: any) => {
+    if (activeFee.programs_breakdown && Array.isArray(activeFee.programs_breakdown)) {
+      return activeFee.programs_breakdown.map((pb: any) => {
         const base = Number(pb.program_fee) || 0;
         const disc = Number(pb.discount) || 0;
         const discType = (pb.discount_type as "cash" | "percentage") || "cash";
@@ -102,10 +168,10 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
       });
     }
     // Map-based (FeeAddModal stores program_payments as {id: totalPaid})
-    if (fee.program_payments && typeof fee.program_payments === "object") {
-      const discounts: Record<string, any> = fee.program_discounts || {};
-      const progList: any[] = fee.programs || fee.selected_programs_details || [];
-      return Object.entries(fee.program_payments).map(([id, paid]) => {
+    if (activeFee.program_payments && typeof activeFee.program_payments === "object") {
+      const discounts: Record<string, any> = activeFee.program_discounts || {};
+      const progList: any[] = activeFee.programs || activeFee.selected_programs_details || [];
+      return Object.entries(activeFee.program_payments).map(([id, paid]) => {
         const d = discounts[id] || {};
         const prog = progList.find((p: any) => String(p.id) === id);
         const base = Number(prog?.program_fee || prog?.fee) || 0;
@@ -118,17 +184,16 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
       });
     }
     // Legacy: single program_fee field
-    if (Number(fee.program_fee) > 0) {
-      const base = Number(fee.program_fee);
-      const disc = Number(fee.program_discount) || 0;
-      const discType = (fee.program_discount_type as "cash" | "percentage") || "cash";
+    if (Number(activeFee.program_fee) > 0) {
+      const base = Number(activeFee.program_fee);
+      const disc = Number(activeFee.program_discount) || 0;
+      const discType = (activeFee.program_discount_type as "cash" | "percentage") || "cash";
       const net = calcNet(base, disc, discType);
-      // Can't split paid_amount per-item in legacy mode, show net as paid if fully paid
-      const isPaid = Number(fee.pending_amount || 0) <= 0;
+      const isPaid = Number(activeFee.pending_amount || 0) <= 0;
       return [{ id: 0, title: "Program Fee", base, disc, discType, net, totalPaid: isPaid ? net : 0, remaining: isPaid ? 0 : net }];
     }
     return [];
-  }, [fee]);
+  }, [activeFee]);
 
   /* ── Aggregate totals (from items) ───────────────────── */
   const itemTotals = useMemo(() => {
@@ -140,11 +205,11 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
   }, [adm, programs]);
 
   // Footer: prefer authoritative server values, fall back to item calculations
-  const footerBill = Number(fee.total_amount) || itemTotals.netSum;
-  const footerCollected = Number(fee.paid_amount) || itemTotals.paidSum;
-  const serverPending = Number(fee.pending_amount);
+  const footerBill = Number(activeFee?.total_amount) || itemTotals.netSum;
+  const footerCollected = Number(activeFee?.paid_amount) || itemTotals.paidSum;
+  const serverPending = Number(activeFee?.pending_amount);
   const footerDue = !isNaN(serverPending) ? serverPending : Math.max(0, footerBill - footerCollected);
-  const footerCost = itemTotals.baseSum;
+  const footerCost = itemTotals.baseSum || footerBill; // Fallback to bill if base cost is missing
   const footerDiscount = footerCost - footerBill;
 
   const itemCount = (adm.exists ? 1 : 0) + programs.length;
@@ -154,8 +219,11 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
 
   const handlePrint = () => window.print();
 
+  if (!isOpen || !fee) return null;
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4 font-sans" onClick={onClose}>
+      <style dangerouslySetInnerHTML={{ __html: "@media print { @page { margin: 0; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }" }} />
       <div
         className="bg-white w-full max-w-[780px] max-h-[93vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200"
         onClick={e => e.stopPropagation()}
@@ -170,8 +238,8 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
             <div>
               <h2 className="text-[15px] font-bold text-gray-900">Payment Receipt</h2>
               <p className="text-[11px] text-gray-400 mt-0.5">
-                Ref: #TRS-{fee.id?.toString().padStart(6, "0")} ·{" "}
-                {new Date(fee.created_at || Date.now()).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
+                Ref: #TRS-{activeFee.id?.toString().padStart(6, "0")} ·{" "}
+                {new Date(activeFee.created_at || Date.now()).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
               </p>
             </div>
           </div>
@@ -188,35 +256,35 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
             <div className="hidden print:block text-center mb-6 border-b border-gray-200 pb-5">
               <h1 className="text-2xl font-black text-gray-900 tracking-tight">AASTHA KALA KENDRA</h1>
               <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Professional Arts Center</p>
-              <div className="mt-2 flex justify-center gap-3 text-[9px] text-gray-400 uppercase tracking-widest">
+              {/* <div className="mt-2 flex justify-center gap-3 text-[9px] text-gray-400 uppercase tracking-widest">
                 <span>Kathmandu, Nepal</span>
                 <span>•</span>
                 <span>+977 98XXXXXXXX</span>
-              </div>
+              </div> */}
             </div>
 
             {/* Student card */}
             <div className="flex items-center gap-3.5 p-4 bg-gray-50 border border-gray-100 rounded-xl">
               <div className="w-11 h-11 rounded-xl bg-gray-900 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
-                {initials(fee.student?.name || fee.student_name || "??")}
+                {initials(activeFee.student?.name || activeFee.student_name || "??")}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{fee.student?.name || fee.student_name || "N/A"}</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">{activeFee.student?.name || activeFee.student_name || "N/A"}</p>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[11px] text-gray-400 font-medium">ID: #{fee.student_id}</span>
-                  {fee.student?.classes && (
-                    <span className="text-[11px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md font-medium">{fee.student.classes}</span>
+                  <span className="text-[11px] text-gray-400 font-medium">ID: #{activeFee.student_id}</span>
+                  {activeFee.student?.classes && (
+                    <span className="text-[11px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md font-medium">{activeFee.student.classes}</span>
                   )}
                 </div>
               </div>
               <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${
                 isIntegrated
                   ? "bg-violet-50 text-violet-700 border border-violet-100"
-                  : fee.fee_type === "admission"
+                  : activeFee.fee_type === "admission"
                     ? "bg-blue-50 text-blue-700 border border-blue-100"
                     : "bg-emerald-50 text-emerald-700 border border-emerald-100"
               }`}>
-                {isIntegrated ? "Integrated" : fee.fee_type === "admission" ? "Admission" : "Program"}
+                {isIntegrated ? "Integrated" : activeFee.fee_type === "admission" ? "Admission" : "Program"}
               </span>
             </div>
 
@@ -232,7 +300,7 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
                 <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 flex items-center gap-1.5">
                   <Calendar className="w-3 h-3" /> Period
                 </p>
-                <p className="text-[12px] font-semibold text-gray-900 truncate">{fee.month_year || "—"}</p>
+                <p className="text-[12px] font-semibold text-gray-900 truncate">{activeFee.month_year || "—"}</p>
               </div>
               <div className="p-3.5 bg-white border border-gray-200 rounded-xl">
                 <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 flex items-center gap-1.5">
@@ -240,6 +308,11 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
                 </p>
                 {fullyPaid ? (
                   <span className="text-[12px] font-bold text-emerald-600">Fully Paid</span>
+                ) : footerCollected === 0 ? (
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3 h-3 text-red-500" />
+                    <span className="text-[12px] font-semibold text-red-600">Unpaid</span>
+                  </div>
                 ) : (
                   <div className="flex items-center gap-1.5">
                     <Clock className="w-3 h-3 text-amber-500" />
@@ -249,8 +322,13 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
               </div>
             </div>
 
-            {/* ── Breakdown Table ────────────────────────── */}
-            {itemCount > 0 && (
+            {/* Breakdown Table */}
+            {loading ? (
+              <div className="py-20 flex flex-col items-center justify-center gap-3 border border-dashed border-gray-200 rounded-2xl">
+                <Loader2 className="w-8 h-8 text-gray-300 animate-spin" />
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Enriching Data...</p>
+              </div>
+            ) : itemCount > 0 ? (
               <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -334,10 +412,10 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
                   </table>
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* Pending balance callout */}
-            {footerDue > 0 && (
+            {!loading && footerDue > 0 && (
               <div className="px-5 py-4 bg-amber-50 rounded-xl border border-amber-200 flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white border border-amber-200 flex items-center justify-center">
@@ -350,12 +428,12 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
             )}
 
             {/* Remarks */}
-            {fee.remarks && (
+            {activeFee.remarks && (
               <div className="flex gap-3 px-1">
                 <Info className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Remarks</p>
-                  <p className="text-xs text-gray-600 mt-0.5">{fee.remarks}</p>
+                  <p className="text-xs text-gray-600 mt-0.5">{activeFee.remarks}</p>
                 </div>
               </div>
             )}
@@ -402,7 +480,7 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
           </div>
 
           {/* Progress bar */}
-          <div className="mt-3 bg-gray-100 rounded-full h-1 overflow-hidden">
+          <div className="mt-3 bg-gray-100 rounded-full h-1 overflow-hidden print:hidden">
             <div
               className="h-1 rounded-full transition-all duration-500 ease-out"
               style={{
@@ -415,7 +493,8 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
           {/* Print-only signature line */}
           <div className="hidden print:block pt-12 mt-4 text-center border-t border-gray-200">
             <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Authorized Signature</p>
-            <div className="w-48 h-[1px] bg-gray-400 mx-auto mt-8" />
+            {/* <p className="text-[8px] text-gray-400 mt-1 uppercase tracking-wider">Ref: #TRS-{activeFee.id?.toString().padStart(6, "0")}</p> */}
+            {/* <div className="w-48 h-[1px] bg-gray-400 mx-auto mt-8" /> */}
           </div>
         </div>
       </div>

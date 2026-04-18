@@ -81,7 +81,7 @@ const StudentViewModal: React.FC<Props> = ({ isOpen, onClose, student }) => {
                                     ) : (
                                         en.booking?.schedules?.length > 0 ? en.booking.schedules.map((s: any) => (
                                             <span key={s.id} className="text-[9px] bg-white px-1.5 py-0.5 rounded border border-gray-100 text-gray-600 font-medium">
-                                                {s.day}: {s.start_time.substring(0,5)}
+                                                {s.day} {s.start_time.substring(0,5)}
                                             </span>
                                         )) : <span className="text-[10px] text-gray-400 italic">No slot selected</span>
                                     )}
