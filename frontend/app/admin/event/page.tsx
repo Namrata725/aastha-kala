@@ -165,7 +165,14 @@ const Page = () => {
       </span>
     ),
 
-    event_date: new Date(event.event_date).toLocaleString(),
+    event_date: new Date(event.event_date).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }),
   }));
 
   // View handler

@@ -21,7 +21,7 @@ use App\Http\Controllers\Api\StudentEnrollmentController;
 
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 Route::get('/settings', [SettingController::class, 'show']);
 Route::get('/instructors', [InstructorController::class, 'index']);
@@ -89,6 +89,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::prefix('dress-hire')->group(function () {
         Route::get('/', [DressHireController::class, 'index']);
         Route::post('/', [DressHireController::class, 'store']);
+        Route::post('/reorder', [DressHireController::class, 'reorder']);
         Route::put('/{id}', [DressHireController::class, 'update']);
         Route::delete('/{id}', [DressHireController::class, 'destroy']);
     });

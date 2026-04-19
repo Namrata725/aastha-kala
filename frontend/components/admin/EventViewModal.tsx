@@ -79,19 +79,26 @@ const EventViewModal: React.FC<Props> = ({ isOpen, onClose, event }) => {
 
         <Field label="Location">{event.location}</Field>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* <Field label="Contact Person Name">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label="Contact Person Name">
             {event.contact_person_name || "—"}
-          </Field> */}
+          </Field>
 
           <Field label="Contact Person Phone">
             {event.contact_person_phone || "—"}
           </Field>
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="Event Date">
-            {new Date(event.event_date).toLocaleString()}
+            {new Date(event.event_date).toLocaleString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })}
           </Field>
 
           <Field label="Status">
@@ -100,9 +107,11 @@ const EventViewModal: React.FC<Props> = ({ isOpen, onClose, event }) => {
         </div>
 
         <Field label="Description">
-          <div className="max-h-40 overflow-y-auto hide-scrollbar pr-2">
-            <p className="whitespace-pre-wrap">{event.description || "—"}</p>
-          </div>
+          <div 
+            className="max-h-40 overflow-y-auto hide-scrollbar pr-2 text-black/90
+              [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+            dangerouslySetInnerHTML={{ __html: event.description || "—" }}
+          />
         </Field>
 
         <Field label="Banner">

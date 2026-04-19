@@ -42,7 +42,7 @@ const TestimonialSlider = async () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h4 className="text-secondary font-bold mb-2 uppercase tracking-widest">Student Success Stories</h4>
-          <h2 className="text-4xl md:text-5xl font-black text-primary font-poppins">
+          <h2 className="text-4xl md:text-5xl font-black text-[#27A0CF] font-poppins">
             What Our Students Say
           </h2>
         </div>

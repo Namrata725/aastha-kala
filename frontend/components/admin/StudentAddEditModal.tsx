@@ -106,6 +106,7 @@ const StudentAddEditModal: React.FC<Props> = ({
       offer_enroll_reference: `Booking ID: ${b.id}`,
       enrollments: [
         {
+          booking_id: b.id,
           program_id: b.program_id,
           type: b.type || "regular",
           instructor_id: b.instructor_id,
@@ -202,6 +203,7 @@ const StudentAddEditModal: React.FC<Props> = ({
         status: student.status || "active",
         image: null,
         enrollments: student.enrollments?.map((e: any) => ({
+          booking_id: e.booking_id,
           program_id: e.program_id,
           type: e.booking?.type || "regular",
           status: e.status || "active",
@@ -326,6 +328,7 @@ const StudentAddEditModal: React.FC<Props> = ({
                   formData.append(`enrollments[${index}][program_id]`, String(e.program_id));
                   formData.append(`enrollments[${index}][type]`, e.type);
                   formData.append(`enrollments[${index}][status]`, e.status || "active");
+                  if (e.booking_id) formData.append(`enrollments[${index}][booking_id]`, String(e.booking_id));
                   if (e.instructor_id) formData.append(`enrollments[${index}][instructor_id]`, String(e.instructor_id));
                   if (e.schedule_id) formData.append(`enrollments[${index}][schedule_id]`, String(e.schedule_id));
                   if (e.schedule_ids?.length > 0) {
@@ -698,7 +701,7 @@ const StudentAddEditModal: React.FC<Props> = ({
                                                         : 'bg-white border-gray-100 text-gray-500 hover:border-blue-200'
                                                     }`}
                                                 >
-                                                    {s.day}: {to12h(s.start_time)} - {to12h(s.end_time)}
+                                                    {s.day} {to12h(s.start_time)} - {to12h(s.end_time)}
                                                     {s.instructor && (
                                                         <span className="ml-1 text-[8px] opacity-70">({s.instructor.name})</span>
                                                     )}

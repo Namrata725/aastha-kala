@@ -28,7 +28,9 @@ import InstructorModal from "@/components/admin/InstructorModal";
 import EventAddEditModal from "@/components/admin/EventAddEditModal";
 import GalleryAddEditModal from "@/components/admin/GalleryAddEditModal";
 import StudentAddEditModal from "@/components/admin/StudentAddEditModal";
+import BookingViewModal from "@/components/admin/BookingViewModal";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 /* ───────────────────────── helpers ───────────────────────── */
 
@@ -52,6 +54,12 @@ const statusConfig: Record<
     text: "text-amber-600",
     dot: "bg-amber-400",
     label: "Pending",
+  },
+  accepted: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-600",
+    dot: "bg-emerald-400",
+    label: "Accepted",
   },
   approved: {
     bg: "bg-emerald-50",
@@ -246,7 +254,10 @@ const Dashboard = () => {
     event: false,
     gallery: false,
     student: false,
+    viewBooking: false,
   });
+
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -277,6 +288,25 @@ const Dashboard = () => {
     setModals((p) => ({ ...p, [type]: true }));
   const closeModal = (type: keyof typeof modals) =>
     setModals((p) => ({ ...p, [type]: false }));
+
+  const handleUpdateStatus = async (id: number, status: string, instructorId?: number, customStartTime?: string, customEndTime?: string) => {
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings/${id}/status`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ status, instructor_id: instructorId, custom_start_time: customStartTime, custom_end_time: customEndTime }),
+        });
+        if (!res.ok) throw new Error("Update failed");
+        toast.success(`Booking ${status}`);
+        refreshData();
+        closeModal("viewBooking");
+    } catch (error: any) { 
+      toast.error(error.message); 
+    }
+  };
 
   /* ── skeleton ── */
   if (loading && !data) {
@@ -460,7 +490,11 @@ const Dashboard = () => {
                     {recentBookings.map((booking: any) => (
                       <tr
                         key={booking.id}
-                        className="hover:bg-gray-50/80 transition-colors group"
+                        onClick={() => {
+                          setSelectedBooking(booking);
+                          setModals((p) => ({ ...p, viewBooking: true }));
+                        }}
+                        className="hover:bg-gray-50/80 transition-colors group cursor-pointer"
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
@@ -614,6 +648,15 @@ const Dashboard = () => {
         onClose={() => closeModal("student")}
         onSuccess={() => refreshData()}
         student={null}
+      />
+
+      <BookingViewModal
+        isOpen={modals.viewBooking}
+        onClose={() => closeModal("viewBooking")}
+        booking={selectedBooking}
+        onStatusUpdate={(status, instId, start, end) => {
+          if (selectedBooking) handleUpdateStatus(selectedBooking.id, status, instId, start, end);
+        }}
       />
     </div>
   );

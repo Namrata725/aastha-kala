@@ -3,6 +3,11 @@
 import React, { useState } from "react";
 import { toast } from "react-hot-toast";
 
+const WORD_LIMIT = 250;
+
+const countWords = (text: string) =>
+  text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
+
 const ContactForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -21,6 +26,12 @@ const ContactForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (countWords(formData.message) > WORD_LIMIT) {
+      toast.error(`Your message exceeds the ${WORD_LIMIT} word limit.`);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -55,6 +66,8 @@ const ContactForm: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const wordCount = countWords(formData.message);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -132,6 +145,15 @@ const ContactForm: React.FC = () => {
           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition resize-none"
           placeholder="How can we help you?"
         ></textarea>
+        <p
+          className={`text-xs mt-1 text-right ${
+            wordCount >= WORD_LIMIT
+              ? "text-red-500 font-medium"
+              : "text-gray-400"
+          }`}
+        >
+          {wordCount} / {WORD_LIMIT} words
+        </p>
       </div>
 
       <button

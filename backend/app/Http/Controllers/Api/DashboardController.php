@@ -17,8 +17,8 @@ class DashboardController extends Controller
         $stats = [
             'total_bookings' => Booking::count(),
             'pending_bookings' => Booking::where('status', 'pending')->count(),
-            'approved_bookings' => Booking::where('status', 'approved')->count(),
-            'cancelled_bookings' => Booking::where('status', 'cancelled')->count(),
+            'accepted_bookings' => Booking::where('status', 'accepted')->count(),
+            'rejected_bookings' => Booking::where('status', 'rejected')->count(),
             'total_events' => Event::count(),
             'total_messages' => Message::count(),
             'total_students' => \App\Models\Student::count(),

@@ -16,6 +16,8 @@ interface Program {
     title: string;
     schedules: any[]; // You might want to define a more specific type for schedules
     is_active: boolean;
+    program_fee: number;
+    admission_fee: number;
     // Add any other properties that a program object might have
 }
 
@@ -115,10 +117,15 @@ const ProgramsPage = () => {
                 No Image
             </div>
             ),
+        fees_display: (
+            <div className="flex flex-col">
+                <span className="text-[12px] font-bold text-gray-900 leading-none">Rs. {p.program_fee || 0}</span>
+            </div>
+        ),
         schedule_count: (
             <div className="flex flex-col gap-1">
                 <span className="text-xs font-bold text-primary">{p.schedules?.length || 0} slots</span>
-                <span className="text-[10px] text-gray-500 uppercase tracking-tighter hover:text-black cursor-pointer" onClick={() => handleView(p)}>View Details</span>
+                {/* <span className="text-[10px] text-gray-500 uppercase tracking-tighter hover:text-black cursor-pointer" onClick={() => handleView(p)}>View Details</span> */}
             </div>
         ),
         status: (

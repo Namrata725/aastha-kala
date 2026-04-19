@@ -33,7 +33,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
-  
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
@@ -107,47 +107,47 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
   const removeSchedule = (index: number) => {
     const newSchedules = schedules.filter((_, i) => i !== index);
     setSchedules(newSchedules);
-    
+
     // Re-evaluate conflicts for the new set of schedules to fix indexing issues
     setConflicts({});
     newSchedules.forEach((s, newIndex) => {
-        if (s.instructor_id && s.start_time && s.end_time) {
-            checkConflict(newIndex, s.instructor_id, s.start_time, s.end_time);
-        }
+      if (s.instructor_id && s.start_time && s.end_time) {
+        checkConflict(newIndex, s.instructor_id, s.start_time, s.end_time);
+      }
     });
   };
 
-  const [conflicts, setConflicts] = useState<{[key: number]: string}>({});
+  const [conflicts, setConflicts] = useState<{ [key: number]: string }>({});
 
   const checkConflict = async (index: number, instructorId: string | number, start: string, end: string) => {
     if (loading) return;
     if (!instructorId || !start || !end) {
-        setConflicts(prev => {
-            const newConflicts = {...prev};
-            delete newConflicts[index];
-            return newConflicts;
-        });
-        return;
+      setConflicts(prev => {
+        const newConflicts = { ...prev };
+        delete newConflicts[index];
+        return newConflicts;
+      });
+      return;
     }
-    
 
-    
+
+
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructors/${instructorId}/check-conflict?start_time=${start}&end_time=${end}${program?.id ? `&exclude_program_id=${program.id}` : ""}`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructors/${instructorId}/check-conflict?start_time=${start}&end_time=${end}${program?.id ? `&exclude_program_id=${program.id}` : ""}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const data = await res.json();
+      if (data.conflict) {
+        setConflicts(prev => ({ ...prev, [index]: data.message }));
+      } else {
+        setConflicts(prev => {
+          const newConflicts = { ...prev };
+          delete newConflicts[index];
+          return newConflicts;
         });
-        const data = await res.json();
-        if (data.conflict) {
-            setConflicts(prev => ({...prev, [index]: data.message}));
-        } else {
-            setConflicts(prev => {
-                const newConflicts = {...prev};
-                delete newConflicts[index];
-                return newConflicts;
-            });
-        }
+      }
     } catch (error) {
-        console.error("Conflict check failed", error);
+      console.error("Conflict check failed", error);
     }
   };
 
@@ -155,26 +155,26 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
     e.preventDefault();
 
     if (Object.keys(conflicts).length > 0) {
-        toast.error("Please resolve any instructor scheduling conflicts before saving.");
-        return;
+      toast.error("Please resolve any instructor scheduling conflicts before saving.");
+      return;
     }
 
     // Check for duplicate/overlapping schedules within the form
     for (let i = 0; i < schedules.length; i++) {
-        const s1 = schedules[i];
-        if (!s1.instructor_id || !s1.start_time || !s1.end_time) continue;
-        
-        for (let j = i + 1; j < schedules.length; j++) {
-            const s2 = schedules[j];
-            if (!s2.instructor_id || !s2.start_time || !s2.end_time) continue;
+      const s1 = schedules[i];
+      if (!s1.instructor_id || !s1.start_time || !s1.end_time) continue;
 
-            if (s1.instructor_id === s2.instructor_id) {
-                if (s1.start_time < s2.end_time && s2.start_time < s1.end_time) {
-                    toast.error("Multiple slots with overlapping times for the same instructor are not allowed.");
-                    return;
-                }
-            }
+      for (let j = i + 1; j < schedules.length; j++) {
+        const s2 = schedules[j];
+        if (!s2.instructor_id || !s2.start_time || !s2.end_time) continue;
+
+        if (s1.instructor_id === s2.instructor_id) {
+          if (s1.start_time < s2.end_time && s2.start_time < s1.end_time) {
+            toast.error("Multiple slots with overlapping times for the same instructor are not allowed.");
+            return;
+          }
         }
+      }
     }
 
     setLoading(true);
@@ -185,7 +185,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
     formData.append("is_active", isActive ? "1" : "0");
     if (image) formData.append("image", image);
     if (programFee) formData.append("program_fee", programFee);
-    
+
     speciality.forEach((s, i) => {
       if (s) formData.append(`speciality[${i}]`, s);
     });
@@ -201,7 +201,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
       const url = program
         ? `${process.env.NEXT_PUBLIC_API_URL}/admin/programs/${program.id}`
         : `${process.env.NEXT_PUBLIC_API_URL}/admin/programs`;
-      
+
       const method = program ? "POST" : "POST";
       if (program) formData.append("_method", "PUT");
 
@@ -217,23 +217,23 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
       if (!res.ok) {
         if (data.errors) {
           setErrors(data.errors);
-          
+
           // Scroll to the first error field
           const firstErrorKey = Object.keys(data.errors)[0];
           const elementId = firstErrorKey.replace(/\./g, "_");
-          
+
           setTimeout(() => {
             const element = document.getElementById(elementId);
             if (element) {
               element.scrollIntoView({ behavior: "smooth", block: "center" });
             }
           }, 100);
-          
+
           return;
         }
         throw new Error(data.message || "Failed to save program");
       }
-      
+
       toast.success(program ? "Program updated" : "Program created");
       onSuccess();
       onClose();
@@ -251,7 +251,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
       // onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-lg cursor-pointer"
     >
-      <div 
+      <div
         onClick={(e) => e.stopPropagation()}
         className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-2xl p-8 bg-white/50 relative cursor-default"
         style={{
@@ -306,10 +306,10 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                 <div className="mt-1 flex flex-col gap-4">
                   {imagePreview && (
                     <div className="relative w-full h-40 group overflow-hidden rounded-xl border border-primary/20 bg-white/40">
-                       <img src={imagePreview} className="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
-                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                          <span className="text-xs font-bold uppercase tracking-widest text-white italic">Change Image</span>
-                       </div>
+                      <img src={imagePreview} className="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                        <span className="text-xs font-bold uppercase tracking-widest text-white italic">Change Image</span>
+                      </div>
                     </div>
                   )}
                   <input
@@ -333,7 +333,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-xs font-bold text-primary/60 uppercase tracking-widest italic">Key Specialities</label>
-                    <button type="button" onClick={loading ? undefined : addSpeciality} disabled={loading} className="text-[10px] bg-primary/20 text-primary px-3 py-1 rounded-full font-black uppercase hover:bg-primary/30 transition shadow-lg shadow-primary/10 tracking-tighter italic disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                  <button type="button" onClick={loading ? undefined : addSpeciality} disabled={loading} className="text-[10px] bg-primary/20 text-primary px-3 py-1 rounded-full font-black uppercase hover:bg-primary/30 transition shadow-lg shadow-primary/10 tracking-tighter italic disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                     {loading ? '+ ...' : '+ Add Detail'}
                   </button>
 
@@ -393,8 +393,8 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                 />
 
                 <div className="flex flex-col">
-                   <label className="text-sm font-bold text-primary cursor-pointer italic">Live / Active</label>
-                   {/* <span className="text-[10px] text-primary/60 uppercase font-medium italic">Allow students to see and book this program</span> */}
+                  <label className="text-sm font-bold text-primary cursor-pointer italic">Live / Active</label>
+                  {/* <span className="text-[10px] text-primary/60 uppercase font-medium italic">Allow students to see and book this program</span> */}
                 </div>
               </div>
             </div>
@@ -402,15 +402,15 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
 
           <div className="border-t border-primary/20 pt-8 mt-4">
             <div className="flex justify-between items-center mb-6">
-               <div className="flex flex-col">
-                  <h3 className="text-lg font-bold text-primary tracking-tight italic flex items-center gap-2">
-                    Fixed Schedules
-                  </h3>
-                  {/* <span className="text-[10px] text-primary/60 uppercase font-black tracking-widest italic">Assign specific slots to specific teachers</span> */}
-               </div>
-                <button type="button" onClick={loading ? undefined : addSchedule} disabled={loading} className="flex items-center gap-2 text-[10px] bg-linear-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg font-black uppercase hover:opacity-90 transition active:scale-95 shadow-xl shadow-primary/10 tracking-widest italic cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                  <Plus className="w-4 h-4 " /> {loading ? '...' : 'Add Slot'}
-               </button>
+              <div className="flex flex-col">
+                <h3 className="text-lg font-bold text-primary tracking-tight italic flex items-center gap-2">
+                  Fixed Schedules
+                </h3>
+                {/* <span className="text-[10px] text-primary/60 uppercase font-black tracking-widest italic">Assign specific slots to specific teachers</span> */}
+              </div>
+              <button type="button" onClick={loading ? undefined : addSchedule} disabled={loading} className="flex items-center gap-2 text-[10px] bg-linear-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg font-black uppercase hover:opacity-90 transition active:scale-95 shadow-xl shadow-primary/10 tracking-widest italic cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                <Plus className="w-4 h-4 " /> {loading ? '...' : 'Add Slot'}
+              </button>
 
             </div>
 
@@ -473,15 +473,15 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                       {conflicts[index] && <p className="text-[9px] text-red-500 mt-1 font-medium">{conflicts[index]}</p>}
                     </div>
                     <button type="button" onClick={loading ? undefined : () => removeSchedule(index)} disabled={loading} className="p-2 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition group-hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed">
-                        <Trash2 className="w-5 h-5 px-1 cursor-pointer" />
-                      </button>
+                      <Trash2 className="w-5 h-5 px-1 cursor-pointer" />
+                    </button>
 
                   </div>
                 </div>
               ))}
               {schedules.length === 0 && (
                 <div className="text-center py-10 border-2 border-dashed border-primary/20 rounded-3xl bg-white/20">
-                   <span className="text-xs font-bold text-primary/20 uppercase tracking-widest italic">No fixed slots added yet</span>
+                  <span className="text-xs font-bold text-primary/20 uppercase tracking-widest italic">No fixed slots added yet</span>
                 </div>
               )}
             </div>

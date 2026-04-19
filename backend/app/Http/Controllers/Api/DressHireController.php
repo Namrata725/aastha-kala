@@ -37,7 +37,7 @@ class DressHireController extends Controller
     {
         $validator=Validator::make($request->all(),[
             'title'=>'required|string|max:255',
-            'order'=>'nullable|integer|min:0',
+            'order'=>'nullable|integer|min:0|unique:dress_hires,order',
             'images'=>'nullable|array',
             'images.*'=>'image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
@@ -98,7 +98,7 @@ class DressHireController extends Controller
             
             $validator = Validator::make($request->all(), [
             'title' => 'sometimes|required|string|max:255',
-            'order' => 'nullable|integer|min:0',
+            'order' => 'nullable|integer|min:0|unique:dress_hires,order,' . $id,
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'removed_images' => 'nullable|array',
@@ -170,4 +170,32 @@ class DressHireController extends Controller
         ]);
     }
 
+    /**
+     * Bulk reorder of resources.
+     */
+    public function reorder(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'orders' => 'required|array',
+            'orders.*.id' => 'required|exists:dress_hires,id',
+            'orders.*.order' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        foreach ($request->orders as $orderData) {
+            DressHire::where('id', $orderData['id'])->update(['order' => $orderData['order']]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Hierarchy updated successfully'
+        ]);
+    }
 }

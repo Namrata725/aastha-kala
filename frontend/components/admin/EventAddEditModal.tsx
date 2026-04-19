@@ -59,7 +59,15 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
       title: event.title || "",
       description: event.description || "",
       event_date: event.event_date
-        ? new Date(event.event_date).toISOString().slice(0, 16)
+        ? (() => {
+            const d = new Date(event.event_date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+          })()
         : "",
       location: event.location || "",
       status: event.status || "draft",
@@ -283,7 +291,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField
               label="Contact Person Name"
               icon={User}
@@ -305,7 +313,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
               error={errors.contact_person_phone}
               placeholder="e.g. +977-9800000000"
             />
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField

@@ -130,6 +130,19 @@ const InstructorAvailabilityModal: React.FC<InstructorAvailabilityModalProps> = 
   };
 
   const updateSlot = async (id: number, field: string, value: any) => {
+    // Validation: prevent same or invalid ranges
+    const current = availabilities.find((a) => a.id === id);
+    if (current) {
+      const start = field === "start_time" ? value : current.start_time;
+      const end = field === "end_time" ? value : current.end_time;
+
+      if (toMinutes(start) >= toMinutes(end)) {
+        toast.error("End time must be strictly after start time");
+        fetchAvailabilities(); // Reset local state to what's on server
+        return;
+      }
+    }
+
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/admin/instructor-availabilities/${id}`,
