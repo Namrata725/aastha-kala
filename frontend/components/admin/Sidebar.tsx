@@ -80,7 +80,7 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
   };
   return (
     <aside
-      className={`fixed top-0 left-0 h-screen flex flex-col transition-all duration-300 bg-gray-400 ${
+      className={`h-screen flex flex-col transition-all duration-300 bg-gray-400 z-40 sticky top-0 ${
         collapsed ? "w-20" : "w-64"
       }`}
     >
@@ -95,7 +95,7 @@ export default function Sidebar({ collapsed, toggleCollapse }: SidebarProps) {
           )}
           <button
             onClick={toggleCollapse}
-            className="p-1.5 rounded-lg bg-white/30 hover:bg-white/50 border border-white/10 transition-all duration-300 text-gray-900"
+            className="hidden lg:block p-1.5 rounded-lg bg-white/30 hover:bg-white/50 border border-white/10 transition-all duration-300 text-gray-900"
           >
             {collapsed ? "→" : "←"}
           </button>

@@ -48,6 +48,15 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
   const [success, setSuccess] = useState(false);
   const [bookingType, setBookingType] = useState<"regular" | "customization">("regular");
 
+  // Lock body scroll when modal is open
+  React.useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -124,12 +133,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
   const labelCls = "block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5";
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-start justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl mt-20 md:mt-24 mb-10 max-h-[calc(100vh-120px)] overflow-y-auto transform transition-all animate-in fade-in zoom-in duration-300">
+      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all animate-in fade-in zoom-in duration-300 flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-8 py-5 flex justify-between items-center rounded-t-3xl">
+        <div className="flex-shrink-0 bg-white border-b border-gray-100 px-8 py-5 flex justify-between items-center rounded-t-3xl">
           <div>
             <p className="text-xs font-bold text-primary uppercase tracking-widest">Book Your Class</p>
             <h2 className="text-xl font-bold text-primary mt-0.5">{program.title}</h2>
@@ -143,7 +152,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
         </div>
 
         {success ? (
-          <div className="flex flex-col items-center justify-center py-16 px-8 text-center space-y-5">
+          <div className="flex flex-col items-center justify-center py-16 px-8 text-center space-y-5 overflow-y-auto flex-1">
             <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center">
               <CheckCircle2 className="w-10 h-10 text-green-500" />
             </div>
@@ -160,7 +169,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="px-8 py-7 space-y-6">
+          <form onSubmit={handleSubmit} className="px-8 py-7 space-y-6 overflow-y-auto flex-1">
             {/* Booking Type Toggle */}
             <div>
               <p className={labelCls}>Class Type</p>

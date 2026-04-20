@@ -270,11 +270,11 @@ const Page = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto pb-10">
+    <div className="space-y-6">
       {/* header */}
-      <div className="flex flex-col md:flex-row justify-between items-center p-6 bg-white border border-gray-100 rounded-2xl gap-4 shadow-sm mb-8">
-        <div>
-          <h2 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+      <div className="flex flex-col lg:flex-row justify-between items-center p-4 lg:p-6 bg-white border border-gray-100 rounded-2xl gap-6 shadow-sm mb-8">
+        <div className="flex flex-col text-center lg:text-left">
+          <h2 className="text-xl lg:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
             Dress Hire Management
           </h2>
           <p className="text-xs text-gray-400 font-medium uppercase tracking-widest mt-1">
@@ -287,10 +287,10 @@ const Page = () => {
             setEditingDress(null);
             setFormModalOpen(true);
           }}
-          className="px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl flex gap-2 items-center font-bold shadow-lg hover:scale-105 transition-all cursor-pointer active:scale-95 text-sm"
+          className="w-full lg:w-auto px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl flex gap-2 items-center justify-center font-bold shadow-lg hover:scale-105 transition-all cursor-pointer active:scale-95 text-sm"
         >
           <Plus className="w-4 h-4" />
-          Add New Dress
+          <span>Add New</span>
         </button>
       </div>
 
@@ -300,9 +300,9 @@ const Page = () => {
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <div className="p-[1px] rounded-2xl bg-gray-400/10 backdrop-blur-sm shadow-xl">
-          <div className="rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm">
-            <table className="w-full border-collapse">
+        <div className="p-[1px] rounded-2xl bg-gray-400/10 backdrop-blur-sm shadow-xl overflow-hidden">
+          <div className="rounded-2xl bg-white border border-gray-100 overflow-x-auto shadow-sm custom-scrollbar">
+            <table className="w-full border-collapse min-w-[600px] lg:min-w-full">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
                   <th className="w-10 px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500"></th>

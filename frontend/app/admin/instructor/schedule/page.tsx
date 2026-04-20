@@ -125,23 +125,23 @@ const InstructorSchedulePage = () => {
   );
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center p-6 bg-white border border-gray-200 rounded-2xl gap-6 shadow-sm">
-        <div className="flex flex-col text-center md:text-left">
-          <span className="text-2xl font-black text-gray-900 tracking-tight uppercase italic">
+      <div className="flex flex-col lg:flex-row justify-between items-center p-4 lg:p-6 bg-white border border-gray-200 rounded-2xl gap-6 shadow-sm">
+        <div className="flex flex-col text-center lg:text-left w-full lg:w-auto">
+          <span className="text-xl lg:text-2xl font-black text-gray-900 tracking-tight uppercase italic">
             Master Timetable
           </span>
           <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-            Track teaching sessions &amp; remaining free slots across all instructors
+            Track teaching sessions & free slots
           </span>
         </div>
 
-        <div className="relative w-full md:w-80">
+        <div className="relative w-full lg:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search instructors or programs..."
+            placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-10 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-primary transition shadow-sm"
@@ -307,7 +307,7 @@ const InstructorSchedulePage = () => {
                     isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
                   }`}
                 >
-                  <div className="p-8 bg-gray-50/30">
+                  <div className="p-4 lg:p-8 bg-gray-50/30">
                     {/* Availability summary bar */}
                     {item.availabilities?.length > 0 && (
                       <div className="mb-6 p-4 bg-white border border-gray-100 rounded-xl shadow-sm">

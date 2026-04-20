@@ -187,8 +187,8 @@ const ProgramManagementView: React.FC<Props> = ({ searchTerm, statusFilter, onRe
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full text-left min-w-[800px] lg:min-w-full">
           <thead>
             <tr className="border-b border-gray-100">
               <th className="px-6 py-3.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50/80">

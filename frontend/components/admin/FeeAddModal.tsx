@@ -8,6 +8,8 @@ import {
   Check, User, RotateCcw, ChevronDown
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useReactToPrint } from "react-to-print";
+import { ThermalBill } from "./ThermalBill";
 
 /* ─── Types ──────────────────────────────────────────────── */
 interface Student { id: number; name: string; classes?: string }
@@ -168,6 +170,31 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
 
   // Single "total to pay" input that drives auto-distribution across checked items
   const [totalPayInput, setTotalPayInput] = useState("");
+
+  const [settings, setSettings] = useState<any>(null);
+  const [thermalFee, setThermalFee] = useState<any>(null);
+  const printRef = React.useRef<HTMLDivElement>(null);
+
+  const fetchSettings = useCallback(async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/admin/settings`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSettings(data.data);
+      }
+    } catch (e) { console.error("Settings fetch failed", e); }
+  }, [BASE_URL]);
+
+  useEffect(() => {
+    if (isOpen) fetchSettings();
+  }, [isOpen, fetchSettings]);
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Thermal_Bill_New`,
+  });
 
   useEffect(() => {
     const h = (e: MouseEvent) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false); };
@@ -407,8 +434,38 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
       if (!res.ok) throw new Error(result.message || "Failed to save payment");
 
       toast.success("Payment processed successfully!");
-      onSuccess(); onClose();
-    } catch (e: any) { toast.error(e.message); } finally { setLoading(false); }
+      
+      // Auto-trigger Thermal Print
+      // Construct a temporary fee object for the receipt
+      const printFee = {
+        id: result.id || fee?.id || "N/A",
+        student: selectedStudent,
+        month_year: progPeriod,
+        payment_method: paymentMethod,
+        fee_type: feeType,
+        total_amount: calculations.grandTotal,
+        gross_amount: calculations.progBaseSum + (calculations.hasAdm ? calculations.admBaseNum : 0),
+        discount_amount: calculations.totalDiscount,
+        paid_amount: calculations.totalCollected,
+        payments: [{
+          created_at: new Date().toISOString(),
+          payment_method: paymentMethod,
+          paid_amount: calculations.totalCollected
+        }]
+      };
+      
+      setThermalFee(printFee);
+      
+      setTimeout(() => {
+        handlePrint();
+        onSuccess(); 
+        onClose();
+      }, 500);
+    } catch (e: any) { 
+      toast.error(e.message); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const filteredStudents = useMemo(() => students.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase())), [students, searchQuery]);
@@ -788,6 +845,9 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
               }} />
           </div>
         </div>
+      </div>
+      <div className="hidden">
+        {thermalFee && <ThermalBill ref={printRef} fee={thermalFee} settings={settings} />}
       </div>
     </div>
   );

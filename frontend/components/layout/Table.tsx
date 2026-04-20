@@ -94,9 +94,9 @@ const Table: React.FC<Props> = ({
   return (
     <div className="w-full">
       {/* Eye Comfort Light Border Wrapper */}
-      <div className="p-[1px] rounded-2xl bg-gray-400/20 backdrop-blur-sm">
-        <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden shadow-sm">
-          <table className="w-full border-collapse">
+      <div className="p-[1px] rounded-2xl bg-gray-400/20 backdrop-blur-sm shadow-sm">
+        <div className="rounded-2xl bg-white border border-gray-200 overflow-x-auto custom-scrollbar">
+          <table className="w-full border-collapse min-w-[700px] lg:min-w-full">
             {/* HEADER */}
             <thead className="bg-gray-400/5 border-b border-gray-200">
               <tr>

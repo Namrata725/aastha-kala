@@ -157,18 +157,18 @@ const CategoryPage = () => {
 
   return (
     <div>
-      <div className="flex items-center gap-4 p-6">
+      <div className="flex items-center gap-4 p-4 lg:p-6">
         <Link 
           href="/admin/gallery" 
           className="p-2 bg-white border border-gray-200 rounded-xl text-primary hover:bg-primary hover:text-white transition-all shadow-sm cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+        <span className="text-xl lg:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
           Gallery Categories
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-6 p-6 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4 lg:p-6">
         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-sm transition duration-500">
           <Table
             columns={[

@@ -210,9 +210,9 @@ const Page = () => {
   const actions: ("view" | "edit" | "delete")[] = ["view", "edit", "delete"];
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex justify-between p-4">
-        <span className="text-2xl font-bold text-black">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-center p-4 lg:p-6 bg-white border border-gray-200 rounded-2xl gap-4 shadow-sm">
+        <span className="text-xl lg:text-2xl font-black text-black text-center sm:text-left">
           Our Instructors
         </span>
 
@@ -221,10 +221,10 @@ const Page = () => {
             setEditingInstructor(null);
             setFormModalOpen(true);
           }}
-          className="px-6 py-2 text-sm bg-linear-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center cursor-pointer"
+          className="w-full sm:w-auto px-6 py-2.5 text-sm bg-linear-to-r from-primary to-secondary text-white rounded-xl shadow-lg shadow-primary/20 flex gap-2 items-center justify-center cursor-pointer font-bold active:scale-95 transition-all"
         >
           <Plus className="h-4 w-4" />
-          Add Instructor
+          <span>Add Instructor</span>
         </button>
       </div>
 

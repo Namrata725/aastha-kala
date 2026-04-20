@@ -468,8 +468,8 @@ const Dashboard = () => {
 
           <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
             {recentBookings.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left min-w-[600px] lg:min-w-full">
                   <thead>
                     <tr className="border-b border-gray-100">
                       <th className="px-6 py-3.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">

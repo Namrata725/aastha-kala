@@ -160,17 +160,17 @@ const [messages, setMessages] = useState<Message[]>([]);
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-10">
-      <div className="flex flex-col md:flex-row justify-between items-center p-6 bg-white border border-gray-200 rounded-2xl gap-6 shadow-sm">
-        <div className="flex flex-col text-center md:text-left">
-          <h1 className="text-2xl font-bold text-black">Contact Messages</h1>
+    <div className="space-y-6 pb-10">
+      <div className="flex flex-col lg:flex-row justify-between items-center p-4 lg:p-6 bg-white border border-gray-200 rounded-2xl gap-6 shadow-sm">
+        <div className="flex flex-col text-center lg:text-left">
+          <h1 className="text-xl lg:text-2xl font-bold text-black">Contact Messages</h1>
           <span className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">Manage user inquiries</span>
         </div>
-        <div className="relative w-full md:w-80">
+        <div className="relative w-full lg:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input 
             type="text" 
-            placeholder="Search by name, email or message..." 
+            placeholder="Search..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-white border border-gray-200 rounded-xl px-10 py-2.5 text-sm text-black focus:outline-none focus:border-primary transition shadow-sm"

@@ -319,7 +319,7 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <div className="relative p-6 max-w-7xl mx-auto rounded-2xl overflow-hidden bg-primary/10 border border-primary/20 backdrop-blur-lg">
+    <div className="relative p-4 lg:p-8 rounded-2xl lg:rounded-3xl overflow-hidden bg-white/50 lg:bg-primary/10 border border-primary/20 backdrop-blur-lg">
       <div className="relative z-10">
         {/* Tabs */}
 

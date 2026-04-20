@@ -199,9 +199,9 @@ const Page = () => {
   const actions: ("edit" | "delete")[] = ["edit", "delete"];
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-center p-4 lg:p-6 bg-white border border-gray-200 rounded-2xl gap-6 shadow-sm">
+        <span className="text-xl lg:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
           Testimonials
         </span>
 
@@ -210,10 +210,10 @@ const Page = () => {
             setEditingItem(null);
             setFormModalOpen(true);
           }}
-          className="px-6 py-2 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center cursor-pointer"
+          className="w-full sm:w-auto px-6 py-2.5 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center justify-center cursor-pointer font-bold"
         >
           <Plus className="h-4 w-4" />
-          Add Testimonial
+          <span>Add</span>
         </button>
       </div>
 

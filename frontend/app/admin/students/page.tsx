@@ -162,50 +162,52 @@ const StudentPage = () => {
   
     return (
       <div className="max-w-7xl mx-auto space-y-6">
-        <header className="flex flex-col lg:flex-row justify-between items-center p-6 bg-white border border-gray-200 rounded-3xl gap-6 shadow-sm">
-          <div className="flex flex-col text-center lg:text-left">
-            <h1 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+        <header className="flex flex-col lg:flex-row justify-between items-center p-4 lg:p-6 bg-white border border-gray-200 rounded-2xl lg:rounded-3xl gap-6 shadow-sm">
+          <div className="flex flex-col text-center lg:text-left w-full lg:w-auto items-center lg:items-start">
+            <h1 className="text-xl lg:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
               Student Management
             </h1>
-            <div className="flex bg-slate-100 p-1 rounded-2xl mt-3 w-fit">
+            <div className="flex bg-slate-100 p-1 rounded-2xl mt-3 w-fit overflow-x-auto max-w-full">
                 <button 
                     onClick={() => setViewMode("students")}
-                    className={`px-6 py-1.5 text-xs font-black rounded-xl transition-all ${viewMode === "students" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                    className={`px-4 lg:px-6 py-1.5 text-[10px] lg:text-xs font-black rounded-xl transition-all whitespace-nowrap ${viewMode === "students" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
                 >STUDENT LIST</button>
                 <button 
                     onClick={() => setViewMode("programs")}
-                    className={`px-6 py-1.5 text-xs font-black rounded-xl transition-all ${viewMode === "programs" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                    className={`px-4 lg:px-6 py-1.5 text-[10px] lg:text-xs font-black rounded-xl transition-all whitespace-nowrap ${viewMode === "programs" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
                 >PROGRAM VIEW</button>
             </div>
           </div>
-          <div className="flex items-center gap-4 w-full lg:w-auto">
-            <div className="relative flex-1 lg:w-64">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+            <div className="relative w-full sm:w-64">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input 
                 type="text" 
-                placeholder="Search name or phone..." 
+                placeholder="Search name..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-slate-50 border-none rounded-2xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-blue-500/20 transition shadow-inner"
               />
             </div>
-            <select 
-              value={statusFilter}
-              onChange={(e: any) => setStatusFilter(e.target.value)}
-              className="px-4 py-3 text-sm bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 transition shadow-inner cursor-pointer"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="graduated">Graduated</option>
-            </select>
-            <button
-              onClick={() => { setEditingStudent(null); setFormModalOpen(true); }}
-              className="px-6 py-3 text-sm bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200 hover:bg-black active:scale-95 flex items-center gap-2 transition-all font-bold"
-            >
-              <Plus className="h-4 w-4" />
-              Add Student
-            </button>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <select 
+                value={statusFilter}
+                onChange={(e: any) => setStatusFilter(e.target.value)}
+                className="flex-1 sm:flex-none px-4 py-3 text-sm bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 transition shadow-inner cursor-pointer"
+              >
+                <option value="all">Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="graduated">Graduated</option>
+              </select>
+              <button
+                onClick={() => { setEditingStudent(null); setFormModalOpen(true); }}
+                className="flex-1 sm:flex-none px-6 py-3 text-sm bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200 hover:bg-black active:scale-95 flex items-center justify-center gap-2 transition-all font-bold whitespace-nowrap"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add</span>
+              </button>
+            </div>
           </div>
         </header>
   

@@ -13,6 +13,9 @@ import toast from "react-hot-toast";
 import { Pagination } from "@/components/global/Pagination";
 import FeeAddModal from "@/components/admin/FeeAddModal";
 import FeeViewModal from "@/components/admin/FeeViewModal";
+import { Printer } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
+import { ThermalBill } from "@/components/admin/ThermalBill";
 
 interface Student { id: number; name: string; }
 
@@ -23,10 +26,18 @@ interface StudentFee {
   fee_type: "admission" | "program";
   month_year?: string;
   total_amount: number;
+  discount: number;
   paid_amount: number;
   pending_amount: number;
   status: "paid" | "pending";
   created_at?: string;
+  total_discount_amount?: number;
+  payments?: any[];
+  gross_amount?: number;
+  discount_amount?: number;
+  payment_method?: string;
+  net_amount?: number;
+  remaining_amount?: number;
 }
 
 const FeesPage = () => {
@@ -60,12 +71,54 @@ const FeesPage = () => {
   const [feeToEdit, setFeeToEdit] = useState<any>(null);
   const [feeToView, setFeeToView] = useState<any>(null);
 
+  // Settings for Bill
+  const [settings, setSettings] = useState<any>(null);
+  const printRef = React.useRef<HTMLDivElement>(null);
+  const [printingFee, setPrintingFee] = useState<any>(null);
+``
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: "Bill_" + (printingFee?.student?.name || "Customer"),
+  });
+
+  const triggerPrint = (row: any) => {
+    const original = fees.find(f => f.id === row.id);
+    setPrintingFee(original);
+  };
+
+  useEffect(() => {
+    if (printingFee) {
+      handlePrint();
+      setTimeout(() => setPrintingFee(null), 500);
+    }
+  }, [printingFee]);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/settings`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSettings(data.data.setting);
+      }
+    } catch (error) {
+      console.error("Failed to fetch settings for bill", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
   const columns = [
     { key: "sn", label: "SN" },
     { key: "student_name", label: "Student" },
     { key: "month_year", label: "Period" },
-    { key: "total_amount", label: "Total" },
+    { key: "total_amount", label: "Gross Total" },
+    { key: "discount", label: "Discount" },
     { key: "paid_amount", label: "Paid" },
+    { key: "remaining", label: "Remaining" },
     { key: "status", label: "Status" },
   ];
 
@@ -157,10 +210,22 @@ const FeesPage = () => {
       <span className="text-xs text-gray-600 font-medium">{fee.month_year ?? "—"}</span>
     ),
     total_amount: (
-      <span className="text-sm font-bold text-gray-900">Rs. {Number(fee.total_amount).toLocaleString()}</span>
+      <span className="text-sm font-bold text-gray-900">Rs. {Number(fee.gross_amount || fee.total_amount).toLocaleString()}</span>
+    ),
+    discount: (
+      <span className="text-sm font-medium text-blue-500">
+        {Number(fee.discount_amount || 0) > 0 
+          ? `Rs. ${Number(fee.discount_amount).toLocaleString()}` 
+          : "—"}
+      </span>
     ),
     paid_amount: (
       <span className="text-sm font-bold text-success">Rs. {Number(fee.paid_amount).toLocaleString()}</span>
+    ),
+    remaining: (
+        <span className={`text-sm font-bold ${Number((fee.net_amount || fee.total_amount) - fee.paid_amount) > 0 ? "text-amber-600" : "text-gray-400"}`}>
+            Rs. {Math.max(0, Number((fee.net_amount || fee.total_amount) - fee.paid_amount)).toLocaleString()}
+        </span>
     ),
     status: (
       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${fee.status === "paid"
@@ -174,47 +239,46 @@ const FeesPage = () => {
   })), [fees, pagination.currentPage, pagination.itemsPerPage]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-5">
+    <div className="space-y-5">
 
-      <header className="flex flex-col lg:flex-row justify-between items-center p-6 bg-white border border-gray-200 rounded-3xl gap-6 shadow-sm">
+      <header className="flex flex-col lg:flex-row justify-between items-center p-4 lg:p-6 bg-white border border-gray-200 rounded-2xl lg:rounded-3xl gap-6 shadow-sm">
         <div className="flex flex-col text-center lg:text-left">
-          <h1 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
+          <h1 className="text-xl lg:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
             Fees & Billing
           </h1>
           <p className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-1">Manage student payments and billing records</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto">
-          <div className="relative flex-1 lg:w-64 group">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+          <div className="relative w-full sm:w-64 group">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-600 transition-colors" />
             <input
               type="text"
-              placeholder="Search student or phone..."
+              placeholder="Search..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-slate-50 border-none rounded-2xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-purple-500/20 transition shadow-inner"
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value as any)}
-              className="px-4 py-3 text-sm bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-purple-500/20 transition shadow-inner cursor-pointer font-bold"
+              className="flex-1 sm:flex-none px-4 py-3 text-sm bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-purple-500/20 transition shadow-inner cursor-pointer font-bold"
             >
-              <option value="all">All Status</option>
+              <option value="all">Status</option>
               <option value="paid">Paid</option>
               <option value="pending">Pending</option>
             </select>
+            <button
+              onClick={() => { setFeeToEdit(null); setFeeModalOpen(true); }}
+              className="flex-1 sm:flex-none px-6 py-3 text-sm bg-secondary text-white rounded-2xl shadow-lg shadow-secondary/20 hover:bg-black active:scale-95 flex items-center justify-center gap-2 transition-all font-bold whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add</span>
+            </button>
           </div>
-
-          <button
-            onClick={() => { setFeeToEdit(null); setFeeModalOpen(true); }}
-            className="px-6 py-3 text-sm bg-secondary text-white rounded-2xl shadow-lg shadow-secondary/20 hover:bg-black active:scale-95 flex items-center gap-2 transition-all font-bold whitespace-nowrap"
-          >
-            <Plus className="w-4 h-4" />
-            Record Payment
-          </button>
         </div>
       </header>
 
@@ -275,6 +339,14 @@ const FeesPage = () => {
           onView={row => { const original = fees.find(f => f.id === row.id); setFeeToView(original); setViewModalOpen(true); }}
           onEdit={row => { const original = fees.find(f => f.id === row.id); setFeeToEdit(original); setFeeModalOpen(true); }}
           onDelete={row => { const original = fees.find(f => f.id === row.id); setSelectedFee(original || null); setDeleteModalOpen(true); }}
+          customActions={[
+            {
+              icon: <Printer className="w-4 h-4" />,
+              label: "Print Bill",
+              onClick: triggerPrint,
+              color: "text-purple-600",
+            }
+          ]}
         />
 
         <div className="px-6 py-4 border-gray-100">
@@ -318,6 +390,9 @@ const FeesPage = () => {
         loading={deleting}
         description={`Are you sure you want to delete the payment record for ${selectedFee?.student?.name ?? "this student"}? This cannot be undone.`}
       /> */}
+      <div className="hidden">
+        <ThermalBill ref={printRef} fee={printingFee} settings={settings} />
+      </div>
     </div>
   );
 };

@@ -243,40 +243,38 @@ const [galleries, setGalleries] = useState<Gallery[]>([]);
   const actions: ("view" | "edit" | "delete")[] = ["view", "edit", "delete"];
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col lg:flex-row justify-between items-center p-6 bg-white border border-gray-200 rounded-2xl gap-6 shadow-sm mt-4 mb-6">
-        {/* Left group: Title + Search */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 flex-1 min-w-0">
-          <div className="flex flex-col text-center lg:text-left shrink-0">
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-              Gallery
-            </span>
-            <span className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">Manage photos and videos</span>
-          </div>
-          <div className="relative flex-1 lg:w-80 lg:flex-none min-w-0">
+    <div className="space-y-6">
+      <div className="flex flex-col lg:flex-row justify-between items-center p-4 lg:p-6 bg-white border border-gray-200 rounded-2xl gap-6 shadow-sm mt-4">
+        <div className="flex flex-col text-center lg:text-left w-full lg:w-auto">
+          <span className="text-xl lg:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+            Gallery
+          </span>
+          <span className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">Manage photos and videos</span>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+          <div className="relative w-full lg:w-80">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search title, type, category or position..." 
+              placeholder="Search..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-white border border-gray-200 rounded-xl px-10 py-2.5 text-sm text-black focus:outline-none focus:border-primary transition shadow-sm"
             />
           </div>
-        </div>
-        {/* Right group: Buttons (Categories + Add Gallery rightmost) */}
-        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-          <Link href="/admin/gallery/category">
-            <button className="px-6 py-2 text-sm bg-gradient-to-r cursor-pointer from-primary to-secondary text-white rounded-lg flex gap-2 items-center flex-1 sm:flex-none">
-              <Tag className="h-4 w-4" /> Categories
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Link href="/admin/gallery/category" className="flex-1 sm:flex-none">
+              <button className="w-full px-6 py-2.5 text-sm bg-gradient-to-r cursor-pointer from-primary to-secondary text-white rounded-lg flex gap-2 items-center justify-center">
+                <Tag className="h-4 w-4" /> Categories
+              </button>
+            </Link>
+            <button
+              onClick={handleAddClick}
+              className="flex-1 sm:flex-none px-6 py-2.5 text-sm cursor-pointer  bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center justify-center"
+            >
+              <Plus className="h-4 w-4" /> Add
             </button>
-          </Link>
-          <button
-            onClick={handleAddClick}
-            className="px-6 py-2 text-sm cursor-pointer  bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex gap-2 items-center flex-1 sm:flex-none"
-          >
-            <Plus className="h-4 w-4" /> Add Gallery
-          </button>
+          </div>
         </div>
       </div>
 

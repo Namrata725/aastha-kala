@@ -5,9 +5,12 @@ import {
   X, User, CreditCard, Calendar, Printer,
   CheckCircle2, Clock, Wallet, Info, Receipt, Layers,
   Banknote, Building, Smartphone, FileText, BookOpen,
-  Loader2
+  Loader2, History
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useReactToPrint } from "react-to-print";
+import { ThermalBill } from "./ThermalBill";
+import { A4Bill } from "./A4Bill";
 
 interface Props {
   isOpen: boolean;
@@ -98,15 +101,16 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
         const data = result.data;
         setEnrichedFee({
           ...fee,
-          admission_fee: fee.admission_fee ?? data.admission_amount,
-          admission_discount: fee.admission_discount ?? data.admission_discount,
-          admission_discount_type: fee.admission_discount_type ?? data.admission_discount_type,
-          admission_paid_amount: fee.admission_paid_amount ?? data.admission_paid_amount,
+          admission_fee: data.admission_amount || fee.admission_fee,
+          admission_discount: data.admission_discount,
+          admission_discount_type: data.admission_discount_type || fee.admission_discount_type,
+          admission_paid_amount: data.admission_paid_amount || fee.admission_paid_amount,
           programs_breakdown: data.program_fees?.programs_breakdown || [],
           // Keep authoritative totals from the original fee record if it has them
           total_amount: fee.total_amount,
           paid_amount: fee.paid_amount,
-          pending_amount: fee.pending_amount
+          pending_amount: fee.pending_amount,
+          payments: data.payments || []
         });
       }
     } catch (error) {
@@ -217,7 +221,42 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
     + programs.filter(p => p.remaining <= 0 && p.net > 0).length;
   const fullyPaid = paidCount === itemCount && itemCount > 0;
 
-  const handlePrint = () => window.print();
+  const printRef = React.useRef<HTMLDivElement>(null);
+  const [settings, setSettings] = useState<any>(null);
+
+  const fetchSettings = useCallback(async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/admin/settings`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      const data = await res.json();
+      if (data.success) setSettings(data.data.setting);
+    } catch (e) { console.error("Failed to fetch settings", e); }
+  }, [BASE_URL]);
+
+  useEffect(() => {
+    if (isOpen) fetchSettings();
+  }, [isOpen, fetchSettings]);
+
+  const printRefA4 = React.useRef<HTMLDivElement>(null);
+
+  const handleThermalPrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Thermal_Bill_${fee?.id}`,
+  });
+
+  const handleA4Print = useReactToPrint({
+    contentRef: printRefA4,
+    documentTitle: `A4_Bill_${fee?.id}`,
+  });
+
+  // Prepare fee object for ThermalBill
+  const thermalFee = activeFee ? {
+    ...activeFee,
+    discount: footerDiscount,
+    // ensure student info is there
+    student: activeFee?.student || { name: activeFee?.student_name || "N/A" }
+  } : null;
 
   if (!isOpen || !fee) return null;
 
@@ -427,6 +466,44 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
               </div>
             )}
 
+            {/* Transaction History Section */}
+            {!loading && activeFee.payments && activeFee.payments.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-6 h-6 rounded-md bg-gray-900 text-white flex items-center justify-center text-[11px] font-bold"><History className="w-3 h-3" /></span>
+                  <h3 className="text-[13px] font-bold text-gray-800">Payment History</h3>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                      <tr>
+                        <th className="text-left px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Date</th>
+                        <th className="text-left px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Method</th>
+                        <th className="text-right px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {activeFee.payments
+                        .filter((p: any) => Number(p.paid_amount) > 0)
+                        .map((p: any, i: number) => (
+                          <tr key={i} className="hover:bg-gray-50/50">
+                            <td className="px-4 py-2.5 text-[12px] text-gray-600">
+                              {new Date(p.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-2.5 text-[12px] text-gray-600">
+                              {p.payment_method || "Cash"}
+                            </td>
+                            <td className="px-4 py-2.5 text-right text-[12px] font-bold text-emerald-600">
+                              {fmt(p.paid_amount)}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* Remarks */}
             {activeFee.remarks && (
               <div className="flex gap-3 px-1">
@@ -440,43 +517,52 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
           </div>
         </div>
 
-        {/* ── Footer (mirrors FeeAddModal layout) ───────── */}
+        {/* ── Footer ────────────────────────────────────── */}
         <div className="px-6 py-4 border-t border-gray-100 bg-white flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-5">
-              <div>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Total Cost</p>
-                <p className="text-lg font-extrabold text-gray-400 tracking-tight">{fmt(footerCost)}</p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
+              <div className="flex-shrink-0">
+                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Total</p>
+                <p className="text-sm font-extrabold text-gray-400 tracking-tight whitespace-nowrap">{fmt(footerCost)}</p>
               </div>
-              <div className="flex items-center text-gray-300 text-lg font-light">−</div>
-              <div>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Discount</p>
-                <p className="text-lg font-extrabold text-blue-500 tracking-tight">{fmt(footerDiscount)}</p>
+              <div className="text-gray-300 text-xs font-light">−</div>
+              <div className="flex-shrink-0">
+                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Discount</p>
+                <p className="text-sm font-extrabold text-blue-500 tracking-tight whitespace-nowrap">{fmt(footerDiscount)}</p>
               </div>
-              <div className="flex items-center text-gray-300 text-lg font-light">=</div>
-              <div>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Final Bill</p>
-                <p className="text-lg font-extrabold text-gray-900 tracking-tight">{fmt(footerBill)}</p>
+              <div className="text-gray-300 text-xs font-light">=</div>
+              <div className="flex-shrink-0">
+                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Net Bill</p>
+                <p className="text-sm font-extrabold text-gray-900 tracking-tight whitespace-nowrap">{fmt(footerBill)}</p>
               </div>
-              <div className="w-px h-9 bg-gray-100 mx-1" />
-              <div>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Collected</p>
-                <p className="text-lg font-extrabold text-emerald-600 tracking-tight">{fmt(footerCollected)}</p>
+              <div className="w-px h-7 bg-gray-100 mx-0.5" />
+              <div className="flex-shrink-0">
+                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Paid</p>
+                <p className="text-sm font-extrabold text-emerald-600 tracking-tight whitespace-nowrap">{fmt(footerCollected)}</p>
               </div>
-              <div className="w-px h-9 bg-gray-100 mx-1" />
-              <div>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Balance Due</p>
-                <p className={`text-lg font-extrabold tracking-tight ${footerDue > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                  {footerDue > 0 ? fmt(footerDue) : "—"}
+              <div className="w-px h-7 bg-gray-100 mx-0.5" />
+              <div className="flex-shrink-0">
+                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Due</p>
+                <p className={`text-sm font-extrabold tracking-tight whitespace-nowrap ${footerDue > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                  {footerDue > 0 ? fmt(footerDue) : "Rs. 0"}
                 </p>
               </div>
             </div>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-black text-white rounded-xl text-[12px] font-bold transition-all shadow-lg shadow-gray-900/10 print:hidden"
-            >
-              <Printer className="w-3.5 h-3.5" /> Print
-            </button>
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => handleA4Print()}
+                className="flex items-center gap-2 px-3 py-2 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg text-[11px] font-bold transition-all print:hidden"
+              >
+                Full Bill
+              </button>
+              <button
+                onClick={() => handleThermalPrint()}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-black text-white rounded-lg text-[11px] font-bold transition-all shadow-lg shadow-gray-900/10 print:hidden"
+              >
+                <Printer className="w-3.5 h-3.5" /> Thermal
+              </button>
+            </div>
           </div>
 
           {/* Progress bar */}
@@ -493,10 +579,12 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
           {/* Print-only signature line */}
           <div className="hidden print:block pt-12 mt-4 text-center border-t border-gray-200">
             <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Authorized Signature</p>
-            {/* <p className="text-[8px] text-gray-400 mt-1 uppercase tracking-wider">Ref: #TRS-{activeFee.id?.toString().padStart(6, "0")}</p> */}
-            {/* <div className="w-48 h-[1px] bg-gray-400 mx-auto mt-8" /> */}
           </div>
         </div>
+      </div>
+      <div className="hidden">
+        {thermalFee && <ThermalBill ref={printRef} fee={thermalFee} settings={settings} />}
+        {activeFee && <A4Bill ref={printRefA4} fee={activeFee} settings={settings} />}
       </div>
     </div>
   );

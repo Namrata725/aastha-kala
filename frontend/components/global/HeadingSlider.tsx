@@ -62,10 +62,10 @@ const HeadingSlider = ({ title, subtitle, media, className }: HeadingSliderProps
       {/* Title & Subtitle */}
       <div className="w-full absolute inset-0 flex items-end justify-center z-30 pb-12 px-6">
         <div className="w-full max-w-4xl text-center">
-          <h1 className={`text-3xl md:text-5xl font-bold tracking-tight font-poppins mb-3 ${className || "text-blue-900"}`}>
+          <h1 className={`text-3xl md:text-5xl font-bold tracking-tight font-poppins mb-3 ${className || "text-[#27A0CF]"}`}>
             {title}
           </h1>
-          <div className="font-semibold text-blue-700 tracking-wider text-sm md:text-base uppercase">
+          <div className="font-semibold text-[#27A0CF] tracking-wider text-sm md:text-base uppercase">
             {subtitle}
           </div>
         </div>
