@@ -75,7 +75,7 @@ const FeesPage = () => {
   const [settings, setSettings] = useState<any>(null);
   const printRef = React.useRef<HTMLDivElement>(null);
   const [printingFee, setPrintingFee] = useState<any>(null);
-``
+
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: "Bill_" + (printingFee?.student?.name || "Customer"),
@@ -390,7 +390,7 @@ const FeesPage = () => {
         loading={deleting}
         description={`Are you sure you want to delete the payment record for ${selectedFee?.student?.name ?? "this student"}? This cannot be undone.`}
       /> */}
-      <div className="hidden">
+      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
         <ThermalBill ref={printRef} fee={printingFee} settings={settings} />
       </div>
     </div>

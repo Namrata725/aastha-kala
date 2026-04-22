@@ -182,7 +182,7 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
       });
       if (res.ok) {
         const data = await res.json();
-        setSettings(data.data);
+        setSettings(data.data?.setting || data.data);
       }
     } catch (e) { console.error("Settings fetch failed", e); }
   }, [BASE_URL]);
@@ -846,7 +846,7 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
           </div>
         </div>
       </div>
-      <div className="hidden">
+      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
         {thermalFee && <ThermalBill ref={printRef} fee={thermalFee} settings={settings} />}
       </div>
     </div>

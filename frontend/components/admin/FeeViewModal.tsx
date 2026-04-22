@@ -582,7 +582,7 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
           </div>
         </div>
       </div>
-      <div className="hidden">
+      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
         {thermalFee && <ThermalBill ref={printRef} fee={thermalFee} settings={settings} />}
         {activeFee && <A4Bill ref={printRefA4} fee={activeFee} settings={settings} />}
       </div>

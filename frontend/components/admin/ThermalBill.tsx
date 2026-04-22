@@ -11,119 +11,194 @@ export const ThermalBill = forwardRef<HTMLDivElement, ThermalBillProps>(
   ({ fee, settings }, ref) => {
     if (!fee) return null;
 
+    const getLogoUrl = (logoPath: string | null | undefined) => {
+      if (!logoPath) return "/images/logo.png";
+      if (logoPath.startsWith("http")) return logoPath;
+      const base = process.env.NEXT_PUBLIC_IMAGE_URL || "http://localhost:8000/storage/";
+      const cleanBase = base.endsWith("/") ? base.slice(0, -1) : base;
+      const cleanPath = logoPath.startsWith("/") ? logoPath.slice(1) : logoPath;
+      return `${cleanBase}/${cleanPath}`;
+    };
+
+    const logoUrl = getLogoUrl(settings?.logo);
+
+    const fmt = (n: number) => "Rs. " + Math.round(n).toLocaleString("en-IN");
+
+    const totalGross = Number(fee.gross_amount || fee.total_amount || 0);
+    const totalDiscount = Number(fee.discount_amount || fee.discount || 0);
+    const netBill = Number(fee.net_amount || fee.total_amount || 0);
+    const paidAmount = Number(fee.paid_amount || 0);
+    const balanceDue = Math.max(0, netBill - paidAmount);
+
+    const billDate = fee.created_at
+      ? new Date(fee.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+      : new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+    const billNo = `#FEE-${fee.id}`;
+
     return (
       <>
         <style dangerouslySetInnerHTML={{ __html: `
           @media print {
+            body * { visibility: hidden !important; }
+            .thermal-print-container, .thermal-print-container * {
+              visibility: visible !important;
+            }
             @page {
-              size: 80mm 297mm;
+              size: 80mm auto;
               margin: 0;
             }
-            body {
-              margin: 0;
-              padding: 0;
-            }
+            body { margin: 0; padding: 0; }
             .thermal-print-container {
-              width: 80mm !important;
-              padding: 10mm !important;
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 72mm !important;
+              padding: 4mm !important;
               margin: 0 !important;
               background: white !important;
               color: black !important;
             }
           }
+          .thermal-bill-text { font-family: 'Arial', 'Helvetica', sans-serif; }
+          .thermal-beige { background-color: #F0ECE8; }
         `}} />
         <div
           ref={ref}
-          className="thermal-print-container bg-white text-black p-4 w-[80mm] mx-auto font-mono text-[11px] leading-snug print:block hidden"
-          style={{ width: "80mm" }}
+          className="thermal-print-container thermal-bill-text bg-white text-black w-[72mm] mx-auto"
+          style={{ width: "72mm", padding: "4mm", fontSize: "11px", lineHeight: "1.4" }}
         >
-        <div className="text-center space-y-1 mb-4 border-b border-dashed border-black pb-4">
-          <h1 className="text-sm font-bold uppercase">{settings?.company_name || "Aastha Kala"}</h1>
-          <p>{settings?.address || ""}</p>
-          <p>Phone: {settings?.phone || ""}</p>
-          <p>Email: {settings?.email || ""}</p>
-        </div>
+          {/* ─── Header: Company Info ─── */}
+          <div style={{ textAlign: "center", marginBottom: "8px" }}>
+            <h1 style={{ fontSize: "14px", fontWeight: 800, margin: "0 0 2px 0", letterSpacing: "0.5px" }}>
+              {settings?.company_name}
+            </h1>
+            {settings?.address && (
+              <p style={{ fontSize: "9px", margin: "1px 0", color: "#555" }}>{settings.address}</p>
+            )}
+            {settings?.phone && (
+              <p style={{ fontSize: "9px", margin: "1px 0", color: "#555" }}>Phone: {settings.phone}</p>
+            )}
+            {settings?.email && (
+              <p style={{ fontSize: "9px", margin: "1px 0", color: "#555" }}>Email: {settings.email}</p>
+            )}
+          </div>
 
-        <div className="space-y-2 mb-4">
-          <div className="flex justify-between">
-            <span>Bill No:</span>
-            <span>#FEE-{fee.id}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Date:</span>
-            <span>{new Date().toLocaleDateString()}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Student:</span>
-            <span className="font-bold">{fee.student?.name}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Period:</span>
-            <span>{fee.month_year || "N/A"}</span>
-          </div>
-        </div>
-
-        <div className="border-y border-dashed border-black py-2 mb-4">
-          <div className="flex justify-between font-bold border-b border-dashed border-black pb-1 mb-1">
-            <span>Description</span>
-            <span>Amount</span>
-          </div>
-          <div className="flex justify-between pt-1">
-            <span className="capitalize">{fee.fee_type} Fee</span>
-            <span>Rs. {Number(fee.total_amount).toLocaleString()}</span>
-          </div>
-        </div>
-
-        <div className="space-y-1 mb-6">
-          <div className="flex justify-between text-[13px]">
-            <span>Gross Total:</span>
-            <span>Rs. {Number(fee.gross_amount).toLocaleString()}</span>
-          </div>
-          {Number(fee.discount_amount) > 0 && (
-            <div className="flex justify-between text-[13px] text-gray-600 italic">
-              <span>Total Discount:</span>
-              <span>- Rs. {Number(fee.discount_amount).toLocaleString()}</span>
+          {/* ─── Logo + Bill Details Row ─── */}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "6px", marginBottom: "8px", borderTop: "1px solid #ddd", borderBottom: "1px solid #ddd", padding: "6px 0" }}>
+            {/* Logo */}
+            <div style={{ width: "50px", flexShrink: 0 }}>
+              <img src={logoUrl} alt="Logo" style={{ width: "100%", height: "auto" }} />
             </div>
-          )}
-          <div className="flex justify-between text-[14px] border-t border-dashed border-black pt-1 mt-1">
-            <span className="font-bold">Net Bill:</span>
-            <span className="font-bold">Rs. {Number(fee.net_amount).toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between text-success">
-            <span className="font-bold text-black">Amount Paid:</span>
-            <span className="font-bold">Rs. {Number(fee.paid_amount).toLocaleString()}</span>
+            {/* Bill Details */}
+            <div style={{ flex: 1, textAlign: "right", fontSize: "10px" }}>
+              <p style={{ fontSize: "16px", fontWeight: 900, margin: "0 0 4px 0" }}>BILL</p>
+              <p style={{ margin: "1px 0" }}><strong>Bill No.:</strong> {billNo}</p>
+              <p style={{ margin: "1px 0" }}><strong>Date:</strong> {billDate}</p>
+              <p style={{ margin: "1px 0" }}><strong>Student:</strong> {fee.student?.name || "N/A"}</p>
+              <p style={{ margin: "1px 0" }}><strong>Period:</strong> {fee.month_year || "N/A"}</p>
+            </div>
           </div>
 
-          {/* Individual Transactions Log */}
-          {fee.payments && fee.payments.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-dotted border-black">
-              <p className="text-center font-bold mb-2 uppercase text-[10px]">Payment History</p>
+          {/* ─── Items Table ─── */}
+          <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "6px", fontSize: "10px" }}>
+            <thead>
+              <tr style={{ backgroundColor: "#F0ECE8" }}>
+                <th style={{ textAlign: "left", padding: "4px 6px", fontWeight: 700, borderBottom: "1px solid #ccc" }}>Description</th>
+                <th style={{ textAlign: "right", padding: "4px 6px", fontWeight: 700, borderBottom: "1px solid #ccc" }}>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* Admission Fee */}
+              {Number(fee.admission_fee) > 0 && (
+                <tr style={{ borderBottom: "1px solid #eee" }}>
+                  <td style={{ padding: "4px 6px" }}>Admission Fee</td>
+                  <td style={{ padding: "4px 6px", textAlign: "right" }}>{fmt(fee.admission_fee)}</td>
+                </tr>
+              )}
+
+              {/* Program breakdown */}
+              {fee.programs_breakdown && fee.programs_breakdown.length > 0 ? (
+                fee.programs_breakdown.map((pb: any, idx: number) => (
+                  <tr key={idx} style={{ borderBottom: "1px solid #eee" }}>
+                    <td style={{ padding: "4px 6px" }}>{pb.title}</td>
+                    <td style={{ padding: "4px 6px", textAlign: "right" }}>{fmt(pb.program_fee)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr style={{ borderBottom: "1px solid #eee" }}>
+                  <td style={{ padding: "4px 6px", textTransform: "capitalize" }}>
+                    {fee.fee_type === "billing" ? "Tuition Fees" : (fee.fee_type || "Fee") + " Fee"}
+                  </td>
+                  <td style={{ padding: "4px 6px", textAlign: "right" }}>{fmt(totalGross)}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          {/* ─── Totals ─── */}
+          <div style={{ fontSize: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 6px" }}>
+              <span style={{ fontWeight: 700 }}>Subtotal:</span>
+              <span>{fmt(totalGross)}</span>
+            </div>
+
+            {totalDiscount > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 6px", color: "#888", fontStyle: "italic" }}>
+                <span>Discount:</span>
+                <span>({fmt(totalDiscount)})</span>
+              </div>
+            )}
+
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 6px", borderTop: "1px solid #ddd", marginTop: "2px" }}>
+              <span style={{ fontWeight: 700 }}>Total Amount (Gross):</span>
+              <span>{fmt(netBill)}</span>
+            </div>
+
+            {/* Net Bill - highlighted */}
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 6px", backgroundColor: "#F0ECE8", marginTop: "4px", fontWeight: 900, fontSize: "12px" }}>
+              <span>Net Bill:</span>
+              <span>{fmt(netBill)}</span>
+            </div>
+
+            {/* Amount Paid */}
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 6px", marginTop: "2px" }}>
+              <span style={{ fontWeight: 700 }}>Amount Paid:</span>
+              <span style={{ fontWeight: 700, color: paidAmount === 0 ? "#dc2626" : "#000" }}>{fmt(paidAmount)}</span>
+            </div>
+
+            {/* Balance Due - highlighted */}
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 6px", backgroundColor: "#F0ECE8", fontWeight: 900, fontSize: "12px" }}>
+              <span>BALANCE DUE:</span>
+              <span>{fmt(balanceDue)}</span>
+            </div>
+          </div>
+
+          {/* ─── Payment History ─── */}
+          {fee.payments && fee.payments.filter((p: any) => Number(p.paid_amount) > 0).length > 0 && (
+            <div style={{ marginTop: "8px", borderTop: "1px dashed #999", paddingTop: "4px" }}>
+              <p style={{ textAlign: "center", fontWeight: 700, fontSize: "9px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "3px" }}>Payment History</p>
               {fee.payments
                 .filter((p: any) => Number(p.paid_amount) > 0)
                 .map((p: any, i: number) => (
-                  <div key={i} className="flex justify-between text-[10px]">
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", padding: "1px 0" }}>
                     <span>{new Date(p.created_at).toLocaleDateString()}</span>
-                    <span>{p.payment_method}</span>
-                    <span className="font-bold">{Number(p.paid_amount).toLocaleString()}</span>
+                    <span>{p.payment_method || "Cash"}</span>
+                    <span style={{ fontWeight: 700 }}>{fmt(p.paid_amount)}</span>
                   </div>
                 ))}
             </div>
           )}
 
-          <div className="flex justify-between border-t border-dashed border-black pt-1 mt-4">
-            <span className="font-bold uppercase">Balance Due:</span>
-            <span className="font-bold text-red-600 text-[14px]">
-              Rs. {Math.max(0, Number((fee.net_amount || fee.total_amount) - fee.paid_amount)).toLocaleString()}
-            </span>
+          {/* ─── Footer ─── */}
+          <div style={{ textAlign: "center", marginTop: "12px", borderTop: "1px dashed #999", paddingTop: "8px" }}>
+            <p style={{ fontSize: "14px", fontWeight: 500, marginBottom: "6px" }}>Thank You!</p>
+            <p style={{ fontSize: "8px", fontWeight: 600, color: "#666" }}>
+              {settings?.company_name}
+            </p>
           </div>
         </div>
-
-        <div className="text-center space-y-2 pt-4 border-t border-dashed border-black">
-          <p className="font-bold italic">Thank You!</p>
-          <p className="text-[10px]">Aastha Kala - Center for Arts & Culture</p>
-        </div>
-      </div>
-    </>
+      </>
     );
   }
 );
