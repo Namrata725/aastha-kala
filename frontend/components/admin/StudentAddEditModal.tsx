@@ -819,6 +819,7 @@ const StudentAddEditModal: React.FC<Props> = ({
                 placeholder="e.g. 3"
                 icon={Clock}
                 value={form.duration_value}
+                min={1}
                 onChange={(e) => handleChange("duration_value", e.target.value)}
                 disabled={loading}
               />

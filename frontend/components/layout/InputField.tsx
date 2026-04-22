@@ -21,6 +21,7 @@ interface Props {
   error?: string | string[];
   placeholder?: string;
   id?: string;
+  min?: number;
 }
 
 const InputField: React.FC<Props & { multiple?: boolean }> = ({
@@ -37,10 +38,11 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
   multiple = false,
   placeholder,
   id,
+  min,
 }) => {
   const inputId = id || label.replace(/\s+/g, "_").toLowerCase();
   const isSelect = type === "select";
-  
+
   // Normalize error to string
   const errorMessage = Array.isArray(error) ? error[0] : error;
 
@@ -56,8 +58,12 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
       </label>
 
       {/* Container */}
-      <div className={`p-0.5 rounded-xl bg-linear-to-r ${errorMessage ? 'from-red-500/40 to-red-500/40' : 'from-primary/20 to-secondary/20'}`}>
-        <div className={`rounded-xl px-3 py-1.5 bg-primary/10 backdrop-blur-md border ${errorMessage ? 'border-red-500/40' : 'border-primary/10'} shadow-sm transition-all duration-300 focus-within:bg-primary/15 ${errorMessage ? 'focus-within:border-red-500' : 'focus-within:border-primary/20 hover:border-primary/30'}`}>
+      <div
+        className={`p-0.5 rounded-xl bg-linear-to-r ${errorMessage ? "from-red-500/40 to-red-500/40" : "from-primary/20 to-secondary/20"}`}
+      >
+        <div
+          className={`rounded-xl px-3 py-1.5 bg-primary/10 backdrop-blur-md border ${errorMessage ? "border-red-500/40" : "border-primary/10"} shadow-sm transition-all duration-300 focus-within:bg-primary/15 ${errorMessage ? "focus-within:border-red-500" : "focus-within:border-primary/20 hover:border-primary/30"}`}
+        >
           {/* TEXTAREA */}
           {textarea ? (
             <textarea
@@ -65,48 +71,62 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
               onChange={onChange}
               rows={4}
               disabled={disabled}
-              className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 resize-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 resize-none ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
               placeholder={placeholder ?? `Enter ${label}...`}
             />
           ) : isSelect ? (
             // DROPDOWN
             <div className="relative group/select">
-                <select
-                    multiple={multiple}
-                    value={multiple ? (Array.isArray(value) ? value : (value ? value.split(',').map((v: string) => v.trim()) : [])) : (value ?? "")}
-                    onChange={(e) => {
-                        if (multiple) {
-                            const options = e.target.options;
-                            const values = [];
-                            for (let i = 0, l = options.length; i < l; i++) {
-                                if (options[i].selected) {
-                                    values.push(options[i].value);
-                                }
-                            }
-                            onChange?.({ target: { value: values.join(', ') } } as any);
-                        } else {
-                            onChange?.(e);
-                        }
-                    }}
-                    disabled={disabled}
-                    className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${multiple ? 'min-h-[80px] py-1' : ''}`}
-                >
-                    {!multiple && (
-                        <option value="" className="bg-white text-black/60">
-                            Select {label}
-                        </option>
-                    )}
-                    {options.map((opt, idx) => (
-                        <option
-                            key={idx}
-                            value={opt.value}
-                            className="bg-white text-black py-1 px-2 hover:bg-primary/10"
-                        >
-                            {opt.label}
-                        </option>
-                    ))}
-                </select>
-                {multiple && <div className="absolute top-0 right-0 p-1 opacity-0 group-hover/select:opacity-100 transition-opacity"><span className="text-[9px] bg-black/10 px-1 rounded text-gray-400">Ctrl+Click</span></div>}
+              <select
+                multiple={multiple}
+                value={
+                  multiple
+                    ? Array.isArray(value)
+                      ? value
+                      : value
+                        ? value.split(",").map((v: string) => v.trim())
+                        : []
+                    : (value ?? "")
+                }
+                onChange={(e) => {
+                  if (multiple) {
+                    const options = e.target.options;
+                    const values = [];
+                    for (let i = 0, l = options.length; i < l; i++) {
+                      if (options[i].selected) {
+                        values.push(options[i].value);
+                      }
+                    }
+                    onChange?.({ target: { value: values.join(", ") } } as any);
+                  } else {
+                    onChange?.(e);
+                  }
+                }}
+                disabled={disabled}
+                className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${multiple ? "min-h-[80px] py-1" : ""}`}
+              >
+                {!multiple && (
+                  <option value="" className="bg-white text-black/60">
+                    Select {label}
+                  </option>
+                )}
+                {options.map((opt, idx) => (
+                  <option
+                    key={idx}
+                    value={opt.value}
+                    className="bg-white text-black py-1 px-2 hover:bg-primary/10"
+                  >
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              {multiple && (
+                <div className="absolute top-0 right-0 p-1 opacity-0 group-hover/select:opacity-100 transition-opacity">
+                  <span className="text-[9px] bg-black/10 px-1 rounded text-gray-400">
+                    Ctrl+Click
+                  </span>
+                </div>
+              )}
             </div>
           ) : (
             // NORMAL INPUT
@@ -118,7 +138,8 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
                 value={value ?? ""}
                 onChange={onChange}
                 disabled={disabled}
-                className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                min={min}
+                className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                 placeholder={placeholder ?? `Enter ${label}...`}
               />
             </div>
