@@ -44,11 +44,11 @@ const TestimonialAddEdit: React.FC<Props> = ({
     name: "",
     title: "",
     description: "",
-    rating: 0,
-    order: 0,
+    rating: 1,
+    order: 1,
   });
 
-const [errors, setErrors] = useState<{[key: string]: string[]}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
@@ -70,9 +70,9 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
 
     if (initialData) {
       setForm({
-      name: initialData.name || "",
-      title: initialData.title || "",
-      description: initialData.description || "",
+        name: initialData.name || "",
+        title: initialData.title || "",
+        description: initialData.description || "",
         rating: initialData.rating || 0,
         order: initialData.order || 0,
       });
@@ -81,11 +81,11 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
       setImageFile(null);
     } else {
       setForm({
-      name: "",
-      title: "",
-      description: "",
-        rating: 0,
-        order: 0,
+        name: "",
+        title: "",
+        description: "",
+        rating: 1,
+        order: 1,
       });
 
       setPreview(null);
@@ -133,7 +133,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
 
       formData.append("name", form.name || "");
       formData.append("title", form.title || "");
-      formData.append("description", form.description || ""); 
+      formData.append("description", form.description || "");
       formData.append("rating", String(form.rating || 0));
       formData.append("order", String(form.order || 0));
 
@@ -163,18 +163,18 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
         if (result.errors) {
           const validationErrors = result.errors as Record<string, string[]>;
           setErrors(validationErrors);
-          
+
           // Scroll to the first error field
           const firstErrorKey = Object.keys(validationErrors)[0];
           const elementId = firstErrorKey.replace(/\./g, "_");
-          
+
           setTimeout(() => {
             const element = document.getElementById(elementId);
             if (element) {
               element.scrollIntoView({ behavior: "smooth", block: "center" });
             }
           }, 100);
-          
+
           return;
         }
         throw new Error(result.message || "Something went wrong");
@@ -204,10 +204,14 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
         <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
           <div className="flex items-center gap-2 font-bold text-xl text-primary uppercase italic tracking-tight">
             {isEdit ? <Pencil /> : <Plus />}
-            {loading ? (isEdit ? "Updating..." : "Adding...") : (isEdit ? "Edit Testimonial" : "Add Testimonial")}
+            {isEdit ? "Edit Testimonial" : "Add Testimonial"}
           </div>
 
-          <button onClick={onClose} disabled={loading} className={`p-1.5 hover:bg-gray-200 rounded-lg transition-colors ${loading ? "opacity-50 cursor-not-allowed" : ""}`}>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className={`p-1.5 hover:bg-gray-200 rounded-lg transition-colors ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
             <X className="text-gray-500 hover:text-black" />
           </button>
         </div>
@@ -229,8 +233,15 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             </div>
 
             {/* Upload */}
-            <label className={`absolute bottom-0 right-0 bg-gradient-to-r from-primary to-secondary p-2 rounded-full shadow-lg transition ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:scale-110"}`}>
-              <input type="file" hidden onChange={handleImageChange} disabled={loading} />
+            <label
+              className={`absolute bottom-0 right-0 bg-gradient-to-r from-primary to-secondary p-2 rounded-full shadow-lg transition ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:scale-110"}`}
+            >
+              <input
+                type="file"
+                hidden
+                onChange={handleImageChange}
+                disabled={loading}
+              />
               <ImageIcon className="w-4 h-4 text-white" />
             </label>
 
@@ -251,7 +262,9 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             )}
           </div>
 
-          <p className="text-xs text-gray-500 font-medium mt-2">Upload or remove image</p>
+          <p className="text-xs text-gray-500 font-medium mt-2">
+            Upload or remove image
+          </p>
         </div>
 
         {/* Form */}
@@ -284,6 +297,8 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             onChange={(e) => handleChange("rating", e.target.value)}
             disabled={loading}
             error={errors.rating}
+            min={1}
+            max={5}
           />
 
           <InputField
@@ -295,6 +310,7 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             onChange={(e) => handleChange("order", e.target.value)}
             disabled={loading}
             error={errors.order}
+            min={1}
           />
 
           <div className="md:col-span-2">
@@ -311,7 +327,6 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
           </div>
         </div>
 
-
         {/* Footer */}
         <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-white/10">
           <button
@@ -326,7 +341,9 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
             onClick={handleSubmit}
             disabled={loading}
             className={`px-5 py-2 rounded-lg text-white bg-gradient-to-r from-primary to-secondary flex items-center gap-2 transition-all ${
-              loading ? "opacity-70 cursor-not-allowed" : "hover:scale-105 active:scale-95 cursor-pointer"
+              loading
+                ? "opacity-70 cursor-not-allowed"
+                : "hover:scale-105 active:scale-95 cursor-pointer"
             }`}
           >
             {loading ? (
@@ -334,8 +351,10 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 {isEdit ? "Updating..." : "Adding..."}
               </>
+            ) : isEdit ? (
+              "Update"
             ) : (
-              isEdit ? "Update" : "Create"
+              "Create"
             )}
           </button>
         </div>

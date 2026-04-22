@@ -399,8 +399,8 @@ const StudentAddEditModal: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 cursor-pointer">
-      <div className="bg-white w-full max-w-3xl rounded-[2rem] p-6 lg:p-8 relative overflow-y-auto max-h-[90vh] cursor-default shadow-2xl transition-all" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-4 lg:right-6 top-4 lg:top-6 text-gray-400 hover:text-black transition-colors p-2 bg-gray-50 rounded-full">
+      <div className="bg-white w-full max-w-3xl rounded-[2rem] px-6 py-14 lg:p-8  relative overflow-y-auto max-h-[90vh] cursor-default shadow-2xl transition-all" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute right-4 lg:right-6 md:top-5 top-14 lg:top-6 text-gray-400 hover:text-black transition-colors p-2 bg-gray-50 rounded-full">
           <X className="w-5 h-5" />
         </button>
 
@@ -819,6 +819,7 @@ const StudentAddEditModal: React.FC<Props> = ({
                 placeholder="e.g. 3"
                 icon={Clock}
                 value={form.duration_value}
+                min={1}
                 onChange={(e) => handleChange("duration_value", e.target.value)}
                 disabled={loading}
               />
