@@ -230,10 +230,10 @@ const [errors, setErrors] = useState<{[key: string]: string[]}>({});
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-primary/10 border border-primary/20 backdrop-blur-md w-full max-w-2xl rounded-xl p-6 relative overflow-y-auto max-h-[90vh] cursor-default"
+        className="bg-primary/10 border border-primary/20 backdrop-blur-md w-full max-w-2xl rounded-xl md:p-6 py-15 px-6 relative overflow-y-auto max-h-[90vh] cursor-default"
       >
         {/* Close Modal */}
-        <button onClick={onClose} className="absolute right-4 top-4 text-primary hover:text-black transition-colors">
+        <button onClick={onClose} className="absolute right-4 md:top-4 top-17 text-primary hover:text-black transition-colors">
           <X className="w-5 h-5" />
         </button>
 

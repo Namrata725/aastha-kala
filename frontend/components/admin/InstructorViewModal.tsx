@@ -70,10 +70,10 @@ const InstructorViewModal: React.FC<Props> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className=" border border-primary/20 backdrop-blur-md w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-xl p-6 relative space-y-4 bg-white/40 cursor-default"
+        className=" border border-primary/20 backdrop-blur-md w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-xl md:p-6 px:6 py-20 relative space-y-4 bg-white/40 cursor-default"
       >
         {/* Close Button */}
-        <button onClick={onClose} className="absolute right-4 top-4 text-primary hover:text-black transition-colors">
+        <button onClick={onClose} className="absolute right-4 md:top-4 top-20 text-primary hover:text-black transition-colors">
           <X />
         </button>
 
