@@ -22,6 +22,7 @@ interface Props {
   placeholder?: string;
   id?: string;
   min?: number;
+  max?: number;
 }
 
 const InputField: React.FC<Props & { multiple?: boolean }> = ({
@@ -39,6 +40,7 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
   placeholder,
   id,
   min,
+  max,
 }) => {
   const inputId = id || label.replace(/\s+/g, "_").toLowerCase();
   const isSelect = type === "select";
@@ -139,6 +141,7 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
                 onChange={onChange}
                 disabled={disabled}
                 min={min}
+                max={max}
                 className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                 placeholder={placeholder ?? `Enter ${label}...`}
               />
