@@ -29,6 +29,8 @@ class Setting extends Model
         'opening_hour',
         'closing_hour',
         'admission_fee',
+        'youtube',
+        'whatsapp_number'
     ];
 
     protected $casts = [

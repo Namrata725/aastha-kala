@@ -45,11 +45,11 @@ const Footer = async () => {
   const getLogoUrl = (logo: string | null | undefined) => {
     if (!logo) return null;
     if (logo.startsWith("http")) return logo;
-    
+
     const base = process.env.NEXT_PUBLIC_IMAGE_URL || "";
     const baseUrl = base.endsWith("/") ? base.slice(0, -1) : base;
     const imgPath = logo.startsWith("/") ? logo : `/${logo}`;
-    
+
     return `${baseUrl}${imgPath}`;
   };
 
@@ -68,7 +68,7 @@ const Footer = async () => {
       icon: <Instagram className="w-5 h-5" />,
       url: ensureAbsoluteUrl(socialLinks?.instagram),
       className:
-        "bg-linear-to-tr from-insta-yellow via-insta-pink to-insta-purple text-white border-transparent hover:shadow-[0_8px_20px_-8px_var(--insta-pink)]",
+        "bg-gradient-to-tr from-pink-500 via-pink-600 to-yellow-400 via-insta-pink to-insta-purple text-white border-transparent hover:shadow-[0_8px_20px_-8px_var(--insta-pink)]",
     },
     {
       id: "tiktok",
@@ -86,22 +86,22 @@ const Footer = async () => {
       className:
         "bg-black text-white border-transparent hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.5)]",
     },
-    {
-      id: "x",
-      icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="w-5 h-5"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932L18.901 1.153ZM17.61 20.644h2.039L6.486 3.24H4.298l13.312 17.404Z" />
-        </svg>
-      ),
-      url: ensureAbsoluteUrl(socialLinks?.x),
-      className:
-        "bg-[#0f1419] text-white border-transparent hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.5)]",
-    },
+    // {
+    //   id: "x",
+    //   icon: (
+    //     <svg
+    //       viewBox="0 0 24 24"
+    //       fill="currentColor"
+    //       className="w-5 h-5"
+    //       xmlns="http://www.w3.org/2000/svg"
+    //     >
+    //       <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932L18.901 1.153ZM17.61 20.644h2.039L6.486 3.24H4.298l13.312 17.404Z" />
+    //     </svg>
+    //   ),
+    //   url: ensureAbsoluteUrl(socialLinks?.x),
+    //   className:
+    //     "bg-[#0f1419] text-white border-transparent hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.5)]",
+    // },
     {
       id: "youtube",
       icon: <Youtube className="w-5 h-5" />,
@@ -117,7 +117,10 @@ const Footer = async () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Logo & Description */}
           <div className="col-span-2 md:col-span-1 flex flex-col items-center md:items-start text-center md:text-left">
-            <Link href="/" className="flex items-center space-x-2 justify-center md:justify-start">
+            <Link
+              href="/"
+              className="flex items-center space-x-2 justify-center md:justify-start"
+            >
               {/* {logoUrl && (
                 <img
                   src={logoUrl}
@@ -232,10 +235,14 @@ const Footer = async () => {
               </div>
               {setting?.opening_hour && setting?.closing_hour && (
                 <div className="flex items-start space-x-3 pt-2">
-                  <div className="text-primary font-semibold uppercase text-[10px] tracking-wider mt-1 px-1 border border-primary rounded">OPEN</div>
+                  <div className="text-primary font-semibold uppercase text-[10px] tracking-wider mt-1 px-1 border border-primary rounded">
+                    OPEN
+                  </div>
                   <div>
                     <p className="font-medium text-gray-800">Opening Hours</p>
-                    <p>{setting.opening_hour} - {setting.closing_hour}</p>
+                    <p>
+                      {setting.opening_hour} - {setting.closing_hour}
+                    </p>
                   </div>
                 </div>
               )}

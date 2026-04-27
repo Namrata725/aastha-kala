@@ -46,6 +46,8 @@ interface SocialLinks {
   instagram: string;
   tiktok: string;
   twitter: string;
+  youtube: string;
+  whatsapp_number: string;
 }
 
 interface Stats {
@@ -103,6 +105,8 @@ const Settings: React.FC = () => {
     instagram: "",
     tiktok: "",
     twitter: "",
+    youtube: "",
+    whatsapp_number: "",
   });
 
   // STATS
@@ -177,6 +181,8 @@ const Settings: React.FC = () => {
             instagram: soc?.instagram || "",
             tiktok: soc?.tiktok || "",
             twitter: soc?.x || "",
+            youtube: soc?.youtube || "",
+            whatsapp_number: soc?.whatsapp_number || "",
           };
           setSocial(socialData);
 
@@ -191,7 +197,11 @@ const Settings: React.FC = () => {
           setStats(statsData);
 
           let whyUsData = [{ title: "", desc: "" }];
-          if (data.data.why_us && Array.isArray(data.data.why_us) && data.data.why_us.length > 0) {
+          if (
+            data.data.why_us &&
+            Array.isArray(data.data.why_us) &&
+            data.data.why_us.length > 0
+          ) {
             whyUsData = data.data.why_us.map((item: any) => ({
               title: item.title,
               desc: item.description,
@@ -210,13 +220,15 @@ const Settings: React.FC = () => {
           setMissionItems(missionData);
 
           // Store all initial data for change detection
-          setInitialData(JSON.stringify({
-            setting: settingData,
-            social: socialData,
-            stats: statsData,
-            whyUsItems: whyUsData,
-            missionItems: missionData
-          }));
+          setInitialData(
+            JSON.stringify({
+              setting: settingData,
+              social: socialData,
+              stats: statsData,
+              whyUsItems: whyUsData,
+              missionItems: missionData,
+            }),
+          );
         }
       } catch (err) {
         console.error(err);
@@ -236,7 +248,13 @@ const Settings: React.FC = () => {
     }
 
     // Change detection
-    const currentData = JSON.stringify({ setting, social, stats, whyUsItems, missionItems });
+    const currentData = JSON.stringify({
+      setting,
+      social,
+      stats,
+      whyUsItems,
+      missionItems,
+    });
     if (currentData === initialData && !logoFile && !bannerFile) {
       toast("No changes made");
       return;
@@ -255,7 +273,8 @@ const Settings: React.FC = () => {
     formData.append("about_short", setting.about_short);
     formData.append("opening_hour", setting.opening_hour);
     formData.append("closing_hour", setting.closing_hour);
-    if (setting.admission_fee) formData.append("admission_fee", setting.admission_fee);
+    if (setting.admission_fee)
+      formData.append("admission_fee", setting.admission_fee);
 
     // STATS
     formData.append("years_of_experience", stats.experience);
@@ -269,6 +288,8 @@ const Settings: React.FC = () => {
     formData.append("social_links[instagram]", social.instagram);
     formData.append("social_links[tiktok]", social.tiktok);
     formData.append("social_links[x]", social.twitter);
+    formData.append("social_links[youtube]", social.youtube);
+    formData.append("social_links[whatsapp_number]", social.whatsapp_number);
 
     // WHY US
     whyUsItems.forEach((item, index) => {
@@ -284,14 +305,17 @@ const Settings: React.FC = () => {
     if (bannerFile) formData.append("banner", bannerFile);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/settings`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+          body: formData,
         },
-        body: formData,
-      });
+      );
 
       const data = await res.json();
 
@@ -339,7 +363,9 @@ const Settings: React.FC = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`pb-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative ${
-                  isActive ? "text-primary" : "text-text-muted hover:text-text-secondary"
+                  isActive
+                    ? "text-primary"
+                    : "text-text-muted hover:text-text-secondary"
                 }`}
               >
                 {tab.label}
@@ -446,20 +472,37 @@ const Settings: React.FC = () => {
                 </label>
                 <div
                   className={`relative group rounded-xl border border-dashed border-border p-6 flex flex-col items-center justify-center transition-all ${isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-primary/50 hover:bg-primary/5"}`}
-                  onClick={() => !isSaving && document.getElementById("logoInput")?.click()}
+                  onClick={() =>
+                    !isSaving && document.getElementById("logoInput")?.click()
+                  }
                 >
                   {logoPreview ? (
-                    <img src={logoPreview} alt="Logo" className="h-16 object-contain" />
+                    <img
+                      src={logoPreview}
+                      alt="Logo"
+                      className="h-16 object-contain"
+                    />
                   ) : (
                     <div className="text-center">
                       <Image className="w-6 h-6 text-text-muted mx-auto mb-1.5" />
-                      <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Upload Logo</p>
+                      <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">
+                        Upload Logo
+                      </p>
                     </div>
                   )}
-                  <input id="logoInput" type="file" className="hidden" accept="image/*" onChange={(e: any) => {
-                    const file = e.target.files?.[0];
-                    if (file) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
-                  }} />
+                  <input
+                    id="logoInput"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e: any) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setLogoFile(file);
+                        setLogoPreview(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
                 </div>
               </div>
 
@@ -470,34 +513,51 @@ const Settings: React.FC = () => {
                 </label>
                 <div
                   className={`relative group rounded-xl border border-dashed border-border p-6 flex flex-col items-center justify-center transition-all ${isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-primary/50 hover:bg-primary/5"}`}
-                  onClick={() => !isSaving && document.getElementById("bannerInput")?.click()}
+                  onClick={() =>
+                    !isSaving && document.getElementById("bannerInput")?.click()
+                  }
                 >
                   {bannerPreview ? (
-                    <img src={bannerPreview} alt="Banner" className="h-16 w-full object-cover rounded-lg" />
+                    <img
+                      src={bannerPreview}
+                      alt="Banner"
+                      className="h-16 w-full object-cover rounded-lg"
+                    />
                   ) : (
                     <div className="text-center">
                       <Image className="w-6 h-6 text-text-muted mx-auto mb-1.5" />
-                      <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Upload Banner</p>
+                      <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">
+                        Upload Banner
+                      </p>
                     </div>
                   )}
-                  <input id="bannerInput" type="file" className="hidden" accept="image/*" onChange={(e: any) => {
-                    const file = e.target.files?.[0];
-                    if (file) { setBannerFile(file); setBannerPreview(URL.createObjectURL(file)); }
-                  }} />
+                  <input
+                    id="bannerInput"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e: any) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setBannerFile(file);
+                        setBannerPreview(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
                 </div>
               </div>
 
               <div className="md:col-span-2">
                 <InputField
-                    label="Long About Section"
-                    textarea
-                    icon={FileText}
-                    value={setting.about}
-                    onChange={(e) =>
+                  label="Long About Section"
+                  textarea
+                  icon={FileText}
+                  value={setting.about}
+                  onChange={(e) =>
                     setSetting({ ...setting, about: e.target.value })
-                    }
-                    disabled={isSaving}
-                    error={errors.about}
+                  }
+                  disabled={isSaving}
+                  error={errors.about}
                 />
               </div>
             </div>
@@ -512,8 +572,13 @@ const Settings: React.FC = () => {
                 </div>
                 <div className="space-y-4 flex-1">
                   <div>
-                    <h3 className="text-base font-black text-text-primary tracking-tight">Admission Configuration</h3>
-                    <p className="text-xs text-text-muted mt-0.5">Set the global one-time fee charged to every new student at enrollment.</p>
+                    <h3 className="text-base font-black text-text-primary tracking-tight">
+                      Admission Configuration
+                    </h3>
+                    <p className="text-xs text-text-muted mt-0.5">
+                      Set the global one-time fee charged to every new student
+                      at enrollment.
+                    </p>
                   </div>
                   <div className="max-w-md">
                     <InputField
@@ -522,7 +587,10 @@ const Settings: React.FC = () => {
                       placeholder="e.g. 5000"
                       value={setting.admission_fee}
                       onChange={(e) =>
-                        setSetting({ ...setting, admission_fee: e.target.value })
+                        setSetting({
+                          ...setting,
+                          admission_fee: e.target.value,
+                        })
                       }
                       disabled={isSaving}
                       error={errors.admission_fee}
@@ -575,6 +643,28 @@ const Settings: React.FC = () => {
                 }
                 disabled={isSaving}
                 error={errors["social_links.x"]}
+              />
+
+              <InputField
+                label="YouTube URL"
+                icon={Music}
+                value={social.youtube}
+                onChange={(e) =>
+                  setSocial({ ...social, youtube: e.target.value })
+                }
+                disabled={isSaving}
+                error={errors["youtube"]}
+              />
+
+              <InputField
+                label="WhatsApp Number"
+                icon={Phone}
+                value={social.whatsapp_number}
+                onChange={(e) =>
+                  setSocial({ ...social, whatsapp_number: e.target.value })
+                }
+                disabled={isSaving}
+                error={errors["whatsapp_number"]}
               />
             </div>
           )}

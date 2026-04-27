@@ -12,6 +12,8 @@ class SocialLinks extends Model
         'facebook',
         'instagram',
         'tiktok',
-        'x'
+        'x',
+        'youtube',
+        'whatsapp_number'
     ];
 }
