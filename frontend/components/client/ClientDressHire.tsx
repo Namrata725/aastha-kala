@@ -135,19 +135,19 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
       {/* modal */}
       {modalOpen && (
         <div className="fixed top-[68px] inset-x-0 bottom-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
-          {/* Close button */}
+          {/* close button */}
           <button
             onClick={closeModal}
-            className="absolute top-4 right-4 z-30 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full backdrop-blur-md transition"
+            className="absolute top-4 right-4 z-30 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full backdrop-blur-md transition cursor-pointer"
           >
             <X size={18} />
           </button>
 
           <div className="relative w-full h-full flex flex-col items-center justify-center px-4">
-            {/* IMAGE AREA */}
+            {/* image*/}
             {currentImages.length > 0 ? (
               <div className="relative flex items-center justify-center w-full">
-                {/* Prev */}
+                {/* prev */}
                 {currentIndex > 0 && (
                   <button
                     onClick={prevImage}
@@ -159,7 +159,7 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
                   </button>
                 )}
 
-                {/* Image */}
+                {/* image */}
                 <img
                   src={getFullImageUrl(currentImages[currentIndex])}
                   alt={`Image ${currentIndex + 1}`}
@@ -167,7 +167,7 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
                    rounded-lg shadow-2xl"
                 />
 
-                {/* Next */}
+                {/* next */}
                 {currentIndex < currentImages.length - 1 && (
                   <button
                     onClick={nextImage}
@@ -188,16 +188,15 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
               </div>
             )}
 
-            {/* INFO BELOW IMAGE (FIXED, NOT FLOATING) */}
             {currentDress && (
               <div className="w-full mt-4 flex justify-center">
                 <div className="bg-primary/70 text-white px-4 py-3 rounded-md flex items-center gap-6 w-full max-w-2xl">
-                  {/* Title */}
+                  {/* title */}
                   <h2 className="flex-1 min-w-0 text-sm md:text-base font-medium uppercase tracking-wide truncate">
                     {currentDress.title}
                   </h2>
 
-                  {/* Phone */}
+                  {/* phone */}
                   {currentDress.phone && (
                     <a
                       href={`tel:${currentDress.phone}`}
