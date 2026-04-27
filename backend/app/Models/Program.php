@@ -10,6 +10,7 @@ class Program extends Model
     use HasFactory;
 
     protected $fillable = [
+        'parent_id',
         'title',
         'description',
         'image',
@@ -20,9 +21,20 @@ class Program extends Model
     ];
 
     protected $casts = [
+        'parent_id' => 'integer',
         'speciality' => 'array',
         'is_active' => 'boolean',
     ];
+
+    public function parent()
+    {
+        return $this->belongsTo(Program::class, 'parent_id');
+    }
+
+    public function subPrograms()
+    {
+        return $this->hasMany(Program::class, 'parent_id');
+    }
 
     public function schedules()
     {

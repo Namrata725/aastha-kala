@@ -5,20 +5,23 @@ import { Search } from "lucide-react";
 import Table from "@/components/layout/Table";
 import DeleteConfirmationModal from "@/components/layout/DeleteConfirmationModal";
 import { Plus, BookOpen, Clock, User } from "lucide-react";
-import toast from "react-hot-toast";
-import ProgramAddEditModal from "@/components/admin/ProgramAddEditModal";
+import { toast } from "sonner";
 import ProgramViewModal from "@/components/admin/ProgramViewModal";
 import { Pagination } from "@/components/global/Pagination";
+import { ProgramForm } from "@/components/admin/program/programform";
+import { AnimatePresence, motion } from "framer-motion";
+import { X } from "lucide-react";
+import { Toaster } from "sonner";
 
 interface Program {
     id: string;
     image: string | null;
     title: string;
-    schedules: any[]; // You might want to define a more specific type for schedules
+    schedules: any[];
     is_active: boolean;
     program_fee: number;
     admission_fee: number;
-    // Add any other properties that a program object might have
+    sub_programs?: Program[];
 }
 
 const ProgramsPage = () => {
@@ -57,6 +60,7 @@ const ProgramsPage = () => {
         { key: "image", label: "Image" },
         { key: "title", label: "Program Name" },
         { key: "fees_display", label: "Program Fee" },
+        { key: "sub_count", label: "Sub Programs" },
         { key: "schedule_count", label: "Schedules" },
         { key: "status", label: "Status" },
     ];
@@ -124,6 +128,14 @@ const ProgramsPage = () => {
             <div className="flex flex-col">
                 <span className="text-sm font-black text-text-primary tracking-tight">Rs. {p.program_fee || 0}</span>
                 <span className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5">Per Month</span>
+            </div>
+        ),
+        sub_count: (
+            <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5 text-secondary" />
+                    <span className="text-sm font-black text-text-primary tracking-tight">{p.sub_programs?.length || 0} Optional</span>
+                </div>
             </div>
         ),
         schedule_count: (
@@ -239,15 +251,27 @@ const ProgramsPage = () => {
                 />
             </div>
 
-            <ProgramAddEditModal
-                isOpen={formModalOpen}
-                onClose={() => setFormModalOpen(false)}
-                program={editingProgram}
-                onSuccess={() => {
-                    setSearchTerm("");
-                    fetchPrograms();
-                }}
-            />
+            <AnimatePresence>
+                {formModalOpen && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md overflow-y-auto"
+                    >
+                        <div className="min-h-screen py-12 px-4">
+                            <ProgramForm 
+                                initialData={editingProgram}
+                                onSuccess={() => {
+                                    setFormModalOpen(false);
+                                    fetchPrograms();
+                                }}
+                                onCancel={() => setFormModalOpen(false)}
+                            />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <ProgramViewModal
                 isOpen={viewModalOpen}
@@ -263,6 +287,8 @@ const ProgramsPage = () => {
                 title="Remove Program?"
                 description="This will delete the program and all its linked schedules. This action is irreversible."
             />
+
+            <Toaster richColors position="top-right" />
         </div>
     );
 };
