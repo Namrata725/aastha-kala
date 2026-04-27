@@ -6,6 +6,7 @@ import {
   Instagram,
   Youtube,
 } from "lucide-react";
+
 import Link from "next/link";
 import { ensureAbsoluteUrl } from "@/utils/url";
 
@@ -86,6 +87,23 @@ const Footer = async () => {
       className:
         "bg-black text-white border-transparent hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.5)]",
     },
+    {
+  id: "whatsapp",
+  icon: (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className="w-5 h-5"
+    >
+      <path d="M20.52 3.48A11.79 11.79 0 0 0 12.06 0C5.47 0 .12 5.35.12 11.94c0 2.1.55 4.14 1.6 5.93L0 24l6.3-1.66a11.9 11.9 0 0 0 5.76 1.47c6.59 0 11.94-5.35 11.94-11.94 0-3.19-1.24-6.19-3.49-8.39ZM12.07 21.5a9.9 9.9 0 0 1-5.05-1.38l-4.1 1.07 1.1-3.98A9.93 9.93 0 0 1 2.2 11.9c0-5.47 4.45-9.92 9.92-9.92s9.92 4.45 9.92 9.92-4.45 9.92-9.97 9.92Z" />
+    </svg>
+  ),
+  url: socialLinks?.whatsapp_number
+    ? `https://wa.me/${socialLinks.whatsapp_number.replace(/\D/g, "")}`
+    : null,
+  className:
+    "bg-[#25D366] text-white border-transparent hover:shadow-[0_8px_20px_-8px_#25D366]",
+},
     // {
     //   id: "x",
     //   icon: (
@@ -144,7 +162,7 @@ const Footer = async () => {
                 {socials.map((social) => (
                   <a
                     key={social.id}
-                    href={social.url}
+                    href={social.url ?? undefined}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`p-2 rounded-full flex items-center justify-center ${social.className}`}
