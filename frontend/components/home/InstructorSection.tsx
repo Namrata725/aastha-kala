@@ -52,14 +52,14 @@ const InstructorSection = () => {
   return (
     <section className="bg-white px-10 py-10">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center space-y-2 mb-16">
-          <h2 className="text-4xl font-bold text-[#27A0CF]">
+        <div className="text-center space-y-4 mb-20 relative">
+          <div className="absolute left-1/2 -top-10 -translate-x-1/2 w-40 h-40 bg-secondary/5 rounded-full blur-3xl" />
+          <h2 className="text-4xl md:text-5xl font-black text-gradient tracking-tight relative z-10">
             Meet Our Instructors
           </h2>
-          <h4 className="text-secondary text-sm max-w-2xl mx-auto">
-            Learn from industry professional music and art and taking artist
-            and director for your success.
-          </h4>
+          <p className="text-text-muted text-base max-w-2xl mx-auto font-medium relative z-10">
+            Learn from industry professionals who are dedicated to your artistic success and creative growth.
+          </p>
         </div>
 
         {/* ONE ROW GRID (2x2 on mobile, 4 in a row on desktop) */}

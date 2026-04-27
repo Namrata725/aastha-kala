@@ -319,49 +319,43 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <div className="relative p-4 lg:p-8 rounded-2xl lg:rounded-3xl overflow-hidden bg-white/50 lg:bg-primary/10 border border-primary/20 backdrop-blur-lg">
-      <div className="relative z-10">
+    <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm animate-fade-in">
+      <div className="p-6 lg:p-8">
+        <header className="mb-8">
+          <h1 className="text-xl lg:text-2xl font-black text-text-primary tracking-tight">
+            System Settings
+          </h1>
+          <p className="text-text-muted text-xs font-medium mt-1">
+            Configure your company profile, social links, and global parameters.
+          </p>
+        </header>
+
         {/* Tabs */}
-
-        <div className="relative mb-8 border-b border-primary/10">
-          <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`relative px-5 py-2.5 rounded-t-xl font-semibold text-sm transition-all duration-300 cursor-pointer
-          
-          ${isActive ? "text-white" : "text-primary/60 hover:text-white"}
-          
-          `}
-                >
-                  <span
-                    className={`absolute inset-0 rounded-t-xl transition-all duration-300
-            ${
-              isActive
-                ? "bg-linear-to-r from-primary/20 to-secondary/20 border border-primary/30 shadow-md shadow-primary/10"
-                : "bg-transparent"
-            }
-            `}
-                  />
-                  <span className="relative z-10 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    {tab.label}
-                  </span>
-                  <span className="absolute inset-0 rounded-t-xl opacity-0 hover:opacity-100 transition-all duration-300 bg-white/5" />
-                </button>
-              );
-            })}
-          </div>
+        <div className="flex border-b border-border mb-8 overflow-x-auto scrollbar-hide gap-6">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative ${
+                  isActive ? "text-primary" : "text-text-muted hover:text-text-secondary"
+                }`}
+              >
+                {tab.label}
+                {isActive && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full animate-scale-in" />
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* CONTENT */}
-        <div className="space-y-6">
+        <div className="max-w-4xl">
           {/* GENERAL */}
           {activeTab === "general" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField
                 label="Company Name"
                 icon={Building2}
@@ -374,37 +368,7 @@ const Settings: React.FC = () => {
                 error={errors.company_name}
               />
               <InputField
-                label="Address"
-                icon={MapPin}
-                value={setting.address}
-                onChange={(e) =>
-                  setSetting({ ...setting, address: e.target.value })
-                }
-                disabled={isSaving}
-                error={errors.address}
-              />
-              <InputField
-                label="Map Address"
-                icon={Navigation}
-                value={setting.location}
-                onChange={(e) =>
-                  setSetting({ ...setting, location: e.target.value })
-                }
-                disabled={isSaving}
-                error={errors.location_map}
-              />
-              <InputField
-                label="Phone"
-                icon={Phone}
-                value={setting.phone}
-                onChange={(e) =>
-                  setSetting({ ...setting, phone: e.target.value })
-                }
-                disabled={isSaving}
-                error={errors.phone}
-              />
-              <InputField
-                label="Email"
+                label="Email Address"
                 icon={Mail}
                 required
                 value={setting.email}
@@ -415,7 +379,37 @@ const Settings: React.FC = () => {
                 error={errors.email}
               />
               <InputField
-                label="Short About"
+                label="Phone Number"
+                icon={Phone}
+                value={setting.phone}
+                onChange={(e) =>
+                  setSetting({ ...setting, phone: e.target.value })
+                }
+                disabled={isSaving}
+                error={errors.phone}
+              />
+              <InputField
+                label="Physical Address"
+                icon={MapPin}
+                value={setting.address}
+                onChange={(e) =>
+                  setSetting({ ...setting, address: e.target.value })
+                }
+                disabled={isSaving}
+                error={errors.address}
+              />
+              <InputField
+                label="Map Location URL"
+                icon={Navigation}
+                value={setting.location}
+                onChange={(e) =>
+                  setSetting({ ...setting, location: e.target.value })
+                }
+                disabled={isSaving}
+                error={errors.location_map}
+              />
+              <InputField
+                label="Short Description"
                 icon={Type}
                 value={setting.about_short}
                 onChange={(e) =>
@@ -425,7 +419,7 @@ const Settings: React.FC = () => {
                 error={errors.about_short}
               />
               <InputField
-                label="Opening Hour"
+                label="Opening Time"
                 icon={Calendar}
                 placeholder="e.g. 10:00 AM"
                 value={setting.opening_hour}
@@ -435,7 +429,7 @@ const Settings: React.FC = () => {
                 disabled={isSaving}
               />
               <InputField
-                label="Closing Hour"
+                label="Closing Time"
                 icon={Calendar}
                 placeholder="e.g. 6:00 PM"
                 value={setting.closing_hour}
@@ -446,109 +440,56 @@ const Settings: React.FC = () => {
               />
 
               {/* LOGO */}
-              <div>
-                <label className="flex items-center text-[11px] mb-0.5 font-bold uppercase tracking-wider bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent italic gap-2">
-                  {<Image className="w-3.5 h-3.5 text-primary" />}
-                  Logo
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted ml-1">
+                  Company Logo
                 </label>
-
                 <div
-                  className={`w-full rounded-lg border border-white/10 bg-linear-to-r from-primary/20 to-secondary/20 transition flex flex-col items-center justify-center p-4 relative ${isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-white/5"}`}
+                  className={`relative group rounded-xl border border-dashed border-border p-6 flex flex-col items-center justify-center transition-all ${isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-primary/50 hover:bg-primary/5"}`}
                   onClick={() => !isSaving && document.getElementById("logoInput")?.click()}
                 >
                   {logoPreview ? (
-                    <div className="relative w-full">
-                      <img
-                        src={logoPreview}
-                        alt="Logo Preview"
-                        className="w-full h-32 object-contain rounded-lg"
-                      />
-
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition rounded-lg">
-                        <span className="text-white text-sm font-medium">
-                          Change Logo
-                        </span>
-                      </div>
-                    </div>
+                    <img src={logoPreview} alt="Logo" className="h-16 object-contain" />
                   ) : (
-                    <div className="text-center text-white">
-                      <p className="text-sm">Click to upload logo</p>
-                      <p className="text-xs text-white/70">PNG, JPG, WEBP</p>
+                    <div className="text-center">
+                      <Image className="w-6 h-6 text-text-muted mx-auto mb-1.5" />
+                      <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Upload Logo</p>
                     </div>
                   )}
-
-                  <input
-                    id="logoInput"
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    disabled={isSaving}
-                    onChange={(e: any) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setLogoFile(file);
-                        setLogoPreview(URL.createObjectURL(file));
-                      }
-                    }}
-                  />
+                  <input id="logoInput" type="file" className="hidden" accept="image/*" onChange={(e: any) => {
+                    const file = e.target.files?.[0];
+                    if (file) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
+                  }} />
                 </div>
               </div>
 
               {/* BANNER */}
-
-              <div>
-                <label className="flex items-center text-[11px] mb-0.5 font-bold uppercase tracking-wider bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent italic gap-2">
-                  <Image className="w-3.5 h-3.5 text-primary" />
-                  Banner
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted ml-1">
+                  Website Banner
                 </label>
-
                 <div
-                  className={`w-full rounded-lg border border-white/10 bg-linear-to-r from-primary/20 to-secondary/20 transition flex flex-col items-center justify-center p-4 relative ${isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-white/5"}`}
-                  onClick={() =>
-                    !isSaving && document.getElementById("bannerInput")?.click()
-                  }
+                  className={`relative group rounded-xl border border-dashed border-border p-6 flex flex-col items-center justify-center transition-all ${isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-primary/50 hover:bg-primary/5"}`}
+                  onClick={() => !isSaving && document.getElementById("bannerInput")?.click()}
                 >
                   {bannerPreview ? (
-                    <div className="relative w-full">
-                      <img
-                        src={bannerPreview}
-                        alt="Banner Preview"
-                        className="w-full h-40 object-cover rounded-lg"
-                      />
-
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition rounded-lg">
-                        <span className="text-white text-sm font-medium">
-                          Change Banner
-                        </span>
-                      </div>
-                    </div>
+                    <img src={bannerPreview} alt="Banner" className="h-16 w-full object-cover rounded-lg" />
                   ) : (
-                    <div className="text-center text-white">
-                      <p className="text-sm">Click to upload banner</p>
-                      <p className="text-xs text-white/70">PNG, JPG, WEBP</p>
+                    <div className="text-center">
+                      <Image className="w-6 h-6 text-text-muted mx-auto mb-1.5" />
+                      <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Upload Banner</p>
                     </div>
                   )}
-
-                  <input
-                    id="bannerInput"
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    disabled={isSaving}
-                    onChange={(e: any) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setBannerFile(file);
-                        setBannerPreview(URL.createObjectURL(file));
-                      }
-                    }}
-                  />
+                  <input id="bannerInput" type="file" className="hidden" accept="image/*" onChange={(e: any) => {
+                    const file = e.target.files?.[0];
+                    if (file) { setBannerFile(file); setBannerPreview(URL.createObjectURL(file)); }
+                  }} />
                 </div>
               </div>
 
               <div className="md:col-span-2">
                 <InputField
-                    label="About"
+                    label="Long About Section"
                     textarea
                     icon={FileText}
                     value={setting.about}
@@ -564,30 +505,29 @@ const Settings: React.FC = () => {
 
           {/* FEES */}
           {activeTab === "fees" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
-              <div className="md:col-span-2">
-                <div className="bg-white/60 border border-primary/20 rounded-2xl p-6 space-y-4">
-                  <div className="flex items-center gap-3 pb-3 border-b border-primary/10">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <DollarSign className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-primary">Admission Fee</h3>
-                      <p className="text-[11px] text-gray-400">One-time fee charged to every new student at enrollment. Applied globally across all programs.</p>
-                    </div>
+            <div className="space-y-6">
+              <div className="bg-background border border-border rounded-xl p-6 flex items-start gap-6 shadow-sm">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <DollarSign className="w-6 h-6 text-primary" />
+                </div>
+                <div className="space-y-4 flex-1">
+                  <div>
+                    <h3 className="text-base font-black text-text-primary tracking-tight">Admission Configuration</h3>
+                    <p className="text-xs text-text-muted mt-0.5">Set the global one-time fee charged to every new student at enrollment.</p>
                   </div>
-                  <InputField
-                    label="Admission Fee (Rs.)"
-                    // icon={DollarSign}
-                    type="number"
-                    placeholder="e.g. 5000"
-                    value={setting.admission_fee}
-                    onChange={(e) =>
-                      setSetting({ ...setting, admission_fee: e.target.value })
-                    }
-                    disabled={isSaving}
-                    error={errors.admission_fee}
-                  />
+                  <div className="max-w-md">
+                    <InputField
+                      label="Admission Fee (Rs.)"
+                      type="number"
+                      placeholder="e.g. 5000"
+                      value={setting.admission_fee}
+                      onChange={(e) =>
+                        setSetting({ ...setting, admission_fee: e.target.value })
+                      }
+                      disabled={isSaving}
+                      error={errors.admission_fee}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -595,9 +535,9 @@ const Settings: React.FC = () => {
 
           {/* SOCIAL */}
           {activeTab === "social" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField
-                label="Facebook"
+                label="Facebook URL"
                 icon={Facebook}
                 value={social.facebook}
                 onChange={(e) =>
@@ -607,7 +547,7 @@ const Settings: React.FC = () => {
                 error={errors["social_links.facebook"]}
               />
               <InputField
-                label="Instagram"
+                label="Instagram URL"
                 icon={Instagram}
                 value={social.instagram}
                 onChange={(e) =>
@@ -617,7 +557,7 @@ const Settings: React.FC = () => {
                 error={errors["social_links.instagram"]}
               />
               <InputField
-                label="TikTok"
+                label="TikTok URL"
                 icon={Music}
                 value={social.tiktok}
                 onChange={(e) =>
@@ -627,7 +567,7 @@ const Settings: React.FC = () => {
                 error={errors["social_links.tiktok"]}
               />
               <InputField
-                label="X (Twitter)"
+                label="X (Twitter) URL"
                 icon={Twitter}
                 value={social.twitter}
                 onChange={(e) =>
@@ -641,7 +581,7 @@ const Settings: React.FC = () => {
 
           {/* STATS */}
           {activeTab === "stats" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField
                 label="Years of Experience"
                 icon={Calendar}
@@ -699,53 +639,55 @@ const Settings: React.FC = () => {
               {whyUsItems.map((item, idx) => (
                 <div
                   key={idx}
-                  className="space-y-2 border border-white/10 p-4 rounded-lg relative"
+                  className="bg-background border border-border p-6 rounded-xl relative shadow-sm group/card animate-scale-in"
                 >
                   <button
                     type="button"
                     disabled={isSaving}
-                    className={`absolute top-4 right-4 text-red-500 hover:text-red-700 transition ${isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                    className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-error/10 text-error flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-all hover:bg-error hover:text-white cursor-pointer"
                     onClick={() => {
                       const updated = whyUsItems.filter((_, i) => i !== idx);
                       setWhyUsItems(updated);
                     }}
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
-                  <InputField
-                    label={`Title #${idx + 1}`}
-                    icon={Type}
-                    value={item.title}
-                    onChange={(e) => {
-                      const updated = [...whyUsItems];
-                      updated[idx].title = e.target.value;
-                      setWhyUsItems(updated);
-                    }}
-                    disabled={isSaving}
-                  />
-                  <InputField
-                    label={`Description #${idx + 1}`}
-                    textarea
-                    icon={AlignLeft}
-                    value={item.desc}
-                    onChange={(e) => {
-                      const updated = [...whyUsItems];
-                      updated[idx].desc = e.target.value;
-                      setWhyUsItems(updated);
-                    }}
-                    disabled={isSaving}
-                  />
+                  <div className="grid grid-cols-1 gap-4">
+                    <InputField
+                      label={`Title #${idx + 1}`}
+                      icon={Type}
+                      value={item.title}
+                      onChange={(e) => {
+                        const updated = [...whyUsItems];
+                        updated[idx].title = e.target.value;
+                        setWhyUsItems(updated);
+                      }}
+                      disabled={isSaving}
+                    />
+                    <InputField
+                      label={`Description #${idx + 1}`}
+                      textarea
+                      icon={AlignLeft}
+                      value={item.desc}
+                      onChange={(e) => {
+                        const updated = [...whyUsItems];
+                        updated[idx].desc = e.target.value;
+                        setWhyUsItems(updated);
+                      }}
+                      disabled={isSaving}
+                    />
+                  </div>
                 </div>
               ))}
               <button
                 type="button"
                 disabled={isSaving}
-                className={`px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg transition ${isSaving ? "opacity-50 cursor-not-allowed" : "hover:opacity-90 active:scale-95 cursor-pointer"}`}
+                className="w-full py-3 border border-dashed border-border rounded-xl text-text-muted text-[10px] font-black uppercase tracking-[0.2em] hover:border-primary hover:text-primary hover:bg-primary/5 transition-all active:scale-[0.98] cursor-pointer"
                 onClick={() =>
                   setWhyUsItems([...whyUsItems, { title: "", desc: "" }])
                 }
               >
-                Add Why Us Item
+                + Add Feature Item
               </button>
             </div>
           )}
@@ -756,61 +698,56 @@ const Settings: React.FC = () => {
               {missionItems.map((item, idx) => (
                 <div
                   key={idx}
-                  className="space-y-2 border border-white/10 p-4 rounded-lg relative"
+                  className="bg-background border border-border p-6 rounded-xl relative shadow-sm group/card animate-scale-in flex items-center gap-4"
                 >
+                  <div className="flex-1">
+                    <InputField
+                      label={`Mission Goal ${idx + 1}`}
+                      icon={Type}
+                      value={item.title}
+                      onChange={(e) => {
+                        const updated = [...missionItems];
+                        updated[idx].title = e.target.value;
+                        setMissionItems(updated);
+                      }}
+                      disabled={isSaving}
+                    />
+                  </div>
                   <button
                     type="button"
                     disabled={isSaving}
-                    className={`absolute top-4 right-4 text-red-500 hover:text-red-700 transition ${isSaving ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                    className="w-10 h-10 rounded-lg bg-error/10 text-error flex items-center justify-center transition-all hover:bg-error hover:text-white cursor-pointer mt-5"
                     onClick={() => {
                       const updated = missionItems.filter((_, i) => i !== idx);
                       setMissionItems(updated);
                     }}
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
-                  <InputField
-                    label={`Mission ${idx + 1}`}
-                    icon={Type}
-                    value={item.title}
-                    onChange={(e) => {
-                      const updated = [...missionItems];
-                      updated[idx].title = e.target.value;
-                      setMissionItems(updated);
-                    }}
-                    disabled={isSaving}
-                  />
                 </div>
               ))}
               <button
                 type="button"
                 disabled={isSaving}
-                className={`px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg transition ${isSaving ? "opacity-50 cursor-not-allowed" : "hover:opacity-90 active:scale-95 cursor-pointer"}`}
+                className="w-full py-3 border border-dashed border-border rounded-xl text-text-muted text-[10px] font-black uppercase tracking-[0.2em] hover:border-primary hover:text-primary hover:bg-primary/5 transition-all active:scale-[0.98] cursor-pointer"
                 onClick={() =>
                   setMissionItems([...missionItems, { title: "", desc: "" }])
                 }
               >
-                Add Mission Item
+                + Add Mission Goal
               </button>
             </div>
           )}
         </div>
 
         {/* SAVE */}
-        <div className="mt-6 flex justify-end">
+        <div className="mt-12 flex justify-end border-t border-border pt-8">
           <button
             onClick={saveSettings}
             disabled={isSaving}
-            className="px-8 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px] cursor-pointer"
+            className="px-8 py-3 bg-primary text-white rounded-xl font-black uppercase tracking-[0.2em] text-[10px] shadow-lg shadow-primary/20 hover:bg-primary-hover hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px] cursor-pointer transition-all"
           >
-            {isSaving ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Saving...</span>
-              </div>
-            ) : (
-              "Save Settings"
-            )}
+            {isSaving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>

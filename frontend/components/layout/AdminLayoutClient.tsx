@@ -33,18 +33,18 @@ export default function AdminLayoutClient({ children }: AdminLayoutProps) {
 
   return (
     <DashboardProvider>
-      <div className="flex h-screen overflow-hidden bg-slate-200 text-black">
+      <div className="flex h-screen overflow-hidden bg-background text-foreground">
         {/* Sidebar overlay for mobile */}
         {mobileMenuOpen && (
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-brand-deep/20 backdrop-blur-md z-40 lg:hidden animate-fade-in"
             onClick={() => setMobileMenuOpen(false)}
           />
         )}
 
         {/* Sidebar */}
         <div
-          className={`fixed inset-y-0 left-0 z-50 transition-transform duration-300 transform lg:relative lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-50 transition-all duration-500 ease-in-out lg:relative lg:translate-x-0 ${
             mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -57,11 +57,11 @@ export default function AdminLayoutClient({ children }: AdminLayoutProps) {
         {/* Main content wrapper */}
         <div className="flex-1 flex flex-col h-screen overflow-hidden">
           {/* Mobile Header */}
-          <header className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-gray-200 sticky top-0 z-30">
-            <span className="text-xl font-black text-black">Aastha Kala</span>
+          <header className="lg:hidden flex items-center justify-between p-4 bg-surface border-b border-border sticky top-0 z-30 shadow-sm">
+            <span className="text-xl font-black text-primary tracking-tight">Aastha Kala</span>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl bg-gray-100 text-gray-700"
+              className="p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -80,8 +80,8 @@ export default function AdminLayoutClient({ children }: AdminLayoutProps) {
             </button>
           </header>
 
-          <main className="flex-1 p-4 lg:p-8 overflow-y-auto transition-all duration-300">
-            <div className="relative w-full h-full min-h-screen z-10">
+          <main className="flex-1 p-4 lg:p-8 overflow-y-auto transition-all duration-300 custom-scrollbar">
+            <div className="relative w-full h-full min-h-screen z-10 animate-fade-in">
               {children}
             </div>
           </main>

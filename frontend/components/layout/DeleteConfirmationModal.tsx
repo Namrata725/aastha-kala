@@ -25,53 +25,45 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-sm cursor-pointer"
+      className="fixed inset-0 z-[150] flex items-center justify-center bg-brand-deep/20 backdrop-blur-sm cursor-pointer"
     >
-      {/* Modal container with gradient border */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="p-[1px] rounded-2xl bg-gray-400/20 w-full max-w-md cursor-default shadow-2xl"
+        className="bg-surface w-full max-w-md cursor-default shadow-2xl rounded-xl border border-border overflow-hidden animate-scale-in"
       >
-        <div className="rounded-2xl bg-white/50 backdrop-blur-xl border border-white/20 overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gray-50/50">
-            <h2 className="text-gray-900 font-bold uppercase italic tracking-tight">{title}</h2>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-gray-200 transition-all text-gray-500 hover:text-black"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-background/50">
+          <h2 className="text-text-primary font-black uppercase tracking-tight text-sm">{title}</h2>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-md hover:bg-surface-hover transition-all text-text-muted hover:text-text-primary"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
-          {/* Body */}
-          <div className="px-5 py-6 text-center">
-            <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-full bg-red-500/10 border border-red-500/20">
-                <Trash2 className="w-6 h-6 text-red-400" />
-              </div>
+        <div className="px-6 py-8 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 rounded-lg bg-error/10 border border-error/20 flex items-center justify-center">
+              <Trash2 className="w-6 h-6 text-error" />
             </div>
-
-            <p className="text-gray-700 text-base font-bold leading-relaxed">{description}</p>
           </div>
+          <p className="text-text-secondary text-sm font-bold leading-relaxed">{description}</p>
+        </div>
 
-          {/* Footer */}
-          <div className="flex justify-end gap-3 px-5 py-4 border-t border-gray-100 bg-gray-50/30">
-            <button
-              onClick={onClose}
-              className="px-6 py-2 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all active:scale-95"
-            >
-              Cancel
-            </button>
-
-            <button
-              onClick={onConfirm}
-              disabled={loading}
-              className="px-6 py-2 rounded-xl text-sm font-black uppercase tracking-widest text-white bg-gradient-to-r from-red-500 to-red-600 hover:shadow-lg hover:shadow-red-500/30 transition-all active:scale-95 disabled:opacity-50"
-            >
-              {loading ? "Deleting..." : "Delete Permanently"}
-            </button>
-          </div>
+        <div className="flex justify-end gap-3 px-5 py-4 border-t border-border bg-background/30">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-text-muted hover:text-text-primary border border-border hover:bg-surface-hover transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="px-5 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-white bg-error hover:bg-red-600 transition-all shadow-lg shadow-error/20 active:scale-95 disabled:opacity-50"
+          >
+            {loading ? "Deleting..." : "Delete Now"}
+          </button>
         </div>
       </div>
     </div>

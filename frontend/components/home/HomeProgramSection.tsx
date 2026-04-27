@@ -28,21 +28,23 @@ const HomeProgramSection = async () => {
       <div className="max-w-7xl mx-auto">
 
         {/* HEADER */}
-        <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-4">
-          <div className="text-center md:text-left space-y-2">
-            <h2 className="text-3xl md:text-4xl font-poppins tracking-tighter text-[#27A0CF] font-black uppercase">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6 relative">
+          <div className="text-center md:text-left space-y-3 relative z-10">
+            <h2 className="text-4xl md:text-5xl font-black text-gradient tracking-tight uppercase">
               What WE Offer
             </h2>
-            <div className="h-1 w-20 bg-secondary mx-auto md:mx-0 rounded-full" />
+            <p className="text-text-muted font-medium max-w-xl">Discover our curated programs designed to nurture your artistic and musical talent</p>
           </div>
 
           <Link
             href="/programs"
-            className="flex items-center gap-2 px-6 py-2 border-2 border-primary text-primary font-bold rounded-full hover:bg-primary hover:text-white transition-all duration-300 group"
+            className="flex items-center gap-3 px-8 py-3 bg-primary text-white font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-primary-hover shadow-xl shadow-primary/25 hover:-translate-y-1 active:scale-95 transition-all duration-300 group"
           >
             All Programs
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </Link>
+          
+          <div className="absolute -left-10 -top-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         {/* MOBILE VIEW: Show ALL Programs */}

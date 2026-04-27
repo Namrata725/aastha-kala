@@ -98,19 +98,25 @@ const StudentPage = () => {
       ...student,
       sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
       image: student.image_url ? (
-        <img src={student.image_url} alt={student.name} className="w-10 h-10 object-cover rounded-full border border-gray-200" />
+        <div className="relative group/img">
+          <img src={student.image_url} alt={student.name} className="w-12 h-12 object-cover rounded-xl ring-2 ring-border group-hover/img:ring-primary transition-all duration-300 shadow-sm" />
+          <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover/img:opacity-100 transition-opacity rounded-xl" />
+        </div>
       ) : (
-        <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full">
-          <User className="w-5 h-5 text-gray-400" />
+        <div className="w-12 h-12 flex items-center justify-center bg-primary/5 rounded-xl border border-border shadow-inner">
+          <User className="w-6 h-6 text-primary/40" />
         </div>
       ),
       status: (
-        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-          student.status === 'active' ? 'bg-green-100 text-green-700' : 
-          student.status === 'inactive' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-        }`}>
-          {student.status}
-        </span>
+        <div className="flex">
+          <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all duration-300 ${
+            student.status === 'active' ? 'bg-success/10 text-success border-success/20 shadow-sm shadow-success/10' : 
+            student.status === 'inactive' ? 'bg-error/10 text-error border-error/20 shadow-sm shadow-error/10' : 
+            'bg-info/10 text-info border-info/20 shadow-sm shadow-info/10'
+          }`}>
+            {student.status}
+          </span>
+        </div>
       ),
     })), [students, pagination.currentPage, pagination.itemsPerPage]);
   
@@ -142,7 +148,7 @@ const StudentPage = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) throw new Error("Delete failed");
-        toast.success("Student deleted");
+        toast.success("Student deleted successfully");
 
           // If this was the last item on the page → go to previous page
           const isLastItemOnPage = students.length === 1;
@@ -161,39 +167,43 @@ const StudentPage = () => {
     };
   
     return (
-      <div className="max-w-7xl mx-auto space-y-6">
-        <header className="flex flex-col lg:flex-row justify-between items-center p-4 lg:p-6 bg-white border border-gray-200 rounded-2xl lg:rounded-3xl gap-6 shadow-sm">
-          <div className="flex flex-col text-center lg:text-left w-full lg:w-auto items-center lg:items-start">
-            <h1 className="text-xl lg:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+      <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+        <header className="flex flex-col lg:flex-row justify-between items-center p-6 bg-surface border border-border rounded-xl gap-6 shadow-sm relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full -mr-40 -mt-40 blur-3xl group-hover:bg-primary/10 transition-colors duration-500" />
+          
+          <div className="relative z-10 flex flex-col items-center lg:items-start w-full lg:w-auto">
+            <h1 className="text-xl lg:text-2xl font-black text-text-primary tracking-tight">
               Student Management
             </h1>
-            <div className="flex bg-slate-100 p-1 rounded-2xl mt-3 w-fit overflow-x-auto max-w-full">
+            
+            <div className="flex bg-background border border-border p-1 rounded-lg mt-3 w-fit shadow-sm">
                 <button 
                     onClick={() => setViewMode("students")}
-                    className={`px-4 lg:px-6 py-1.5 text-[10px] lg:text-xs font-black rounded-xl transition-all whitespace-nowrap ${viewMode === "students" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-                >STUDENT LIST</button>
+                    className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-md transition-all ${viewMode === "students" ? "bg-surface text-primary shadow-sm" : "text-text-muted hover:text-text-secondary"}`}
+                >Student List</button>
                 <button 
                     onClick={() => setViewMode("programs")}
-                    className={`px-4 lg:px-6 py-1.5 text-[10px] lg:text-xs font-black rounded-xl transition-all whitespace-nowrap ${viewMode === "programs" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-                >PROGRAM VIEW</button>
+                    className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-md transition-all ${viewMode === "programs" ? "bg-surface text-primary shadow-sm" : "text-text-muted hover:text-text-secondary"}`}
+                >Program View</button>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
-            <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+
+          <div className="relative z-10 flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+            <div className="relative w-full sm:w-64 group/search">
+              <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within/search:text-primary transition-colors" />
               <input 
                 type="text" 
-                placeholder="Search name..." 
+                placeholder="Search students..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-50 border-none rounded-2xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-blue-500/20 transition shadow-inner"
+                className="w-full bg-background border border-border rounded-lg pl-10 pr-4 py-2 text-sm font-medium focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm placeholder:text-text-muted"
               />
             </div>
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <select 
                 value={statusFilter}
                 onChange={(e: any) => setStatusFilter(e.target.value)}
-                className="flex-1 sm:flex-none px-4 py-3 text-sm bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 transition shadow-inner cursor-pointer"
+                className="flex-1 sm:flex-none px-4 py-2 text-xs font-black uppercase tracking-widest bg-background border border-border rounded-lg focus:outline-none focus:border-primary transition-all shadow-sm cursor-pointer"
               >
                 <option value="all">Status</option>
                 <option value="active">Active</option>
@@ -202,10 +212,10 @@ const StudentPage = () => {
               </select>
               <button
                 onClick={() => { setEditingStudent(null); setFormModalOpen(true); }}
-                className="flex-1 sm:flex-none px-6 py-3 text-sm bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200 hover:bg-black active:scale-95 flex items-center justify-center gap-2 transition-all font-bold whitespace-nowrap"
+                className="flex-1 sm:flex-none px-6 py-2 bg-primary text-white rounded-lg shadow-lg shadow-primary/20 hover:bg-primary-hover hover:-translate-y-0.5 active:scale-95 transition-all flex gap-2 items-center justify-center text-[10px] font-black uppercase tracking-widest cursor-pointer whitespace-nowrap"
               >
-                <Plus className="h-4 w-4" />
-                <span>Add</span>
+                <Plus className="h-4 w-4" strokeWidth={3} />
+                <span>Add Student</span>
               </button>
             </div>
           </div>

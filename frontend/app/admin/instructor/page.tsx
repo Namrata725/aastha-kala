@@ -132,21 +132,24 @@ const Page = () => {
     sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
 
     image: inst.image ? (
-      <img
-        src={getImageUrl(inst.image)}
-        alt={inst.name}
-        className="w-10 h-10 rounded-full object-cover"
-      />
+      <div className="relative group">
+        <img
+          src={getImageUrl(inst.image)}
+          alt={inst.name}
+          className="w-12 h-12 rounded-xl object-cover ring-2 ring-border group-hover:ring-primary transition-all duration-300 shadow-sm"
+        />
+        <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
+      </div>
     ) : (
-      <div className="w-10 h-10 rounded-full bg-linear-to-r from-primary to-secondary flex items-center justify-center text-white text-xs font-semibold uppercase">
+      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-sm font-black uppercase shadow-inner">
         {getInitials(inst.name)}
       </div>
     ),
 
     about: inst.about ? (
-      <span className="line-clamp-2 max-w-xs">{inst.about}</span>
+      <span className="text-sm text-text-secondary line-clamp-1 max-w-xs">{inst.about}</span>
     ) : (
-      <span className="text-white/50 text-xs">N/A</span>
+      <span className="text-text-muted text-xs italic font-medium">No bio provided</span>
     ),
   }));
 
@@ -195,7 +198,7 @@ const Page = () => {
         throw new Error(result.message || "Delete failed");
       }
 
-      toast.success("Instructor deleted");
+      toast.success("Instructor deleted successfully");
 
       fetchInstructors(pagination.currentPage);
     } catch (error: any) {
@@ -210,20 +213,25 @@ const Page = () => {
   const actions: ("view" | "edit" | "delete")[] = ["view", "edit", "delete"];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center p-4 lg:p-6 bg-white border border-gray-200 rounded-2xl gap-4 shadow-sm">
-        <span className="text-xl lg:text-2xl font-black text-black text-center sm:text-left">
-          Our Instructors
-        </span>
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row justify-between items-center p-6 bg-surface border border-border rounded-xl gap-6 shadow-sm relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary/10 transition-colors duration-500" />
+        
+        <div className="relative z-10 flex flex-col items-center sm:items-start">
+          <h1 className="text-xl lg:text-2xl font-black text-text-primary tracking-tight">
+            Our Instructors
+          </h1>
+          <p className="text-[10px] text-text-muted font-black uppercase tracking-widest mt-1">Manage and organize your professional teaching staff</p>
+        </div>
 
         <button
           onClick={() => {
             setEditingInstructor(null);
             setFormModalOpen(true);
           }}
-          className="w-full sm:w-auto px-6 py-2.5 text-sm bg-linear-to-r from-primary to-secondary text-white rounded-xl shadow-lg shadow-primary/20 flex gap-2 items-center justify-center cursor-pointer font-bold active:scale-95 transition-all"
+          className="w-full sm:w-auto relative z-10 px-6 py-2 bg-primary text-white rounded-lg shadow-lg shadow-primary/20 flex gap-2 items-center justify-center cursor-pointer font-black uppercase tracking-widest text-[10px] hover:bg-primary-hover hover:-translate-y-0.5 active:scale-95 transition-all whitespace-nowrap"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4" strokeWidth={3} />
           <span>Add Instructor</span>
         </button>
       </div>

@@ -128,7 +128,7 @@ export const ThermalBill = forwardRef<HTMLDivElement, ThermalBillProps>(
               ) : (
                 <tr style={{ borderBottom: "1px solid #eee" }}>
                   <td style={{ padding: "4px 6px", textTransform: "capitalize" }}>
-                    {fee.fee_type === "billing" ? "Tuition Fees" : (fee.fee_type || "Fee") + " Fee"}
+                    {fee.fee_type === "billing" ? "Tuition Fees" : (fee.fee_type || "Fee")}
                   </td>
                   <td style={{ padding: "4px 6px", textAlign: "right" }}>{fmt(totalGross)}</td>
                 </tr>

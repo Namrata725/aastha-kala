@@ -113,46 +113,43 @@ const StatCard = ({
   prefix?: string;
   trend?: string;
 }) => (
-  <div className="relative bg-white border border-gray-100 rounded-[1.5rem] p-5 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-500 group overflow-hidden">
+  <div className="relative bg-surface border border-border rounded-xl p-5 shadow-sm hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 group overflow-hidden">
     
     {/* Background glow */}
     <div
-      className="absolute -right-10 -top-10 w-32 h-32 rounded-full blur-[60px] opacity-[0.08] group-hover:opacity-[0.15] transition-opacity duration-700"
+      className="absolute -right-16 -top-16 w-48 h-48 rounded-full blur-[80px] opacity-[0.05] group-hover:opacity-[0.1] transition-opacity duration-700"
       style={{ backgroundColor: accent }}
     />
 
     <div className="relative z-10">
-      {/* Title + Icon in same row */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
-          {title}
-        </span>
+      <div className="flex items-center justify-between mb-6">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm shrink-0"
+          className="w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-inner"
           style={{
-            background: `linear-gradient(135deg, ${accent}1A 0%, ${accent}0D 100%)`,
-            border: `1px solid ${accent}26`,
+            background: `linear-gradient(135deg, ${accent}20 0%, ${accent}08 100%)`,
+            border: `1px solid ${accent}15`,
           }}
         >
-          <Icon className="w-5 h-5" style={{ color: accent }} />
+          <Icon className="w-6 h-6" style={{ color: accent }} />
         </div>
-      </div>
-
-      {/* Value */}
-      <div className="flex items-baseline gap-2">
-        <p className="text-[28px] font-black text-gray-900 leading-none tracking-tight">
-          <AnimatedNumber value={value} prefix={prefix} />
-        </p>
         {trend && (
-          <span className="text-[9px] font-bold tracking-wider text-emerald-600 bg-emerald-50 px-2 py-[2px] rounded-full whitespace-nowrap">
+          <span className="text-[10px] font-black tracking-widest text-success bg-success/10 border border-success/20 px-3 py-1 rounded-full uppercase">
             {trend}
           </span>
         )}
       </div>
 
-      {/* Bottom accent line */}
+      <div>
+        <p className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-1.5">
+          {title}
+        </p>
+        <p className="text-2xl font-black text-text-primary leading-none tracking-tight">
+          <AnimatedNumber value={value} prefix={prefix} />
+        </p>
+      </div>
+
       <div
-        className="absolute bottom-0 left-0 h-[2px] w-0 group-hover:w-full transition-all duration-700 rounded-full"
+        className="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-700 rounded-full opacity-50"
         style={{ backgroundColor: accent }}
       />
     </div>
@@ -176,24 +173,24 @@ const QuickAction = ({
 }) => (
   <button
     onClick={onClick}
-    className="relative bg-white border border-gray-200/80 rounded-2xl p-5 text-left shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:border-gray-300/80 transition-all duration-300 group overflow-hidden"
+    className="relative bg-surface border border-border rounded-xl p-5 text-left shadow-sm hover:shadow-lg hover:shadow-primary/5 hover:border-primary/30 transition-all duration-300 group overflow-hidden cursor-pointer"
   >
     <div
-      className="absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity"
+      className="absolute inset-0 opacity-0 group-hover:opacity-[0.05] transition-opacity duration-500"
       style={{ backgroundColor: accent }}
     />
-    <div className="relative z-10 flex items-start gap-4">
+    <div className="relative z-10 flex items-center gap-5">
       <div
-        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-transform group-hover:scale-105"
-        style={{ backgroundColor: `${accent}0D`, borderColor: `${accent}1A` }}
+        className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border-2 transition-all duration-500 group-hover:scale-110 group-hover:bg-white"
+        style={{ backgroundColor: `${accent}10`, borderColor: `${accent}15` }}
       >
-        <Icon className="w-5 h-5" style={{ color: accent }} />
+        <Icon className="w-6 h-6" style={{ color: accent }} />
       </div>
       <div className="min-w-0">
-        <span className="block text-sm font-bold text-gray-800 group-hover:text-gray-900 transition-colors truncate">
+        <span className="block text-base font-black text-text-primary group-hover:text-primary transition-colors tracking-tight truncate">
           {title}
         </span>
-        <span className="block text-[11px] text-gray-400 mt-0.5 truncate">{desc}</span>
+        <span className="block text-xs font-medium text-text-muted mt-1 truncate">{desc}</span>
       </div>
     </div>
   </button>
@@ -331,40 +328,40 @@ const Dashboard = () => {
   const recentMessages = data?.recent_messages || [];
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="space-y-10 pb-16 animate-fade-in">
       {/* ──── HEADER ──── */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-          </div>
-          <h1 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 p-6 bg-surface border border-border rounded-xl shadow-sm relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full -mr-48 -mt-48 blur-3xl group-hover:bg-primary/10 transition-colors duration-500" />
+        
+        <div className="relative z-10">
+          <h1 className="text-3xl lg:text-4xl font-black text-gradient tracking-tight">
             Dashboard
           </h1>
-          <p className="text-gray-400 text-sm font-medium mt-1">
-            Welcome back,{" "}
-            <span className="text-gray-600 font-semibold">{adminName}</span>.
+          <p className="text-text-muted text-sm font-medium mt-1.5 flex items-center gap-2">
+            Welcome back to your workspace,
+            <span className="text-primary font-black uppercase tracking-widest text-xs px-2.5 py-1 bg-primary/10 rounded-lg">{adminName}</span>
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="text-right hidden sm:block">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+        <div className="relative z-10 flex items-center gap-8">
+          <div className="text-right hidden sm:block border-r border-border pr-8">
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-1.5">
               Local Time
             </p>
-            <p className="text-lg font-bold text-gray-700 tabular-nums tracking-tight">
+            <p className="text-2xl font-black text-text-primary tabular-nums tracking-tighter">
               {currentTime}
             </p>
           </div>
-          <div className="w-px h-10 bg-gray-200 hidden sm:block" />
           <div className="text-right hidden sm:block">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-              Today
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-1.5">
+              Current Date
             </p>
-            <p className="text-sm font-semibold text-gray-600">
+            <p className="text-sm font-black text-text-secondary uppercase tracking-widest">
               {new Date().toLocaleDateString("en-US", {
                 weekday: "short",
                 month: "short",
                 day: "numeric",
+                year: "numeric"
               })}
             </p>
           </div>
@@ -446,47 +443,49 @@ const Dashboard = () => {
         {/* ── BOOKINGS TABLE ── */}
         <div className="xl:col-span-8 space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <CalendarCheck className="w-4 h-4 text-blue-500" />
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-[0.15em]">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <CalendarCheck className="w-4 h-4 text-blue-500" />
+              </div>
+              <h2 className="text-xs font-black text-text-muted uppercase tracking-[0.2em]">
                 Recent Bookings
               </h2>
               {recentBookings.length > 0 && (
-                <span className="px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-bold text-gray-500">
+                <span className="px-2.5 py-1 rounded-lg bg-background border border-border text-[10px] font-black text-text-muted">
                   {recentBookings.length}
                 </span>
               )}
             </div>
             <Link
               href="/admin/booking"
-              className="text-[10px] font-bold text-gray-400 uppercase tracking-wider hover:text-gray-700 transition-colors flex items-center gap-1"
+              className="px-4 py-2 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] hover:text-primary hover:bg-primary/5 rounded-lg transition-all flex items-center gap-2 group"
             >
               View All
-              <ChevronRight className="w-3 h-3" />
+              <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
-          <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+          <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
             {recentBookings.length > 0 ? (
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-left min-w-[600px] lg:min-w-full">
                   <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="px-6 py-3.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                    <tr className="border-b border-border bg-background/50">
+                      <th className="px-8 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
                         Customer
                       </th>
-                      <th className="px-6 py-3.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                      <th className="px-8 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
                         Program
                       </th>
-                      <th className="px-6 py-3.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                      <th className="px-8 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
                         Status
                       </th>
-                      <th className="px-6 py-3.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50 text-right">
+                      <th className="px-8 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] text-right">
                         Received
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-border/50">
                     {recentBookings.map((booking: any) => (
                       <tr
                         key={booking.id}
@@ -494,33 +493,33 @@ const Dashboard = () => {
                           setSelectedBooking(booking);
                           setModals((p) => ({ ...p, viewBooking: true }));
                         }}
-                        className="hover:bg-gray-50/80 transition-colors group cursor-pointer"
+                        className="hover:bg-primary/5 transition-all duration-300 group cursor-pointer"
                       >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-[11px] font-bold text-gray-400 uppercase shrink-0">
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center text-xs font-black text-text-muted uppercase shrink-0 group-hover:scale-110 group-hover:text-primary group-hover:border-primary/30 transition-all">
                               {(booking.name || "?")[0]}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-[13px] font-semibold text-gray-800 truncate max-w-[160px]">
+                              <p className="text-sm font-black text-text-primary group-hover:text-primary transition-colors truncate max-w-[160px]">
                                 {booking.name}
                               </p>
-                              <p className="text-[11px] text-gray-400 truncate max-w-[160px]">
+                              <p className="text-[11px] font-medium text-text-muted truncate max-w-[160px] mt-0.5">
                                 {booking.email}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <span className="text-[12px] font-medium text-sky-600 truncate block max-w-[180px]">
+                        <td className="px-8 py-5">
+                          <span className="text-xs font-black text-primary uppercase tracking-wider bg-primary/5 px-2.5 py-1 rounded-lg border border-primary/10 truncate block max-w-[180px]">
                             {booking.program?.title || "—"}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-8 py-5">
                           <StatusBadge status={booking.status} />
                         </td>
-                        <td className="px-6 py-4 text-right">
-                          <span className="text-[11px] font-medium text-gray-400">
+                        <td className="px-8 py-5 text-right">
+                          <span className="text-[11px] font-black text-text-muted uppercase tracking-widest bg-background px-2 py-1 rounded-md">
                             {timeAgo(booking.created_at)}
                           </span>
                         </td>
@@ -565,37 +564,39 @@ const Dashboard = () => {
               </Link>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {recentMessages.length > 0 ? (
                 recentMessages.map((msg: any) => (
                   <div
                     key={msg.id}
-                    className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)] hover:border-gray-300/80 transition-all group"
+                    className="bg-surface border border-border rounded-2xl p-5 shadow-sm hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 transition-all duration-500 group relative overflow-hidden"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center shrink-0 text-violet-500 group-hover:bg-violet-500 group-hover:text-white transition-colors">
-                        <Mail className="w-4 h-4" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    
+                    <div className="relative z-10 flex items-start gap-4">
+                      <div className="w-11 h-11 rounded-xl bg-background border border-border flex items-center justify-center shrink-0 text-text-muted group-hover:text-primary group-hover:border-primary/30 group-hover:scale-110 transition-all duration-500 shadow-inner">
+                        <Mail className="w-5 h-5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-[12px] font-semibold text-gray-800 truncate">
+                        <div className="flex items-center justify-between gap-3 mb-2">
+                          <span className="text-sm font-black text-text-primary group-hover:text-primary transition-colors truncate tracking-tight">
                             {msg.name}
                           </span>
-                          <span className="text-[9px] font-bold text-gray-400 whitespace-nowrap">
+                          <span className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap bg-background px-2 py-0.5 rounded-md border border-border">
                             {timeAgo(msg.created_at)}
                           </span>
                         </div>
-                        <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
+                        <p className="text-[12px] font-medium text-text-secondary line-clamp-2 leading-relaxed italic">
                           &ldquo;{msg.message}&rdquo;
                         </p>
-                        <div className="flex items-center gap-3 mt-2">
+                        <div className="flex items-center gap-4 mt-4">
                           {msg.email && (
-                            <span className="text-[9px] text-gray-300 font-medium truncate max-w-[130px]">
+                            <span className="text-[10px] font-black text-primary/60 uppercase tracking-widest truncate max-w-[130px]">
                               {msg.email}
                             </span>
                           )}
                           {msg.phone && (
-                            <span className="text-[9px] text-gray-300 font-medium">
+                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">
                               {msg.phone}
                             </span>
                           )}
@@ -605,9 +606,11 @@ const Dashboard = () => {
                   </div>
                 ))
               ) : (
-                <div className="bg-white border border-dashed border-gray-200 rounded-xl p-12 flex flex-col items-center text-gray-300">
-                  <MessageSquare className="w-8 h-8 mb-2 opacity-20" />
-                  <p className="text-[11px] font-bold uppercase tracking-widest">
+                <div className="bg-surface border border-dashed border-border rounded-xl p-16 flex flex-col items-center text-text-muted/30">
+                  <div className="w-16 h-16 rounded-lg bg-background border border-border flex items-center justify-center mb-4">
+                    <MessageSquare className="w-8 h-8 opacity-20" />
+                  </div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.2em]">
                     No messages
                   </p>
                 </div>

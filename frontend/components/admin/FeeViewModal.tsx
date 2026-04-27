@@ -261,29 +261,31 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
   if (!isOpen || !fee) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4 font-sans" onClick={onClose}>
+    <div className="fixed inset-0 bg-brand-deep/30 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in" onClick={onClose}>
       <style dangerouslySetInnerHTML={{ __html: "@media print { @page { margin: 0; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }" }} />
       <div
-        className="bg-white w-full max-w-[780px] max-h-[93vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200"
+        className="bg-surface w-full max-w-[800px] max-h-[94vh] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-white/20 animate-scale-in"
         onClick={e => e.stopPropagation()}
         id="receipt-content"
       >
         {/* ── Header ────────────────────────────────────── */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white flex-shrink-0 print:hidden">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface/80 backdrop-blur-sm sticky top-0 z-20 print:hidden">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gray-900 rounded-xl flex items-center justify-center">
-              <Receipt className="w-[18px] h-[18px] text-white" />
+            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shadow-inner">
+              <Receipt className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-[15px] font-bold text-gray-900">Payment Receipt</h2>
-              <p className="text-[11px] text-gray-400 mt-0.5">
-                Ref: #TRS-{activeFee.id?.toString().padStart(6, "0")} ·{" "}
-                {new Date(activeFee.created_at || Date.now()).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
+              <h2 className="text-lg font-black text-text-primary tracking-tight">Payment Receipt</h2>
+              <p className="text-[10px] text-text-muted font-black uppercase tracking-widest mt-0.5">
+                Ref: <span className="text-text-primary">#TRS-{activeFee.id?.toString().padStart(6, "0")}</span>
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <X className="w-4 h-4 text-gray-400" />
+          <button 
+            onClick={onClose} 
+            className="w-8 h-8 flex items-center justify-center hover:bg-error/10 hover:text-error rounded-md transition-all duration-300 text-text-muted cursor-pointer"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -303,20 +305,20 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
             </div>
 
             {/* Student card */}
-            <div className="flex items-center gap-3.5 p-4 bg-gray-50 border border-gray-100 rounded-xl">
-              <div className="w-11 h-11 rounded-xl bg-gray-900 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+            <div className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-100 rounded-lg">
+              <div className="w-10 h-10 rounded-lg bg-gray-900 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
                 {initials(activeFee.student?.name || activeFee.student_name || "??")}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{activeFee.student?.name || activeFee.student_name || "N/A"}</p>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[11px] text-gray-400 font-medium">ID: #{activeFee.student_id}</span>
+                <p className="text-sm font-black text-gray-900 truncate">{activeFee.student?.name || activeFee.student_name || "N/A"}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[10px] text-gray-400 font-bold">ID: #{activeFee.student_id}</span>
                   {activeFee.student?.classes && (
-                    <span className="text-[11px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md font-medium">{activeFee.student.classes}</span>
+                    <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">{activeFee.student.classes}</span>
                   )}
                 </div>
               </div>
-              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${
+              <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md flex-shrink-0 ${
                 isIntegrated
                   ? "bg-violet-50 text-violet-700 border border-violet-100"
                   : activeFee.fee_type === "admission"
@@ -329,33 +331,31 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
 
             {/* Meta row: Method · Period · Status */}
             <div className="grid grid-cols-3 gap-3">
-              <div className="p-3.5 bg-white border border-gray-200 rounded-xl">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 flex items-center gap-1.5">
+              <div className="p-3 bg-white border border-gray-200 rounded-lg">
+                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-text-muted mb-1 flex items-center gap-1.5">
                   <MethodIcon className="w-3 h-3" /> Method
                 </p>
-                <p className="text-[12px] font-semibold text-gray-900">{methodInfo.label}</p>
+                <p className="text-[11px] font-black text-text-primary uppercase tracking-tight">{methodInfo.label}</p>
               </div>
-              <div className="p-3.5 bg-white border border-gray-200 rounded-xl">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 flex items-center gap-1.5">
+              <div className="p-3 bg-white border border-gray-200 rounded-lg">
+                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-text-muted mb-1 flex items-center gap-1.5">
                   <Calendar className="w-3 h-3" /> Period
                 </p>
-                <p className="text-[12px] font-semibold text-gray-900 truncate">{activeFee.month_year || "—"}</p>
+                <p className="text-[11px] font-black text-text-primary uppercase tracking-tight truncate">{activeFee.month_year || "—"}</p>
               </div>
-              <div className="p-3.5 bg-white border border-gray-200 rounded-xl">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 flex items-center gap-1.5">
+              <div className="p-3 bg-white border border-gray-200 rounded-lg">
+                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-text-muted mb-1 flex items-center gap-1.5">
                   <CheckCircle2 className="w-3 h-3" /> Status
                 </p>
                 {fullyPaid ? (
-                  <span className="text-[12px] font-bold text-emerald-600">Fully Paid</span>
+                  <span className="text-[11px] font-black uppercase text-emerald-600">Fully Paid</span>
                 ) : footerCollected === 0 ? (
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-3 h-3 text-red-500" />
-                    <span className="text-[12px] font-semibold text-red-600">Unpaid</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[11px] font-black uppercase text-red-600">Unpaid</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-3 h-3 text-amber-500" />
-                    <span className="text-[12px] font-semibold text-amber-600">Partially Paid</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[11px] font-black uppercase text-amber-600">Partial</span>
                   </div>
                 )}
               </div>
@@ -518,47 +518,47 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
         </div>
 
         {/* ── Footer ────────────────────────────────────── */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-white flex-shrink-0">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
-              <div className="flex-shrink-0">
-                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Total</p>
-                <p className="text-sm font-extrabold text-gray-400 tracking-tight whitespace-nowrap">{fmt(footerCost)}</p>
+        <div className="px-6 py-4 border-t border-border bg-surface/80 backdrop-blur-sm sticky bottom-0">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-col">
+                <p className="text-[8px] text-text-muted font-black uppercase tracking-widest mb-0.5">Total</p>
+                <p className="text-xs font-black text-text-muted tracking-tight whitespace-nowrap">{fmt(footerCost)}</p>
               </div>
-              <div className="text-gray-300 text-xs font-light">−</div>
-              <div className="flex-shrink-0">
-                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Discount</p>
-                <p className="text-sm font-extrabold text-blue-500 tracking-tight whitespace-nowrap">{fmt(footerDiscount)}</p>
+              <div className="text-border text-xs font-light">−</div>
+              <div className="flex flex-col">
+                <p className="text-[8px] text-text-muted font-black uppercase tracking-widest mb-0.5">Disc</p>
+                <p className="text-xs font-black text-primary tracking-tight whitespace-nowrap">{fmt(footerDiscount)}</p>
               </div>
-              <div className="text-gray-300 text-xs font-light">=</div>
-              <div className="flex-shrink-0">
-                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Net Bill</p>
-                <p className="text-sm font-extrabold text-gray-900 tracking-tight whitespace-nowrap">{fmt(footerBill)}</p>
+              <div className="text-border text-xs font-light">=</div>
+              <div className="flex flex-col">
+                <p className="text-[8px] text-text-muted font-black uppercase tracking-widest mb-0.5">Bill</p>
+                <p className="text-xs font-black text-text-primary tracking-tight whitespace-nowrap">{fmt(footerBill)}</p>
               </div>
-              <div className="w-px h-7 bg-gray-100 mx-0.5" />
-              <div className="flex-shrink-0">
-                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Paid</p>
-                <p className="text-sm font-extrabold text-emerald-600 tracking-tight whitespace-nowrap">{fmt(footerCollected)}</p>
+              <div className="w-px h-6 bg-border mx-1" />
+              <div className="flex flex-col">
+                <p className="text-[8px] text-text-muted font-black uppercase tracking-widest mb-0.5">Paid</p>
+                <p className="text-xs font-black text-success tracking-tight whitespace-nowrap">{fmt(footerCollected)}</p>
               </div>
-              <div className="w-px h-7 bg-gray-100 mx-0.5" />
-              <div className="flex-shrink-0">
-                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Due</p>
-                <p className={`text-sm font-extrabold tracking-tight whitespace-nowrap ${footerDue > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+              <div className="w-px h-6 bg-border mx-1" />
+              <div className="flex flex-col">
+                <p className="text-[8px] text-text-muted font-black uppercase tracking-widest mb-0.5">Due</p>
+                <p className={`text-xs font-black tracking-tight whitespace-nowrap ${footerDue > 0 ? "text-warning" : "text-success"}`}>
                   {footerDue > 0 ? fmt(footerDue) : "Rs. 0"}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2.5 flex-shrink-0">
               <button
                 onClick={() => handleA4Print()}
-                className="flex items-center gap-2 px-3 py-2 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg text-[11px] font-bold transition-all print:hidden"
+                className="flex items-center gap-2 px-4 py-2 border border-border hover:bg-surface-hover text-text-secondary hover:text-text-primary rounded-lg text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer"
               >
                 Full Bill
               </button>
               <button
                 onClick={() => handleThermalPrint()}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-black text-white rounded-lg text-[11px] font-bold transition-all shadow-lg shadow-gray-900/10 print:hidden"
+                className="flex items-center gap-2.5 px-5 py-2 bg-primary text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20 hover:bg-primary-hover hover:-translate-y-0.5 active:scale-95 cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" /> Thermal
               </button>
@@ -566,19 +566,19 @@ const FeeViewModal: React.FC<Props> = ({ isOpen, onClose, fee }) => {
           </div>
 
           {/* Progress bar */}
-          <div className="mt-3 bg-gray-100 rounded-full h-1 overflow-hidden print:hidden">
+          <div className="mt-4 bg-background border border-border rounded-full h-2 overflow-hidden shadow-inner print:hidden">
             <div
-              className="h-1 rounded-full transition-all duration-500 ease-out"
+              className="h-full rounded-full transition-all duration-1000 ease-out"
               style={{
                 width: `${footerBill > 0 ? Math.min(100, (footerCollected / footerBill) * 100) : 0}%`,
-                backgroundColor: footerCollected >= footerBill && footerBill > 0 ? "#10b981" : "#6366f1",
+                backgroundColor: footerCollected >= footerBill && footerBill > 0 ? "var(--success)" : "var(--primary)",
               }}
             />
           </div>
 
           {/* Print-only signature line */}
-          <div className="hidden print:block pt-12 mt-4 text-center border-t border-gray-200">
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Authorized Signature</p>
+          <div className="hidden print:block pt-12 mt-8 text-center border-t border-border">
+            <p className="text-xs text-text-muted uppercase tracking-widest font-black">Authorized Signature</p>
           </div>
         </div>
       </div>

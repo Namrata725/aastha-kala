@@ -108,30 +108,42 @@ const ProgramsPage = () => {
         ...p,
         sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
         image: p.image ? (
-            <img
-                src={getImageUrl(p.image)}
-                className="w-10 h-10 rounded object-cover"
-            />
+            <div className="relative group/img">
+                <img
+                    src={getImageUrl(p.image)}
+                    className="w-12 h-12 rounded-xl object-cover ring-2 ring-border group-hover/img:ring-primary transition-all duration-300 shadow-sm"
+                />
+                <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover/img:opacity-100 transition-opacity rounded-xl" />
+            </div>
             ) : (
-            <div className="w-10 h-10 flex items-center justify-center rounded bg-gray-100 text-[10px] text-gray-400 font-medium">
-                No Image
+            <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-primary/5 text-[10px] text-primary/40 font-black uppercase shadow-inner">
+                Empty
             </div>
             ),
         fees_display: (
             <div className="flex flex-col">
-                <span className="text-[12px] font-bold text-gray-900 leading-none">Rs. {p.program_fee || 0}</span>
+                <span className="text-sm font-black text-text-primary tracking-tight">Rs. {p.program_fee || 0}</span>
+                <span className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5">Per Month</span>
             </div>
         ),
         schedule_count: (
             <div className="flex flex-col gap-1">
-                <span className="text-xs font-bold text-primary">{p.schedules?.length || 0} slots</span>
-                {/* <span className="text-[10px] text-gray-500 uppercase tracking-tighter hover:text-black cursor-pointer" onClick={() => handleView(p)}>View Details</span> */}
+                <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-sm font-black text-text-primary tracking-tight">{p.schedules?.length || 0} Slots</span>
+                </div>
             </div>
         ),
         status: (
-            <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${p.is_active ? 'bg-green-500 text-black' : 'bg-red-500 text-black'}`}>
-                {p.is_active ? 'Active' : 'Inactive'}
-            </span>
+            <div className="flex">
+                <span className={`px-3 py-1 rounded-lg text-[10px] uppercase font-black tracking-widest border transition-all duration-300 ${
+                    p.is_active 
+                    ? 'bg-success/10 text-success border-success/20 shadow-sm shadow-success/10' 
+                    : 'bg-error/10 text-error border-error/20 shadow-sm shadow-error/10'
+                }`}>
+                    {p.is_active ? 'Active' : 'Inactive'}
+                </span>
+            </div>
         ),
     }));
 
@@ -159,35 +171,38 @@ const ProgramsPage = () => {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
             if (!res.ok) throw new Error("Delete failed");
-            toast.success("Program deleted");
+            toast.success("Program deleted successfully");
             fetchPrograms(pagination.currentPage);
         } catch (error: any) { toast.error(error.message); }
         finally { setDeleting(false); setDeleteModalOpen(false); }
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col lg:flex-row justify-between items-center p-4 lg:p-6 bg-white border border-gray-200 rounded-2xl gap-6 shadow-sm mb-6">
-                <div className="flex flex-col text-center lg:text-left">
-                    <span className="text-xl lg:text-2xl font-bold text-black">Program Catalog</span>
-                    <span className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">Search programs, filter by status</span>
+        <div className="space-y-6 animate-fade-in">
+            <div className="flex flex-col lg:flex-row justify-between items-center p-6 bg-surface border border-border rounded-xl gap-6 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full -mr-40 -mt-40 blur-3xl group-hover:bg-primary/10 transition-colors duration-500" />
+                
+                <div className="relative z-10 flex flex-col items-center lg:items-start">
+                    <h1 className="text-xl lg:text-2xl font-black text-text-primary tracking-tight">Program Catalog</h1>
+                    <p className="text-[10px] text-text-muted font-black uppercase tracking-widest mt-1">Manage courses, fees, and scheduling</p>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-                  <div className="relative w-full sm:w-64">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+
+                <div className="relative z-10 flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+                  <div className="relative w-full sm:w-64 group/search">
+                    <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within/search:text-primary transition-colors" />
                     <input 
                       type="text" 
-                      placeholder="Search title..." 
+                      placeholder="Search programs..." 
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-primary transition shadow-sm"
+                      className="w-full bg-background border border-border rounded-lg pl-10 pr-4 py-2 text-sm font-medium focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm placeholder:text-text-muted"
                     />
                   </div>
-                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
                     <select 
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
-                        className="flex-1 sm:flex-none px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition shadow-sm min-w-[120px]"
+                        className="flex-1 sm:flex-none px-4 py-2 text-xs font-black uppercase tracking-widest bg-background border border-border rounded-lg focus:outline-none focus:border-primary transition-all shadow-sm cursor-pointer"
                     >
                         <option value="all">Status</option>
                         <option value="active">Active</option>
@@ -195,9 +210,9 @@ const ProgramsPage = () => {
                     </select>
                     <button
                         onClick={() => { setEditingProgram(null); setFormModalOpen(true); }}
-                        className="flex-1 sm:flex-none px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl shadow-xl hover:scale-105 transition active:scale-95 flex gap-2 items-center justify-center text-sm font-semibold uppercase tracking-tight"
+                        className="flex-1 sm:flex-none px-6 py-2 bg-primary text-white rounded-lg shadow-lg shadow-primary/20 hover:bg-primary-hover hover:-translate-y-0.5 active:scale-95 transition-all flex gap-2 items-center justify-center text-[10px] font-black uppercase tracking-widest cursor-pointer whitespace-nowrap"
                     >
-                        <Plus className="w-4 h-4" /> <span>Add</span>
+                        <Plus className="w-4 h-4" strokeWidth={3} /> <span>Add Program</span>
                     </button>
                   </div>
                 </div>

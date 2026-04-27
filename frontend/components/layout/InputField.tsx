@@ -49,23 +49,21 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
   const errorMessage = Array.isArray(error) ? error[0] : error;
 
   return (
-    <div id={inputId} className="w-full flex flex-col gap-0.5">
+    <div id={inputId} className="w-full flex flex-col gap-1.5 animate-fade-in">
       {/* Label */}
-      <label className="flex items-center text-[11px] mb-0.5 font-bold uppercase tracking-wider gap-2">
-        <div className="flex items-center gap-2 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent italic">
-          {Icon && <Icon className="w-3.5 h-3.5 text-primary" />}
-          {label}
-        </div>
-        {required && <span className="text-red-500 ml-0.5 font-bold">*</span>}
+      <label className="flex items-center text-[11px] font-black uppercase tracking-[0.15em] text-text-muted gap-2 ml-1">
+        {label}
+        {required && <span className="text-error font-black">*</span>}
       </label>
 
       {/* Container */}
       <div
-        className={`p-0.5 rounded-xl bg-linear-to-r ${errorMessage ? "from-red-500/40 to-red-500/40" : "from-primary/20 to-secondary/20"}`}
+        className={`relative flex items-center rounded-lg border transition-all duration-300 group/input
+          ${errorMessage ? "border-error bg-error/5" : "border-border bg-background hover:border-primary/50 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/5 shadow-sm"}
+          ${disabled ? "opacity-60 cursor-not-allowed" : ""}
+        `}
       >
-        <div
-          className={`rounded-xl px-3 py-1.5 bg-primary/10 backdrop-blur-md border ${errorMessage ? "border-red-500/40" : "border-primary/10"} shadow-sm transition-all duration-300 focus-within:bg-primary/15 ${errorMessage ? "focus-within:border-red-500" : "focus-within:border-primary/20 hover:border-primary/30"}`}
-        >
+        <div className="flex-1 flex items-center px-3 py-2">
           {/* TEXTAREA */}
           {textarea ? (
             <textarea
@@ -73,67 +71,58 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
               onChange={onChange}
               rows={4}
               disabled={disabled}
-              className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 resize-none ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-              placeholder={placeholder ?? `Enter ${label}...`}
+              className="w-full bg-transparent outline-none text-sm text-text-primary placeholder:text-text-muted/40 resize-none font-medium"
+              placeholder={placeholder ?? `Enter ${label.toLowerCase()}...`}
             />
           ) : isSelect ? (
             // DROPDOWN
-            <div className="relative group/select">
-              <select
-                multiple={multiple}
-                value={
-                  multiple
-                    ? Array.isArray(value)
-                      ? value
-                      : value
-                        ? value.split(",").map((v: string) => v.trim())
-                        : []
-                    : (value ?? "")
-                }
-                onChange={(e) => {
-                  if (multiple) {
-                    const options = e.target.options;
-                    const values = [];
-                    for (let i = 0, l = options.length; i < l; i++) {
-                      if (options[i].selected) {
-                        values.push(options[i].value);
-                      }
+            <select
+              multiple={multiple}
+              value={
+                multiple
+                  ? Array.isArray(value)
+                    ? value
+                    : value
+                      ? value.split(",").map((v: string) => v.trim())
+                      : []
+                  : (value ?? "")
+              }
+              onChange={(e) => {
+                if (multiple) {
+                  const options = e.target.options;
+                  const values = [];
+                  for (let i = 0, l = options.length; i < l; i++) {
+                    if (options[i].selected) {
+                      values.push(options[i].value);
                     }
-                    onChange?.({ target: { value: values.join(", ") } } as any);
-                  } else {
-                    onChange?.(e);
                   }
-                }}
-                disabled={disabled}
-                className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${multiple ? "min-h-[80px] py-1" : ""}`}
-              >
-                {!multiple && (
-                  <option value="" className="bg-white text-black/60">
-                    Select {label}
-                  </option>
-                )}
-                {options.map((opt, idx) => (
-                  <option
-                    key={idx}
-                    value={opt.value}
-                    className="bg-white text-black py-1 px-2 hover:bg-primary/10"
-                  >
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              {multiple && (
-                <div className="absolute top-0 right-0 p-1 opacity-0 group-hover/select:opacity-100 transition-opacity">
-                  <span className="text-[9px] bg-black/10 px-1 rounded text-gray-400">
-                    Ctrl+Click
-                  </span>
-                </div>
+                  onChange?.({ target: { value: values.join(", ") } } as any);
+                } else {
+                  onChange?.(e);
+                }
+              }}
+              disabled={disabled}
+              className={`w-full bg-transparent outline-none text-sm text-text-primary font-medium appearance-none ${multiple ? "min-h-[100px] py-1" : ""}`}
+            >
+              {!multiple && (
+                <option value="" className="text-text-muted">
+                  Select {label.toLowerCase()}
+                </option>
               )}
-            </div>
+              {options.map((opt, idx) => (
+                <option
+                  key={idx}
+                  value={opt.value}
+                  className="bg-surface text-text-primary py-1.5 px-3"
+                >
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           ) : (
             // NORMAL INPUT
-            <div className="flex items-center gap-2">
-              {Icon && <Icon className="w-3.5 h-3.5 text-black/40 shrink-0" />}
+            <div className="flex items-center gap-2.5 w-full">
+              {Icon && <Icon className="w-3.5 h-3.5 text-text-muted group-focus-within/input:text-primary transition-colors shrink-0" />}
 
               <input
                 type={type}
@@ -142,18 +131,18 @@ const InputField: React.FC<Props & { multiple?: boolean }> = ({
                 disabled={disabled}
                 min={min}
                 max={max}
-                className={`w-full bg-transparent outline-none text-black text-sm placeholder:text-black/30 ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                placeholder={placeholder ?? `Enter ${label}...`}
+                className="w-full bg-transparent outline-none text-sm text-text-primary placeholder:text-text-muted/40 font-medium"
+                placeholder={placeholder ?? `Enter ${label.toLowerCase()}...`}
               />
             </div>
           )}
         </div>
       </div>
 
-      {/* ERROR MESSAGE (Reserved space) */}
-      <div className="min-h-[14px] px-1 overflow-hidden">
+      {/* ERROR MESSAGE */}
+      <div className="min-h-[16px] px-1">
         {errorMessage && (
-          <p className="text-red-500 text-[10px] font-bold leading-none mt-1 transition-all duration-200">
+          <p className="text-error text-[10px] font-black uppercase tracking-widest leading-none mt-1 animate-slide-up">
             {errorMessage}
           </p>
         )}

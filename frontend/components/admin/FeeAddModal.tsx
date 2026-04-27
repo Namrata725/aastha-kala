@@ -80,21 +80,20 @@ const TogglePill: React.FC<{
   options: { label: string; value: string }[];
   value: string; onChange: (v: string) => void; disabled?: boolean; size?: "sm" | "xs";
 }> = ({ options, value, onChange, disabled, size = "sm" }) => (
-  <div className="inline-flex bg-gray-100 rounded-lg p-0.5 gap-0.5">
+  <div className="inline-flex bg-background border border-border rounded-lg p-1 gap-1">
     {options.map(o => (
       <button key={o.value} type="button" disabled={disabled} onClick={() => onChange(o.value)}
-        className={`${size === "xs" ? "px-2 py-1 text-[10px]" : "px-3 py-1.5 text-xs"} font-semibold rounded-md transition-all disabled:opacity-40 ${value === o.value ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}>
+        className={`${size === "xs" ? "px-2.5 py-1 text-[10px]" : "px-4 py-1.5 text-xs"} font-black uppercase tracking-wider rounded-md transition-all disabled:opacity-40 ${value === o.value ? "bg-primary text-white shadow-md shadow-primary/20" : "text-text-muted hover:text-text-secondary hover:bg-surface-hover"}`}>
         {o.label}
       </button>
     ))}
   </div>
 );
 
-/* ─── Checkbox ────────────────────────────────────────────── */
 const Checkbox: React.FC<{ checked: boolean; onChange: () => void; disabled?: boolean }> = ({ checked, onChange, disabled }) => (
   <button type="button" disabled={disabled} onClick={onChange}
-    className={`w-[18px] h-[18px] rounded-[5px] border-2 flex items-center justify-center transition-all flex-shrink-0 ${checked ? "bg-gray-900 border-gray-900" : "border-gray-300 bg-white hover:border-gray-400"} ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}>
-    {checked && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+    className={`w-4 h-4 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0 ${checked ? "bg-primary border-primary shadow-sm shadow-primary/20" : "border-border bg-surface hover:border-primary/50"} ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}>
+    {checked && <Check className="w-3 h-3 text-white" strokeWidth={4} />}
   </button>
 );
 
@@ -117,20 +116,21 @@ const MethodDropdown: React.FC<{ value: string; onChange: (v: string) => void }>
   return (
     <div ref={ref} className="relative">
       <button type="button" onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 bg-white hover:border-gray-300 transition-colors">
-        <cur.icon className="w-3.5 h-3.5 text-gray-500" />
-        <span className="text-[12px] font-semibold text-gray-700">{cur.label}</span>
-        <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        className="flex items-center gap-3 border border-border rounded-lg px-3 py-2 bg-background hover:bg-surface-hover hover:border-primary/50 transition-all cursor-pointer shadow-sm">
+        <cur.icon className="w-3.5 h-3.5 text-primary" />
+        <span className="text-xs font-black uppercase tracking-wider text-text-primary">{cur.label}</span>
+        <ChevronDown className={`w-3.5 h-3.5 text-text-muted transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1 w-[180px]">
+        <div className="absolute left-0 top-full mt-2 bg-surface border border-border rounded-lg shadow-xl z-50 py-1 w-48 animate-scale-in">
           {METHODS.map(m => {
             const Ic = m.icon;
             return (
               <button key={m.key} type="button" onClick={() => { onChange(m.key); setOpen(false); }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium transition-colors ${m.key === value ? "bg-gray-50 text-gray-900" : "text-gray-600 hover:bg-gray-50"}`}>
-                <Ic className="w-3.5 h-3.5" />{m.label}
-                {m.key === value && <Check className="w-3 h-3 ml-auto text-gray-500" />}
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-black uppercase tracking-wider transition-all ${m.key === value ? "bg-primary/10 text-primary" : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"}`}>
+                <Ic className="w-3.5 h-3.5" />
+                <span className="flex-1 text-left">{m.label}</span>
+                {m.key === value && <Check className="w-3.5 h-3.5" />}
               </button>
             );
           })}
@@ -473,19 +473,32 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4 font-sans">
-      <div className="bg-white w-full max-w-[1080px] max-h-[93vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-brand-deep/30 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in">
+      <div className="bg-surface w-full max-w-[1100px] max-h-[94vh] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-white/20 animate-scale-in">
 
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white flex-shrink-0">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface/80 backdrop-blur-sm sticky top-0 z-20">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gray-900 rounded-xl flex items-center justify-center"><Receipt className="w-[18px] h-[18px] text-white" /></div>
+            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shadow-inner">
+              <Receipt className="w-5 h-5 text-primary" />
+            </div>
             <div>
-              <h2 className="text-[15px] font-bold text-gray-900">{fee ? "Edit Payment" : "Record Payment"}</h2>
-              <p className="text-[11px] text-gray-400 mt-0.5">{selectedStudent ? `Processing for ${selectedStudent.name}` : "Select a student to begin"}</p>
+              <h2 className="text-lg font-black text-text-primary tracking-tight">{fee ? "Edit Payment Record" : "New Payment Entry"}</h2>
+              <p className="text-[10px] text-text-muted font-black uppercase tracking-widest mt-0.5">
+                {selectedStudent ? (
+                  <>Processing for <span className="text-primary">{selectedStudent.name}</span></>
+                ) : (
+                  "Manage fees and billing"
+                )}
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X className="w-4 h-4 text-gray-400" /></button>
+          <button 
+            onClick={onClose} 
+            className="w-8 h-8 flex items-center justify-center hover:bg-error/10 hover:text-error rounded-md transition-all duration-300 text-text-muted cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Body */}
@@ -493,59 +506,59 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
           <div className="p-6 space-y-5">
 
             {/* 1. Student */}
-            <section className="space-y-2.5">
-              <div className="flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-md bg-gray-900 text-white flex items-center justify-center text-[11px] font-bold">1</span>
-                <h3 className="text-[13px] font-bold text-gray-800">Student Details</h3>
+            <section className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center text-xs font-black shadow-lg shadow-primary/20">1</span>
+                <h3 className="text-[15px] font-black text-text-primary tracking-tight">Student Selection</h3>
               </div>
               {!fee && !selectedStudent ? (
                 <div ref={dropdownRef} className="relative">
-                  <div className="flex items-center gap-2.5 border border-gray-200 rounded-xl px-3.5 py-2.5 bg-white focus-within:border-gray-400 focus-within:ring-2 focus-within:ring-gray-100 transition-all">
-                    <Search className="w-4 h-4 text-gray-300" />
-                    <input type="text" value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setDropdownOpen(true); }} onFocus={() => setDropdownOpen(true)} placeholder="Search by name or class..." className="flex-1 bg-transparent outline-none text-sm placeholder:text-gray-300 text-gray-800" />
+                  <div className="flex items-center gap-3 border border-border rounded-lg px-3 py-2 bg-background focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/5 transition-all shadow-sm group">
+                    <Search className="w-4 h-4 text-text-muted group-focus-within:text-primary transition-colors" />
+                    <input type="text" value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setDropdownOpen(true); }} onFocus={() => setDropdownOpen(true)} placeholder="Search by name or class..." className="flex-1 bg-transparent outline-none text-sm placeholder:text-text-muted text-text-primary font-medium" />
                   </div>
                   {dropdownOpen && filteredStudents.length > 0 && (
-                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-52 overflow-y-auto py-1">
+                    <div className="absolute left-0 right-0 top-full mt-2 bg-surface border border-border rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto py-1 animate-scale-in custom-scrollbar">
                       {filteredStudents.slice(0, 50).map(s => (
                         <button key={s.id} onClick={() => { setSelectedStudent(s); setSelectedStudentId(s.id.toString()); setDropdownOpen(false); fetchFeeInfo(s.id.toString()); }}
-                          className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm flex items-center justify-between transition-colors">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600">{initials(s.name)}</div>
-                            <span className="font-medium text-gray-800">{s.name}</span>
+                          className="w-full text-left px-4 py-3 hover:bg-surface-hover text-sm flex items-center justify-between transition-colors border-b border-border/50 last:border-0 group">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-xs font-black text-primary transition-transform group-hover:scale-110">{initials(s.name)}</div>
+                            <span className="font-bold text-text-primary group-hover:text-primary transition-colors">{s.name}</span>
                           </div>
-                          <span className="text-[11px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md font-medium">{s.classes}</span>
+                          <span className="text-[10px] text-text-muted bg-background px-2.5 py-1 rounded-lg font-black uppercase tracking-wider">{s.classes}</span>
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-3.5 p-3.5 bg-gray-50 border border-gray-100 rounded-xl">
-                  <div className="w-11 h-11 rounded-xl bg-gray-900 text-white flex items-center justify-center font-bold text-xs">{initials(selectedStudent?.name ?? "??")}</div>
+                <div className="flex items-center gap-4 p-3 bg-primary/5 border border-primary/10 rounded-xl animate-fade-in group hover:bg-primary/10 transition-colors">
+                  <div className="w-12 h-12 rounded-lg bg-primary text-white flex items-center justify-center font-black text-base shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">{initials(selectedStudent?.name ?? "??")}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{selectedStudent?.name}</p>
-                    <p className="text-[11px] text-gray-400 font-medium">{selectedStudent?.classes}</p>
+                    <p className="text-[15px] font-black text-text-primary tracking-tight">{selectedStudent?.name}</p>
+                    <p className="text-[10px] text-text-muted font-black uppercase tracking-widest mt-0.5">{selectedStudent?.classes}</p>
                   </div>
                   {!fee && (
                     <button onClick={() => { setSelectedStudent(null); setSelectedStudentId(""); setFeeInfo(null); setProgEntries([]); setCheckedIds(new Set()); setTotalPayInput(""); }}
-                      className="text-[11px] font-semibold text-gray-500 hover:text-gray-900 bg-white border border-gray-200 px-3 py-1.5 rounded-lg transition-colors">Change</button>
+                      className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-white bg-white hover:bg-primary border border-primary/20 px-3 py-1.5 rounded-lg transition-all shadow-sm cursor-pointer">Change</button>
                   )}
                 </div>
               )}
             </section>
 
             {/* 2. Fee Breakdown */}
-            <section className="space-y-3">
+            <section className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-6 h-6 rounded-md bg-gray-900 text-white flex items-center justify-center text-[11px] font-bold">2</span>
-                  <h3 className="text-[13px] font-bold text-gray-800">Fee Breakdown</h3>
+                <div className="flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center text-xs font-black shadow-lg shadow-primary/20">2</span>
+                  <h3 className="text-[15px] font-black text-text-primary tracking-tight">Fee Breakdown</h3>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <MethodDropdown value={paymentMethod} onChange={setPaymentMethod} />
-                  <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
-                    <Calendar className="w-3.5 h-3.5 text-gray-300" />
-                    <input type="text" value={progPeriod} onChange={e => setProgPeriod(e.target.value)} className="bg-transparent outline-none text-[12px] font-medium w-36 text-gray-700" placeholder="Billing period..." />
+                  <div className="flex items-center gap-3 border border-border rounded-xl px-4 py-2.5 bg-background shadow-inner">
+                    <Calendar className="w-4 h-4 text-text-muted" />
+                    <input type="text" value={progPeriod} onChange={e => setProgPeriod(e.target.value)} className="bg-transparent outline-none text-xs font-bold text-text-primary w-36" placeholder="Billing period..." />
                   </div>
                 </div>
               </div>
@@ -789,59 +802,81 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
             </section>
 
             {/* 3. Notes */}
-            <section className="space-y-2.5">
-              <div className="flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-md bg-gray-200 text-gray-600 flex items-center justify-center text-[11px] font-bold"><MessageSquare className="w-3 h-3" /></span>
-                <h3 className="text-[13px] font-bold text-gray-800">Notes</h3>
+            <section className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center text-xs font-black shadow-lg shadow-primary/20"><MessageSquare className="w-4 h-4" /></span>
+                <h3 className="text-[15px] font-black text-text-primary tracking-tight">Additional Notes</h3>
               </div>
-              <textarea value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Optional payment notes..."
-                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[12px] outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100 resize-none h-[68px] bg-white placeholder:text-gray-300" rows={2} />
+              <textarea value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Add any specific details or remarks about this payment..."
+                className="w-full border border-border rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all resize-none h-24 bg-background placeholder:text-text-muted" rows={3} />
             </section>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-white flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Total cost</p>
-                <p className="text-lg font-extrabold text-gray-400 tracking-tight">{fmt(calculations.progBaseSum + (calculations.hasAdm ? calculations.admBaseNum : 0))}</p>
+        <div className="px-8 py-6 border-t border-border bg-surface/80 backdrop-blur-sm sticky bottom-0">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="flex flex-wrap items-center gap-6">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Total cost</span>
+                <span className="text-xl font-black text-text-primary tracking-tight">{fmt(calculations.progBaseSum + (calculations.hasAdm ? calculations.admBaseNum : 0))}</span>
               </div>
-              <div className="flex items-center text-gray-300 text-lg font-light">−</div>
-              <div>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Discount</p>
-                <p className="text-lg font-extrabold text-blue-500 tracking-tight">{fmt(calculations.totalDiscount)}</p>
+              <div className="text-border text-lg font-light hidden sm:block">−</div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Discount</span>
+                <span className="text-xl font-black text-primary tracking-tight">{fmt(calculations.totalDiscount)}</span>
               </div>
-              <div className="flex items-center text-gray-300 text-lg font-light">=</div>
-              <div>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Final Bill</p>
-                <p className="text-lg font-extrabold text-gray-900 tracking-tight">{fmt(calculations.grandTotal)}</p>
+              <div className="text-border text-lg font-light hidden sm:block">=</div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Final Bill</span>
+                <span className="text-xl font-black text-text-primary tracking-tight">{fmt(calculations.grandTotal)}</span>
               </div>
-              <div className="w-px h-9 bg-gray-100 mx-1" />
-              <div>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Collecting</p>
-                <p className="text-lg font-extrabold text-emerald-600 tracking-tight">{fmt(calculations.totalCollected)}</p>
+              <div className="w-px h-10 bg-border hidden sm:block mx-1" />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Collecting</span>
+                <span className="text-xl font-black text-success tracking-tight">{fmt(calculations.totalCollected)}</span>
               </div>
-              <div className="w-px h-9 bg-gray-100 mx-1" />
-              <div>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Balance Due</p>
-                <p className={`text-lg font-extrabold tracking-tight ${calculations.grandDue > 0 ? "text-amber-600" : calculations.grandDue < 0 ? "text-emerald-600" : "text-emerald-600"}`}>
+              <div className="w-px h-10 bg-border hidden sm:block mx-1" />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Balance Due</span>
+                <span className={`text-xl font-black tracking-tight ${calculations.grandDue > 0 ? "text-warning" : "text-success"}`}>
                   {calculations.grandDue < 0 ? `+${fmt(Math.abs(calculations.grandDue))} Credit` : fmt(calculations.grandDue)}
-                </p>
+                </span>
               </div>
             </div>
-            <button onClick={handleSubmit} disabled={loading || !selectedStudentId}
-              className="flex items-center gap-2 px-7 py-3 bg-gray-900 hover:bg-black text-white rounded-xl text-[13px] font-bold transition-all shadow-lg shadow-gray-900/10 disabled:opacity-40 disabled:cursor-not-allowed">
-              <CreditCard className="w-4 h-4" />
-              {loading ? "Processing..." : fee ? "Update Payment" : "Record Payment"}
-            </button>
+
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+              <button
+                onClick={onClose}
+                className="flex-1 sm:flex-none px-6 py-3.5 text-sm font-black uppercase tracking-widest text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded-2xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={loading || !selectedStudentId}
+                className={`flex-1 sm:flex-none px-8 py-3.5 bg-primary text-white rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-xl shadow-primary/25 hover:bg-primary-hover hover:-translate-y-1 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer`}
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-4 h-4" />
+                    <span>{fee ? "Update Payment" : "Record Payment"}</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-          <div className="mt-3 bg-gray-100 rounded-full h-1 overflow-hidden">
-            <div className="h-1 rounded-full transition-all duration-500 ease-out"
+          
+          <div className="mt-4 bg-background border border-border rounded-full h-2 overflow-hidden shadow-inner">
+            <div className="h-full rounded-full transition-all duration-1000 ease-out"
               style={{
                 width: `${calculations.grandTotal > 0 ? Math.min(100, (calculations.totalCollected / calculations.grandTotal) * 100) : 0}%`,
-                backgroundColor: calculations.totalCollected >= calculations.grandTotal && calculations.grandTotal > 0 ? "#10b981" : "#6366f1",
+                backgroundColor: calculations.totalCollected >= calculations.grandTotal && calculations.grandTotal > 0 ? "var(--success)" : "var(--primary)",
               }} />
           </div>
         </div>

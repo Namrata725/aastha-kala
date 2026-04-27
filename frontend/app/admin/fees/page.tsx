@@ -239,87 +239,76 @@ const FeesPage = () => {
   })), [fees, pagination.currentPage, pagination.itemsPerPage]);
 
   return (
-    <div className="space-y-5">
-
-      <header className="flex flex-col lg:flex-row justify-between items-center p-4 lg:p-6 bg-white border border-gray-200 rounded-2xl lg:rounded-3xl gap-6 shadow-sm">
+    <div className="space-y-6 animate-fade-in">
+      <header className="flex flex-col lg:flex-row justify-between items-center p-6 bg-surface border border-border rounded-xl gap-6 shadow-sm">
         <div className="flex flex-col text-center lg:text-left">
-          <h1 className="text-xl lg:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
+          <h1 className="text-xl lg:text-2xl font-black text-text-primary tracking-tight">
             Fees & Billing
           </h1>
-          <p className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-1">Manage student payments and billing records</p>
+          <p className="text-xs text-text-muted font-medium mt-1">Manage student payments and billing records</p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
           <div className="relative w-full sm:w-64 group">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-600 transition-colors" />
+            <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search student..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 border-none rounded-2xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-purple-500/20 transition shadow-inner"
+              className="w-full bg-background border border-border rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none"
             />
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <select
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value as any)}
-              className="flex-1 sm:flex-none px-4 py-3 text-sm bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-purple-500/20 transition shadow-inner cursor-pointer font-bold"
-            >
-              <option value="all">Status</option>
-              <option value="paid">Paid</option>
-              <option value="pending">Pending</option>
-            </select>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value as any)}
+                className="w-full px-4 py-2 text-sm bg-background border border-border rounded-lg focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none cursor-pointer font-bold appearance-none"
+              >
+                <option value="all">All Status</option>
+                <option value="paid">Paid</option>
+                <option value="pending">Pending</option>
+              </select>
+            </div>
             <button
               onClick={() => { setFeeToEdit(null); setFeeModalOpen(true); }}
-              className="flex-1 sm:flex-none px-6 py-3 text-sm bg-secondary text-white rounded-2xl shadow-lg shadow-secondary/20 hover:bg-black active:scale-95 flex items-center justify-center gap-2 transition-all font-bold whitespace-nowrap"
+              className="flex-1 sm:flex-none px-6 py-2 text-[11px] bg-primary text-white rounded-lg shadow-lg shadow-primary/20 hover:bg-primary-hover hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 transition-all font-black uppercase tracking-widest cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-4 h-4" />
-              <span>Add</span>
+              <span>Add New</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Collected</p>
-            <p className="text-xl font-black text-gray-900 mt-1">Rs. {summary.total_collected.toLocaleString()}</p>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: "Total Collected", value: summary.total_collected, icon: TrendingUp, color: "success", prefix: "Rs. " },
+          { label: "Total Pending", value: summary.total_pending, icon: TrendingDown, color: "warning", prefix: "Rs. " },
+          { label: "Paid Entries", value: summary.paid_count, icon: BarChart3, color: "success" },
+          { label: "Unpaid Entries", value: summary.pending_count, icon: CreditCard, color: "warning" },
+        ].map((stat, i) => (
+          <div 
+            key={stat.label} 
+            className="bg-surface rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-all duration-300 animate-slide-up group"
+            style={{ animationDelay: `${i * 100}ms` }}
+          >
+            <div className="flex items-center justify-between">
+              <div className={`w-10 h-10 rounded-lg bg-${stat.color === 'success' ? 'success' : 'warning'}/10 flex items-center justify-center transition-transform group-hover:scale-110`}>
+                <stat.icon className={`w-5 h-5 text-${stat.color === 'success' ? 'success' : 'warning'}`} />
+              </div>
+              <span className="text-[9px] font-black text-text-muted uppercase tracking-widest">{stat.label}</span>
+            </div>
+            <div className="mt-3">
+              <h3 className="text-xl font-black text-text-primary tracking-tight">
+                {stat.prefix}{stat.value.toLocaleString()}
+              </h3>
+            </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-success" />
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pending</p>
-            <p className="text-xl font-black text-orange-500 mt-1">Rs. {summary.total_pending.toLocaleString()}</p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
-            <TrendingDown className="w-5 h-5 text-warning" />
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Paid Entries</p>
-            <p className="text-xl font-black text-emerald-600 mt-1">{summary.paid_count}</p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-success" />
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Unpaid</p>
-            <p className="text-xl font-black text-amber-500 mt-1">{summary.pending_count}</p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
-            <CreditCard className="w-5 h-5 text-warning" />
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Table Card */}
