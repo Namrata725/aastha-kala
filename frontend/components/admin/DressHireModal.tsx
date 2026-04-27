@@ -9,6 +9,7 @@ interface Dress {
   id?: number;
   title: string;
   order: number;
+  phone: string;
   images?: string[];
 }
 
@@ -31,6 +32,7 @@ const DressHireModal: React.FC<Props> = ({
 
   const [title, setTitle] = useState("");
   const [order, setOrder] = useState(0);
+  const [phone, setPhone] = useState("");
 
   const [images, setImages] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
@@ -44,9 +46,11 @@ const DressHireModal: React.FC<Props> = ({
     if (dress) {
       setTitle(dress.title);
       setOrder(dress.order);
+      setPhone(dress.phone || "");
       setExistingImages(dress.images || []);
     } else {
       setTitle("");
+      setPhone("");
       setOrder(0);
       setExistingImages([]);
     }
@@ -71,7 +75,9 @@ const DressHireModal: React.FC<Props> = ({
     });
 
     if (isDuplicate) {
-      toast.error(`The order number ${order} is already assigned to another dress.`);
+      toast.error(
+        `The order number ${order} is already assigned to another dress.`,
+      );
       return;
     }
 
@@ -85,6 +91,7 @@ const DressHireModal: React.FC<Props> = ({
       const formData = new FormData();
       formData.append("title", title);
       formData.append("order", order.toString());
+      formData.append("phone", phone);
 
       images.forEach((img) => formData.append("images[]", img));
       removedImages.forEach((img, i) =>
@@ -146,9 +153,15 @@ const DressHireModal: React.FC<Props> = ({
           />
 
           <InputField
+            label="Phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+          <InputField
             label="Order"
             type="number"
             value={order}
+            min={1}
             onChange={(e) => setOrder(Number(e.target.value))}
           />
 

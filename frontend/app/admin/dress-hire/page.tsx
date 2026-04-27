@@ -3,7 +3,13 @@
 import React, { useEffect, useState } from "react";
 import Table from "@/components/layout/Table";
 import DeleteConfirmationModal from "@/components/layout/DeleteConfirmationModal";
-import { Plus, GripVertical, Pencil, Trash2, Image as ImageIcon } from "lucide-react";
+import {
+  Plus,
+  GripVertical,
+  Pencil,
+  Trash2,
+  Image as ImageIcon,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import DressHireModal from "@/components/admin/DressHireModal";
 
@@ -29,6 +35,7 @@ interface Dress {
   id: number;
   title: string;
   order: number;
+  phone: string;
   images: string[];
 }
 
@@ -80,6 +87,7 @@ const SortableRow = ({
       <td className="px-4 py-3 text-sm text-gray-800 font-medium">
         {index + 1}
       </td>
+
       <td className="px-4 py-3">
         {dress.images?.length ? (
           <div className="relative w-10 h-10">
@@ -102,6 +110,10 @@ const SortableRow = ({
       </td>
       <td className="px-4 py-3 text-sm text-gray-800 font-bold whitespace-nowrap">
         {dress.title}
+      </td>
+
+      <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+        {dress.phone || "-"}
       </td>
       <td className="px-4 py-3">
         <span className="text-xs font-bold bg-primary/10 text-primary px-2 py-1 rounded-md">
@@ -144,7 +156,7 @@ const Page = () => {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const [formModalOpen, setFormModalOpen] = useState(false);
@@ -196,7 +208,7 @@ const Page = () => {
       const newIndex = dresses.findIndex((d) => d.id === over.id);
 
       const newDresses = arrayMove(dresses, oldIndex, newIndex);
-      
+
       // Update the order property locally for immediate feedback
       const updatedDresses = newDresses.map((d, index) => ({
         ...d,
@@ -212,14 +224,17 @@ const Page = () => {
           order: d.order,
         }));
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/dress-hire/reorder`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/admin/dress-hire/reorder`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ orders }),
           },
-          body: JSON.stringify({ orders }),
-        });
+        );
 
         if (!res.ok) throw new Error("Synchronization failed");
         toast.success("Order updated");
@@ -306,18 +321,33 @@ const Page = () => {
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
                   <th className="w-10 px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500"></th>
-                  <th className="w-12 px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">SN</th>
-                  <th className="w-20 px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Preview</th>
-                  <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Title</th>
-                  <th className="w-24 px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Order</th>
-                  <th className="w-24 px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
+                  <th className="w-12 px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    SN
+                  </th>
+                  <th className="w-20 px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    Preview
+                  </th>
+                  <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    Title
+                  </th>
+                  <th className="w-24 px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    Phone
+                  </th>
+                  <th className="w-24 px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    Order
+                  </th>
+                  <th className="w-24 px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {loading ? (
                   Array.from({ length: 3 }).map((_, idx) => (
                     <tr key={idx} className="animate-pulse">
-                       <td colSpan={6} className="px-4 py-4"><div className="h-10 bg-gray-50 rounded-xl" /></td>
+                      <td colSpan={6} className="px-4 py-4">
+                        <div className="h-10 bg-gray-50 rounded-xl" />
+                      </td>
                     </tr>
                   ))
                 ) : (
@@ -340,7 +370,9 @@ const Page = () => {
             </table>
             {!loading && dresses.length === 0 && (
               <div className="py-20 text-center">
-                 <p className="text-gray-400 font-medium">No dresses found. Add your first dress hire entry!</p>
+                <p className="text-gray-400 font-medium">
+                  No dresses found. Add your first dress hire entry!
+                </p>
               </div>
             )}
           </div>
@@ -353,7 +385,7 @@ const Page = () => {
         onClose={() => setFormModalOpen(false)}
         onSuccess={fetchDresses}
         dress={editingDress}
-        existingOrders={dresses.map(d => d.order)}
+        existingOrders={dresses.map((d) => d.order)}
       />
 
       {/* delete Modal */}

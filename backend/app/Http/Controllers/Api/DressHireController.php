@@ -37,6 +37,7 @@ class DressHireController extends Controller
     {
         $validator=Validator::make($request->all(),[
             'title'=>'required|string|max:255',
+            'phone' => 'nullable|string',
             'order'=>'nullable|integer|min:0|unique:dress_hires,order',
             'images'=>'nullable|array',
             'images.*'=>'image|mimes:jpg,jpeg,png,webp|max:5120',
@@ -60,6 +61,7 @@ class DressHireController extends Controller
 
         $dress=DressHire::create([
             'title'=>$validated['title'],
+            'phone' => $validated['phone'] ?? null,
             'order'=>$validated['order'] ?? 0,
             'images'=>$imagePaths
         ]);
@@ -99,6 +101,7 @@ class DressHireController extends Controller
             $validator = Validator::make($request->all(), [
             'title' => 'sometimes|required|string|max:255',
             'order' => 'nullable|integer|min:0|unique:dress_hires,order,' . $id,
+            'phone' => 'nullable|string',
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'removed_images' => 'nullable|array',
@@ -136,6 +139,7 @@ class DressHireController extends Controller
             
             $dress->update([
                 'title' => $validated['title'] ?? $dress->title,
+                'phone' => array_key_exists('phone', $validated) ? $validated['phone']: $dress->phone,
                 'order' => $validated['order'] ?? $dress->order,
                 'images' => array_values($existingImages),
             ]);
