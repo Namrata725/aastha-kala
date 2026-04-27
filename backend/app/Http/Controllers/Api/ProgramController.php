@@ -65,6 +65,39 @@ class ProgramController extends Controller
             'sub_programs.*.schedules'   => 'nullable|array',
         ]);
 
+        $validator->after(function ($validator) use ($request) {
+            $schedules = $request->input('schedules', []);
+            $subPrograms = $request->input('sub_programs', []);
+            $allSlots = [];
+            
+            if (empty($subPrograms)) {
+                foreach ($schedules as $index => $s) {
+                    if (!empty($s['instructor_id']) && !empty($s['start_time']) && !empty($s['end_time'])) {
+                        $allSlots[] = ['instructor_id' => $s['instructor_id'], 'start_time' => $s['start_time'], 'end_time' => $s['end_time'], 'key' => "schedules.{$index}.instructor_id"];
+                    }
+                }
+            }
+            
+            foreach ($subPrograms as $spIndex => $sp) {
+                $spSchedules = $sp['schedules'] ?? [];
+                foreach ($spSchedules as $sIndex => $s) {
+                    if (!empty($s['instructor_id']) && !empty($s['start_time']) && !empty($s['end_time'])) {
+                        $allSlots[] = ['instructor_id' => $s['instructor_id'], 'start_time' => $s['start_time'], 'end_time' => $s['end_time'], 'key' => "sub_programs.{$spIndex}.schedules.{$sIndex}.instructor_id"];
+                    }
+                }
+            }
+            foreach ($allSlots as $i => $slot1) {
+                foreach ($allSlots as $j => $slot2) {
+                    if ($i === $j) continue;
+                    if ($slot1['instructor_id'] == $slot2['instructor_id']) {
+                        if ($slot1['start_time'] < $slot2['end_time'] && $slot1['end_time'] > $slot2['start_time']) {
+                            $validator->errors()->add($slot1['key'], 'Instructor assigned to overlapping slot in this form.');
+                        }
+                    }
+                }
+            }
+        });
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -180,6 +213,41 @@ class ProgramController extends Controller
             'sub_programs.*.program_fee' => 'nullable|numeric|min:0',
             'sub_programs.*.schedules'   => 'nullable|array',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            $schedules = $request->input('schedules', []);
+            $subPrograms = $request->input('sub_programs', []);
+            $allSlots = [];
+            
+            // Only collect main schedules if there are no sub-programs
+            // If sub-programs exist, main schedules are auto-calculated mirrors
+            if (empty($subPrograms)) {
+                foreach ($schedules as $index => $s) {
+                    if (!empty($s['instructor_id']) && !empty($s['start_time']) && !empty($s['end_time'])) {
+                        $allSlots[] = ['instructor_id' => $s['instructor_id'], 'start_time' => $s['start_time'], 'end_time' => $s['end_time'], 'key' => "schedules.{$index}.instructor_id"];
+                    }
+                }
+            }
+            
+            foreach ($subPrograms as $spIndex => $sp) {
+                $spSchedules = $sp['schedules'] ?? [];
+                foreach ($spSchedules as $sIndex => $s) {
+                    if (!empty($s['instructor_id']) && !empty($s['start_time']) && !empty($s['end_time'])) {
+                        $allSlots[] = ['instructor_id' => $s['instructor_id'], 'start_time' => $s['start_time'], 'end_time' => $s['end_time'], 'key' => "sub_programs.{$spIndex}.schedules.{$sIndex}.instructor_id"];
+                    }
+                }
+            }
+            foreach ($allSlots as $i => $slot1) {
+                foreach ($allSlots as $j => $slot2) {
+                    if ($i === $j) continue;
+                    if ($slot1['instructor_id'] == $slot2['instructor_id']) {
+                        if ($slot1['start_time'] < $slot2['end_time'] && $slot1['end_time'] > $slot2['start_time']) {
+                            $validator->errors()->add($slot1['key'], 'Instructor assigned to overlapping slot in this form.');
+                        }
+                    }
+                }
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([

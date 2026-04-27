@@ -4,35 +4,15 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
 import { 
-  Plus, 
-  Trash2, 
-  Upload, 
-  X,
-  Clock,
-  User,
-  Wallet,
-  Activity,
-  AlertCircle,
-  Hash,
-  BookOpen,
-  Captions,
-  FileType,
-  Layout,
-  Layers,
-  Image as ImageIcon
+  Plus, Trash2, Upload, X, Clock, User, Wallet, 
+  Activity, AlertCircle, Hash, BookOpen, Captions, 
+  Layout, Layers, ImageIcon, ChevronDown, Save, Calendar
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -58,165 +38,22 @@ interface SubProgram {
   schedules: Schedule[];
 }
 
-// --- Sub-components ---
-
 function ErrorMessage({ message }: { message?: string }) {
   if (!message) return null;
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: -5 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      className="flex items-center gap-1.5 text-red-500 text-[11px] font-medium mt-1 ml-1"
-    >
+    <p className="flex items-center gap-1 text-xs text-red-500 mt-1">
       <AlertCircle className="size-3" />
       {message}
-    </motion.div>
+    </p>
   );
 }
 
-function FieldLabel({ label, icon: Icon, required }: { label: string, icon?: any, required?: boolean }) {
+function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
-    <div className="flex items-center gap-2 mb-1.5 ml-0.5">
-      {Icon && <Icon className="size-3 text-muted-foreground/60" />}
-      <span className="text-xs font-medium text-muted-foreground/90 tracking-tight">
-        {label}
-        {required && <span className="text-red-500/60 ml-0.5">*</span>}
-      </span>
-    </div>
-  );
-}
-
-function MultiInput({ 
-  label, 
-  values, 
-  onChange, 
-  icon: Icon, 
-  placeholder,
-  error,
-  required,
-  className
-}: { 
-  label: string; 
-  values: string[]; 
-  onChange: (vals: string[]) => void; 
-  icon: any;
-  placeholder?: string;
-  error?: string;
-  required?: boolean;
-  className?: string;
-}) {
-  const [inputValue, setInputValue] = React.useState("");
-
-  const addTag = () => {
-    if (inputValue.trim() && !values.includes(inputValue.trim())) {
-      onChange([...values, inputValue.trim()]);
-      setInputValue("");
-    }
-  };
-
-  const removeTag = (index: number) => {
-    onChange(values.filter((_, i) => i !== index));
-  };
-
-  return (
-    <div className={cn("space-y-1", className)}>
-      <FieldLabel label={label} icon={Icon} required={required} />
-      <div className="flex gap-2">
-        <Input 
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
-          placeholder={placeholder}
-          className={cn("h-10 rounded-xl bg-background border-border text-sm px-4", error && "border-red-400/40")}
-        />
-        <Button type="button" onClick={addTag} size="icon" className="shrink-0 rounded-xl h-10 w-10 bg-primary hover:bg-primary/90 text-white shadow-sm transition-transform active:scale-90 cursor-pointer">
-          <Plus className="size-4" />
-        </Button>
-      </div>
-      
-      {values.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-1.5 max-h-[60px] overflow-y-auto custom-scrollbar">
-          <AnimatePresence>
-            {values.filter(v => v).map((tag, i) => (
-              <motion.div 
-                key={`${tag}-${i}`}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="flex items-center gap-1 bg-muted/30 hover:bg-muted/50 text-foreground/60 px-2 py-0.5 rounded-lg text-[10px] font-medium border border-border group transition-all"
-              >
-                <span>{tag}</span>
-                <button type="button" onClick={() => removeTag(i)} className="text-muted-foreground/30 hover:text-red-500 transition-colors">
-                  <X className="size-2.5" />
-                </button>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
-      <ErrorMessage message={error} />
-    </div>
-  );
-}
-
-function ImageUpload({ 
-  label, 
-  value, 
-  onChange,
-  icon: Icon
-}: { 
-  label: string; 
-  value: string | null; 
-  onChange: (file: File | null) => void;
-  icon?: any;
-}) {
-  const [preview, setPreview] = React.useState<string | null>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-
-  const getImageUrl = (val: string | null) => {
-    if (!val) return null;
-    if (val.startsWith('data:') || val.startsWith('blob:')) return val;
-    if (val.startsWith('http')) return val;
-    const base = IMAGE_BASE?.replace(/\/$/, "");
-    const path = val.replace(/^\/+/, "").replace(/^storage\//, "");
-    return `${base}/${path}`;
-  };
-
-  const displayImage = preview || getImageUrl(value);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onChange(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  return (
-    <div className="space-y-1">
-      <FieldLabel label={label} icon={Icon} />
-      <div 
-        className="relative group cursor-pointer border border-dashed border-muted-foreground/20 rounded-xl overflow-hidden hover:border-primary/50 hover:bg-muted/30 transition-all w-full aspect-video flex items-center justify-center bg-muted/10 shadow-sm"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        {displayImage ? (
-          <img src={displayImage} alt={label} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-        ) : (
-          <div className="flex flex-col items-center gap-2 text-muted-foreground/20 transition-colors group-hover:text-primary/40">
-            <ImageIcon className="size-6" />
-            <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground/40">Cover Image</span>
-          </div>
-        )}
-        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
-        {displayImage && (
-          <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
-            <div className="bg-white/90 text-primary px-3 py-1 rounded-lg text-[9px] font-medium shadow-lg">Change Image</div>
-          </div>
-        )}
-      </div>
-    </div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
   );
 }
 
@@ -225,16 +62,18 @@ function ImageUpload({
 export function ProgramForm({ 
   initialData, 
   onSuccess,
-  onCancel
+  onCancel,
+  isViewMode = false
 }: { 
   initialData?: any,
   onSuccess: () => void,
-  onCancel: () => void
+  onCancel: () => void,
+  isViewMode?: boolean
 }) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [instructors, setInstructors] = React.useState<Instructor[]>([]);
   
-  // State
+  // Form state
   const [title, setTitle] = React.useState(initialData?.title || "");
   const [description, setDescription] = React.useState(initialData?.description || "");
   const [programFee, setProgramFee] = React.useState(initialData?.program_fee || "");
@@ -242,6 +81,7 @@ export function ProgramForm({
   const [isActive, setIsActive] = React.useState(initialData?.is_active ?? true);
   const [speciality, setSpeciality] = React.useState<string[]>(initialData?.speciality || []);
   const [image, setImage] = React.useState<File | null>(null);
+  const [newSpeciality, setNewSpeciality] = React.useState("");
   const [schedules, setSchedules] = React.useState<Schedule[]>(initialData?.schedules?.map((s: any) => ({
     ...s,
     start_time: s.start_time?.substring(0, 5) || "",
@@ -257,7 +97,6 @@ export function ProgramForm({
   })) || []);
 
   const [errors, setErrors] = React.useState<Record<string, string[]>>({});
-  const [conflicts, setConflicts] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
     fetchInstructors();
@@ -273,6 +112,17 @@ export function ProgramForm({
     } catch (error) {
       console.error("Failed to fetch instructors", error);
     }
+  };
+
+  const addSpeciality = () => {
+    if (newSpeciality.trim() && !speciality.includes(newSpeciality.trim())) {
+      setSpeciality([...speciality, newSpeciality.trim()]);
+      setNewSpeciality("");
+    }
+  };
+
+  const removeSpeciality = (index: number) => {
+    setSpeciality(speciality.filter((_, i) => i !== index));
   };
 
   const handleSave = async () => {
@@ -336,272 +186,516 @@ export function ProgramForm({
     }
   };
 
-  const checkConflict = async (index: string, instructorId: string | number, start: string, end: string) => {
-    if (!instructorId || !start || !end) {
-      setConflicts(prev => { const next = {...prev}; delete next[index]; return next; });
-      return;
-    }
-    try {
-      const res = await fetch(`${API_URL}/admin/instructors/${instructorId}/check-conflict?start_time=${start}&end_time=${end}${initialData?.id ? `&exclude_program_id=${initialData.id}` : ""}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      const data = await res.json();
-      if (data.conflict) {
-        setConflicts(prev => ({ ...prev, [index]: data.message }));
-      } else {
-        setConflicts(prev => { const next = {...prev}; delete next[index]; return next; });
-      }
-    } catch (error) {}
+  const addSchedule = () => {
+    setSchedules([...schedules, { start_time: "09:00", end_time: "10:00", instructor_id: "" }]);
   };
 
-  const addSchedule = () => setSchedules([...schedules, { start_time: "07:00", end_time: "08:00", instructor_id: "" }]);
-  const removeSchedule = (i: number) => setSchedules(schedules.filter((_, idx) => idx !== i));
+  const removeSchedule = (i: number) => {
+    setSchedules(schedules.filter((_, idx) => idx !== i));
+  };
 
-  const addSubProgram = () => setSubPrograms([...subPrograms, { title: "", description: "", program_fee: "", schedules: [] }]);
-  const removeSubProgram = (i: number) => setSubPrograms(subPrograms.filter((_, idx) => idx !== i));
+  const addSubProgram = () => {
+    setSubPrograms([...subPrograms, { title: "", description: "", program_fee: "", schedules: [] }]);
+  };
+  
+  const removeSubProgram = (i: number) => {
+    setSubPrograms(subPrograms.filter((_, idx) => idx !== i));
+  };
+  
   const addSubSchedule = (subIdx: number) => {
     const newSubs = [...subPrograms];
-    newSubs[subIdx].schedules.push({ start_time: "07:00", end_time: "08:00", instructor_id: "" });
+    newSubs[subIdx].schedules.push({ start_time: "09:00", end_time: "10:00", instructor_id: "" });
+    setSubPrograms(newSubs);
+  };
+
+  const removeSubSchedule = (subIdx: number, slotIdx: number) => {
+    const newSubs = [...subPrograms];
+    newSubs[subIdx].schedules = newSubs[subIdx].schedules.filter((_, i) => i !== slotIdx);
     setSubPrograms(newSubs);
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto px-4 pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 px-2">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground/90">{initialData ? 'Edit Program' : 'New Program'}</h1>
-          <p className="text-xs text-muted-foreground/60 font-medium">Global Course Management System</p>
-        </div>
+    <div className="bg-white rounded-2xl shadow-xl overflow-hidden w-full max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="px-8 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+        <h2 className="text-2xl font-bold text-gray-900">
+          {initialData ? 'Edit Program' : 'Create New Program'}
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Fill in the details below to {initialData ? 'update' : 'create'} your program
+        </p>
       </div>
 
-      <Card className="border border-border/50 shadow-sm bg-card rounded-2xl overflow-hidden">
-        <CardHeader className="p-6 border-b border-border/10 bg-muted/5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-xl text-primary shadow-sm"><Layout className="size-4.5" /></div>
-            <CardTitle className="text-base font-bold text-foreground/80">Program Configuration</CardTitle>
-          </div>
-        </CardHeader>
-
-        <CardContent className="p-6 space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Left Column: Title & Description */}
-            <div className="lg:col-span-8 space-y-6">
-              <div className="space-y-1">
-                <FieldLabel label="Program Title" icon={Captions} required />
-                <Input 
-                  value={title} 
-                  onChange={e => setTitle(e.target.value)}
-                  placeholder="e.g. Classical Vocal"
-                  className={cn("h-10 rounded-xl bg-background border-border text-sm px-4 placeholder:text-muted-foreground/60", errors.title && "border-red-400/40")}
+      {/* Form Content */}
+      <div className={cn("p-8 space-y-8", isViewMode && "pointer-events-none")}>
+        {/* Basic Information */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <Layout className="size-5 text-blue-600" />
+            Basic Information
+          </h3>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-4">
+              <div>
+                <FieldLabel label="Program Title" required />
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g., Classical Vocal Training"
+                  className="w-full h-11 text-base"
                 />
                 <ErrorMessage message={errors.title?.[0]} />
               </div>
-              <div className="space-y-1">
-                <FieldLabel label="Description" icon={BookOpen} />
-                <Textarea 
-                  value={description} 
-                  onChange={e => setDescription(e.target.value)}
-                  placeholder="Course curriculum and goals..."
-                  className="min-h-[140px] rounded-xl bg-background p-4 text-sm resize-none border-border placeholder:text-muted-foreground/60"
+              
+              <div>
+                <FieldLabel label="Description" />
+                <Textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe the program, its objectives, and what students will learn..."
+                  rows={4}
+                  className="text-base"
                 />
                 <ErrorMessage message={errors.description?.[0]} />
               </div>
             </div>
 
-            {/* Right Column: Banner Image */}
-            <div className="lg:col-span-4">
-              <ImageUpload label="Banner Media" value={initialData?.image} onChange={setImage} icon={Upload} />
+            <div>
+              <FieldLabel label="Program Image" />
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                {image || initialData?.image ? (
+                  <div className="relative">
+                    <img
+                      src={image ? URL.createObjectURL(image) : (initialData?.image ? (initialData.image.startsWith('http') ? initialData.image : `${IMAGE_BASE?.replace(/\/$/, "")}/${initialData.image.replace(/^\/+/, "")}`) : '')}
+                      alt="Program"
+                      className="w-full h-40 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setImage(null)}
+                      className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full text-white hover:bg-black/80 transition-colors"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="cursor-pointer block py-8">
+                    <Upload className="size-10 text-gray-400 mx-auto mb-3" />
+                    <span className="text-sm text-gray-500">Click to upload image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setImage(e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
             </div>
           </div>
+        </div>
 
-          <div className="h-px bg-border/40" />
-
-          {/* Row 2: Specialities, Monthly Fee, Admission Fee, Status */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-            <MultiInput 
-              label="Specialities" 
-              values={speciality} 
-              onChange={setSpeciality} 
-              icon={Hash} 
-              placeholder="Add tag..." 
-              className="lg:col-span-1"
-            />
-
-            <div className="space-y-1">
-              <FieldLabel label="Monthly Fee" icon={Wallet} required />
+        {/* Pricing & Status */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <Wallet className="size-5 text-blue-600" />
+            Pricing & Status
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div>
+              <FieldLabel label="Monthly Fee" required />
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 text-[10px] font-bold tracking-tighter italic">RS</span>
-                <Input 
-                  type="number" 
-                  value={programFee} 
-                  onChange={e => setProgramFee(e.target.value)}
-                  className="h-10 pl-11 rounded-xl bg-background border-border text-sm font-medium"
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rs.</span>
+                <Input
+                  type="number"
+                  value={programFee}
+                  onChange={(e) => setProgramFee(e.target.value)}
+                  className="pl-8 h-11 text-base"
+                  placeholder="0"
                 />
               </div>
               <ErrorMessage message={errors.program_fee?.[0]} />
             </div>
 
-            <div className="space-y-1">
-              <FieldLabel label="Admission Fee" icon={Wallet} />
+            <div>
+              <FieldLabel label="Admission Fee" />
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 text-[10px] font-bold tracking-tighter italic">RS</span>
-                <Input 
-                  type="number" 
-                  value={admissionFee} 
-                  onChange={e => setAdmissionFee(e.target.value)}
-                  className="h-10 pl-11 rounded-xl bg-background border-border text-sm font-medium"
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rs.</span>
+                <Input
+                  type="number"
+                  value={admissionFee}
+                  onChange={(e) => setAdmissionFee(e.target.value)}
+                  className="pl-8 h-11 text-base"
+                  placeholder="0"
                 />
               </div>
             </div>
 
-            <div className="flex items-center gap-3 bg-primary/5 p-3 rounded-xl border border-primary/10 h-10 mt-7">
-              <Activity className={cn("size-3.5", isActive ? "text-primary" : "text-muted-foreground/40")} />
-              <div className="flex-1">
-                <p className="text-[11px] font-medium text-muted-foreground/90 leading-none">Catalog Status</p>
-                <p className="text-[9px] text-muted-foreground/40 font-medium leading-none mt-1">{isActive ? 'Public' : 'Hidden'}</p>
-              </div>
-              <button 
-                type="button" 
+            <div>
+              <FieldLabel label="Status" />
+              <button
+                type="button"
                 onClick={() => setIsActive(!isActive)}
                 className={cn(
-                  "w-8 h-4 rounded-full transition-colors relative shrink-0",
-                  isActive ? "bg-primary" : "bg-muted-foreground/30"
+                  "w-full px-4 py-2 text-left rounded-lg border transition-all h-11",
+                  isActive 
+                    ? "bg-green-50 border-green-300 text-green-700 hover:bg-green-100" 
+                    : "bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100"
                 )}
               >
-                <motion.div 
-                  animate={{ x: isActive ? 18 : 2 }}
-                  className="w-3 h-3 bg-white rounded-full absolute top-0.5 shadow-sm"
-                />
+                <div className="flex items-center justify-between">
+                  <span>{isActive ? 'Active' : 'Inactive'}</span>
+                  <div className={cn(
+                    "w-8 h-4 rounded-full transition-colors relative",
+                    isActive ? "bg-green-500" : "bg-gray-400"
+                  )}>
+                    <div className={cn(
+                      "absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform",
+                      isActive ? "translate-x-4" : "translate-x-0.5"
+                    )} />
+                  </div>
+                </div>
               </button>
             </div>
           </div>
+        </div>
 
-          <div className="h-px bg-border/40" />
-
-          {/* Schedules Section */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-primary/10 rounded-xl text-primary"><Clock className="size-4" /></div>
-                <h3 className="text-sm font-medium text-muted-foreground/90">Program Slots</h3>
-              </div>
-              <Button type="button" variant="outline" size="sm" onClick={addSchedule} className="h-8 rounded-lg gap-1.5 text-[10px] font-bold border-primary/20 text-primary hover:bg-primary/5">
-                <Plus className="size-3" /> Add Slot
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 gap-3">
-              {schedules.map((s, i) => (
-                <div key={i} className="flex flex-col sm:flex-row gap-3 p-3 bg-muted/5 rounded-xl border border-border/40 relative group">
-                  <div className="flex-1 grid grid-cols-2 gap-3">
-                    <Input type="time" value={s.start_time} onChange={e => {
-                      const next = [...schedules]; next[i].start_time = e.target.value; setSchedules(next);
-                      checkConflict(`main_${i}`, s.instructor_id, e.target.value, s.end_time);
-                    }} className="h-9 rounded-lg bg-background text-xs" />
-                    <Input type="time" value={s.end_time} onChange={e => {
-                      const next = [...schedules]; next[i].end_time = e.target.value; setSchedules(next);
-                      checkConflict(`main_${i}`, s.instructor_id, s.start_time, e.target.value);
-                    }} className="h-9 rounded-lg bg-background text-xs" />
-                  </div>
-                  <div className="flex-[2]">
-                    <select value={s.instructor_id} onChange={e => {
-                      const next = [...schedules]; next[i].instructor_id = e.target.value; setSchedules(next);
-                      checkConflict(`main_${i}`, e.target.value, s.start_time, s.end_time);
-                    }} className="w-full h-9 rounded-lg bg-background border border-border px-3 text-xs font-medium appearance-none text-muted-foreground/90">
-                      <option value="">Select Instructor</option>
-                      {instructors.map(inst => <option key={inst.id} value={inst.id}>{inst.name}</option>)}
-                    </select>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={() => removeSchedule(i)} className="h-9 w-9 text-muted-foreground/30 hover:text-red-500 transition-colors">
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                  {conflicts[`main_${i}`] && <div className="absolute -bottom-2 left-6 bg-red-500 text-white text-[8px] px-2 py-0.5 rounded shadow-sm font-medium">{conflicts[`main_${i}`]}</div>}
-                </div>
-              ))}
-              {schedules.length === 0 && (
-                <div className="text-center py-6 border border-dashed border-border/40 rounded-xl text-muted-foreground/30 text-[10px] font-medium tracking-widest uppercase">
-                  Timeline Empty
-                </div>
-              )}
-            </div>
+        {/* Specialities */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <Hash className="size-5 text-blue-600" />
+            Specialities
+          </h3>
+          
+          <div className="flex gap-3">
+            <Input
+              value={newSpeciality}
+              onChange={(e) => setNewSpeciality(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addSpeciality()}
+              placeholder="Add a speciality (e.g., Beginner, Advanced)"
+              className="flex-1 h-11 text-base"
+            />
+            <Button 
+              type="button" 
+              onClick={addSpeciality} 
+              className="bg-primary hover:bg-primary/90 text-white px-6 h-11"
+            >
+              <Plus className="size-4 mr-2" />
+              Add
+            </Button>
           </div>
-
-          <div className="h-px bg-border/40" />
-
-          {/* Sub Programs Section */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-primary/10 rounded-xl text-primary"><Layers className="size-4" /></div>
-                <h3 className="text-sm font-medium text-muted-foreground/90">Sub Programs</h3>
-              </div>
-              <Button type="button" variant="outline" size="sm" onClick={addSubProgram} className="h-8 rounded-lg gap-1.5 text-[10px] font-bold border-primary/20 text-primary hover:bg-primary/5">
-                <Plus className="size-3" /> Add Sub
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 gap-4">
-              {subPrograms.map((sp, i) => (
-                <div key={i} className="p-5 bg-muted/5 rounded-xl border border-border/40 relative space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                       <FieldLabel label="Sub Title" />
-                       <Input value={sp.title} onChange={e => { const next = [...subPrograms]; next[i].title = e.target.value; setSubPrograms(next); }} placeholder="e.g. Evening" className="h-9 bg-background text-xs placeholder:text-muted-foreground/60" />
-                    </div>
-                    <div className="space-y-1">
-                       <FieldLabel label="Sub Fee" />
-                       <Input type="number" value={sp.program_fee} onChange={e => { const next = [...subPrograms]; next[i].program_fee = e.target.value; setSubPrograms(next); }} placeholder="Fee amount" className="h-9 bg-background text-xs font-medium placeholder:text-muted-foreground/60" />
-                    </div>
-                    <div className="space-y-1 lg:col-span-1">
-                       <FieldLabel label="Sub Description" />
-                       <Input 
-                          value={sp.description} 
-                          onChange={e => { const next = [...subPrograms]; next[i].description = e.target.value; setSubPrograms(next); }} 
-                          placeholder="Short details..." 
-                          className="h-9 bg-background text-xs placeholder:text-muted-foreground/60" 
-                       />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center px-0.5">
-                      <p className="text-[10px] font-medium text-muted-foreground/40 tracking-tight italic">Batch Slots</p>
-                      <button type="button" onClick={() => addSubSchedule(i)} className="text-[10px] font-bold text-primary/60 hover:text-primary transition-colors">+ Add Slot</button>
-                    </div>
-                    <div className="grid grid-cols-1 gap-2">
-                      {sp.schedules.map((s, si) => (
-                        <div key={si} className="flex gap-2 bg-background/50 p-1.5 rounded-lg border border-border/20 shadow-sm">
-                          <Input type="time" value={s.start_time} onChange={e => { const next = [...subPrograms]; next[i].schedules[si].start_time = e.target.value; setSubPrograms(next); }} className="h-8 text-[10px] w-24" />
-                          <Input type="time" value={s.end_time} onChange={e => { const next = [...subPrograms]; next[i].schedules[si].end_time = e.target.value; setSubPrograms(next); }} className="h-8 text-[10px] w-24" />
-                          <select value={s.instructor_id} onChange={e => { const next = [...subPrograms]; next[i].schedules[si].instructor_id = e.target.value; setSubPrograms(next); }} className="h-8 rounded-md bg-background border border-border px-2 text-[10px] flex-1 appearance-none text-muted-foreground/90">
-                            <option value="">Instructor</option>
-                            {instructors.map(inst => <option key={inst.id} value={inst.id}>{inst.name}</option>)}
-                          </select>
-                          <button type="button" onClick={() => { const next = [...subPrograms]; next[i].schedules = next[i].schedules.filter((_, idx) => idx !== si); setSubPrograms(next); }} className="text-muted-foreground/30 hover:text-red-500 p-1 transition-colors">
-                            <Trash2 className="size-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button type="button" onClick={() => removeSubProgram(i)} className="absolute top-4 right-4 text-muted-foreground/20 hover:text-red-500 transition-colors">
-                    <X className="size-3.5" />
+          
+          {speciality.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {speciality.map((s, i) => (
+                <span key={i} className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm">
+                  {s}
+                  <button 
+                    onClick={() => removeSpeciality(i)} 
+                    className="hover:text-red-500 transition-colors"
+                  >
+                    <X className="size-3" />
                   </button>
-                </div>
+                </span>
               ))}
             </div>
-          </div>
-        </CardContent>
+          )}
+        </div>
 
-        <CardFooter className="p-6 border-t border-border/10 bg-muted/5 flex justify-end gap-3">
-          <Button variant="outline" onClick={onCancel} className="px-6 h-10 rounded-xl text-xs font-semibold">Cancel</Button>
+        {/* Schedules */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Clock className="size-5 text-blue-600" />
+              Schedule
+            </h3>
+            {subPrograms.length === 0 && (
+              <Button 
+                type="button" 
+                onClick={addSchedule} 
+                className="bg-primary hover:bg-primary/90 text-white px-6 h-11"
+              >
+                <Plus className="size-4 mr-2" />
+                Add Time Slot
+              </Button>
+            )}
+          </div>
+          
+          {subPrograms.length > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700">
+              <AlertCircle className="size-4 inline mr-2" />
+              Schedules are managed through sub-programs below. Main program slots will be automatically calculated.
+            </div>
+          )}
+          
+          <div className="space-y-3">
+            {schedules.map((schedule, index) => (
+              <div key={index} className="flex gap-3 items-start">
+                <div className="flex-1 grid grid-cols-2 gap-3">
+                  <Input
+                    type="time"
+                    value={schedule.start_time}
+                    onChange={(e) => {
+                      const newSchedules = [...schedules];
+                      newSchedules[index].start_time = e.target.value;
+                      setSchedules(newSchedules);
+                    }}
+                    disabled={subPrograms.length > 0}
+                    className="h-11 text-base"
+                  />
+                  <Input
+                    type="time"
+                    value={schedule.end_time}
+                    onChange={(e) => {
+                      const newSchedules = [...schedules];
+                      newSchedules[index].end_time = e.target.value;
+                      setSchedules(newSchedules);
+                    }}
+                    disabled={subPrograms.length > 0}
+                    className="h-11 text-base"
+                  />
+                </div>
+                <div className="flex-1 relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                  <select
+                    value={schedule.instructor_id}
+                    onChange={(e) => {
+                      const newSchedules = [...schedules];
+                      newSchedules[index].instructor_id = e.target.value;
+                      setSchedules(newSchedules);
+                    }}
+                    disabled={subPrograms.length > 0}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-11 text-base bg-white appearance-none"
+                  >
+                    <option value="">Select Instructor</option>
+                    {instructors.map(inst => (
+                      <option key={inst.id} value={inst.id}>{inst.name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+                </div>
+                <ErrorMessage message={errors[`schedules.${index}.instructor_id`]?.[0]} />
+                {subPrograms.length === 0 && schedules.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeSchedule(index)}
+                    className="text-gray-400 hover:text-red-500 h-11 w-11"
+                  >
+                    <Trash2 className="size-5" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Sub Programs */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Layers className="size-5 text-blue-600" />
+              Sub Programs
+            </h3>
+            <Button 
+              type="button" 
+              onClick={addSubProgram} 
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
+              <Plus className="size-4 mr-2" />
+              Add Sub Program
+            </Button>
+          </div>
+          
+          <div className="space-y-4">
+            {subPrograms.map((subProgram, index) => (
+              <div key={index} className="border border-gray-200 rounded-xl p-5 space-y-4 bg-gray-50/30">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <FieldLabel label="Sub Program Title" required />
+                    <Input
+                      value={subProgram.title}
+                      onChange={(e) => {
+                        const newSubs = [...subPrograms];
+                        newSubs[index].title = e.target.value;
+                        setSubPrograms(newSubs);
+                      }}
+                      placeholder="e.g., Beginner Level, Advanced Course"
+                      className="h-11 text-base"
+                    />
+                    <ErrorMessage message={errors[`sub_programs.${index}.title`]?.[0]} />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeSubProgram(index)}
+                    className="text-red-500 ml-3 mt-6"
+                  >
+                    <Trash2 className="size-5" />
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel label="Program Fee" />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">Rs.</span>
+                      <Input
+                        type="number"
+                        value={subProgram.program_fee}
+                        onChange={(e) => {
+                          const newSubs = [...subPrograms];
+                          newSubs[index].program_fee = e.target.value;
+                          setSubPrograms(newSubs);
+                        }}
+                        className="pl-8 h-11 text-base"
+                        placeholder="0"
+                      />
+                    </div>
+                    <ErrorMessage message={errors[`sub_programs.${index}.program_fee`]?.[0]} />
+                  </div>
+                  <div>
+                    <FieldLabel label="Description" />
+                    <Textarea
+                      value={subProgram.description}
+                      onChange={(e) => {
+                        const newSubs = [...subPrograms];
+                        newSubs[index].description = e.target.value;
+                        setSubPrograms(newSubs);
+                      }}
+                      rows={2}
+                      className="text-base"
+                      placeholder="Brief description of this sub-program"
+                    />
+                    <ErrorMessage message={errors[`sub_programs.${index}.description`]?.[0]} />
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-medium text-gray-700">Time Slots</label>
+                    <Button
+                      type="button"
+                      onClick={() => addSubSchedule(index)}
+                      variant="outline"
+                      size="sm"
+                      className="border-primary bg-primary hover:bg-primary/90 text-white"
+                    >
+                      <Plus className="size-3 mr-1" />
+                      Add Slot
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {subProgram.schedules.map((schedule, slotIndex) => (
+                      <div key={slotIndex} className="flex gap-3 items-start">
+                        <div className="flex-1 grid grid-cols-2 gap-3">
+                          <Input
+                            type="time"
+                            value={schedule.start_time}
+                            onChange={(e) => {
+                              const newSubs = [...subPrograms];
+                              newSubs[index].schedules[slotIndex].start_time = e.target.value;
+                              setSubPrograms(newSubs);
+                            }}
+                            className="h-10"
+                          />
+                          <Input
+                            type="time"
+                            value={schedule.end_time}
+                            onChange={(e) => {
+                              const newSubs = [...subPrograms];
+                              newSubs[index].schedules[slotIndex].end_time = e.target.value;
+                              setSubPrograms(newSubs);
+                            }}
+                            className="h-10"
+                          />
+                        </div>
+                        <div className="flex-1 relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-gray-400" />
+                          <select
+                            value={schedule.instructor_id}
+                            onChange={(e) => {
+                              const newSubs = [...subPrograms];
+                              newSubs[index].schedules[slotIndex].instructor_id = e.target.value;
+                              setSubPrograms(newSubs);
+                            }}
+                            className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-10 text-sm bg-white appearance-none"
+                          >
+                            <option value="">Select Instructor</option>
+                            {instructors.map(inst => (
+                              <option key={inst.id} value={inst.id}>{inst.name}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-gray-400 pointer-events-none" />
+                        </div>
+                        <ErrorMessage message={errors[`sub_programs.${index}.schedules.${slotIndex}.instructor_id`]?.[0]} />
+                        {subProgram.schedules.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeSubSchedule(index, slotIndex)}
+                            className="text-red-500 h-10 w-10"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="px-8 py-5 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+        {isViewMode ? (
           <Button 
-            onClick={handleSave} 
-            disabled={isLoading} 
-            className="px-8 h-10 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-sm text-xs font-semibold"
+            type="button" 
+            onClick={onCancel}
+            className="bg-gray-800 text-white px-8 h-11 text-base font-medium"
           >
-            {isLoading ? <Spinner size="sm" className="mr-2" /> : initialData ? 'Update Program' : 'Create Program'}
+            Close
           </Button>
-        </CardFooter>
-      </Card>
+        ) : (
+          <>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel}
+              className="px-6 h-11 text-black bg-white border border-gray-300 hover:bg-gray-100 hover:cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={handleSave} 
+              disabled={isLoading}
+              className="bg-primary hover:bg-primary/90 text-white px-8 h-11 text-base font-medium shadow-sm hover:cursor-pointer"
+            >
+              {isLoading ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="size-4 mr-2" />
+                  {initialData ? 'Update Program' : 'Create Program'}
+                </>
+              )}
+            </Button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
