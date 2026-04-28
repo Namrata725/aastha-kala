@@ -40,7 +40,14 @@ function fmtS(n: number) { return Math.round(n).toLocaleString("en-IN"); }
 function initials(name: string) { return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(); }
 function getCurrentPeriod() {
   const d = new Date();
-  return `${d.getDate()} ${d.toLocaleString("en-US", { month: "long" })} ${d.getFullYear()}`;
+  return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+}
+
+function formatPeriodToReadable(val: string) {
+  if (!val || !val.includes("-")) return val;
+  const [y, m] = val.split("-");
+  const d = new Date(parseInt(y), parseInt(m) - 1);
+  return d.toLocaleString('default', { month: 'long', year: 'numeric' });
 }
 
 /**
@@ -402,19 +409,19 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
     if (!selectedStudentId) { toast.error("Please select a student"); return; }
     if (!calculations.hasAdm && !calculations.hasProg) { toast.error("Enter at least one fee amount"); return; }
 
-    const feeType = calculations.hasAdm && calculations.hasProg ? "billing" : calculations.hasAdm ? "admission" : "program";
-
     try {
       setLoading(true);
       const token = localStorage.getItem("token")!;
       const url = fee ? `${BASE_URL}/admin/student-fees/${fee.id}` : `${BASE_URL}/admin/student-fees`;
 
+      const feeType = fee ? fee.fee_type : (calculations.hasAdm && calculations.hasProg ? 'billing' : (calculations.hasAdm ? 'admission' : 'program'));
+
       const payload: Record<string, any> = {
         student_id: selectedStudentId,
         fee_type: feeType,
-        month_year: progPeriod,
+        month_year: formatPeriodToReadable(progPeriod),
         payment_method: paymentMethod,
-        remarks: remarks || `${feeType} — ${progPeriod}`,
+        remarks: remarks || `${feeType} — ${formatPeriodToReadable(progPeriod)}`,
       };
 
       if (calculations.hasAdm) {
@@ -566,9 +573,14 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
                 </div>
                 <div className="flex items-center gap-3">
                   <MethodDropdown value={paymentMethod} onChange={setPaymentMethod} />
-                  <div className="flex items-center gap-3 border border-border rounded-xl px-4 py-2.5 bg-background shadow-inner">
-                    <Calendar className="w-4 h-4 text-text-muted" />
-                    <input type="text" value={progPeriod} onChange={e => setProgPeriod(e.target.value)} className="bg-transparent outline-none text-xs font-bold text-text-primary w-36" placeholder="Billing period..." />
+                  <div className="flex items-center gap-3 border border-border rounded-xl px-4 py-2.5 bg-background shadow-inner relative">
+                    <Calendar className="w-4 h-4 text-text-muted absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input 
+                      type="month" 
+                      value={progPeriod} 
+                      onChange={e => setProgPeriod(e.target.value)} 
+                      className="bg-transparent outline-none text-xs font-bold text-text-primary w-36 pl-6 cursor-pointer" 
+                    />
                   </div>
                 </div>
               </div>

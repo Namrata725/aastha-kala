@@ -612,8 +612,8 @@ const StudentAddEditModal: React.FC<Props> = ({
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {programs.map(p => (
+                  <React.Fragment key={p.id}>
                     <label 
-                        key={p.id}
                         className={`flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer bg-white ${
                             isClassSelected(p.id) 
                             ? 'border-blue-500 ring-1 ring-blue-500/10 shadow-sm' 
@@ -637,17 +637,56 @@ const StudentAddEditModal: React.FC<Props> = ({
                                 </svg>
                             )}
                         </div>
-                        <span className="text-xs font-bold text-gray-700">
+                        <span className="text-xs font-black text-gray-900">
                             {p.title}
                         </span>
                     </label>
+
+                    {p.sub_programs?.map((sp: any) => (
+                      <label 
+                          key={sp.id}
+                          className={`flex items-center gap-3 p-3 ml-4 rounded-2xl border transition-all cursor-pointer bg-white ${
+                              isClassSelected(sp.id) 
+                              ? 'border-blue-500 ring-1 ring-blue-500/10 shadow-sm' 
+                              : 'border-slate-200 hover:border-blue-200 opacity-80'
+                          }`}
+                      >
+                          <div className={`w-4 h-4 rounded-md border-2 flex items-center justify-center transition-colors ${
+                              isClassSelected(sp.id) 
+                              ? 'bg-blue-600 border-blue-600' 
+                              : 'bg-slate-50 border-slate-200'
+                          }`}>
+                              <input 
+                                  type="checkbox"
+                                  className="hidden"
+                                  checked={isClassSelected(sp.id)}
+                                  onChange={() => toggleClass(sp)}
+                              />
+                              {isClassSelected(sp.id) && (
+                                  <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                              )}
+                          </div>
+                          <span className="text-[11px] font-bold text-gray-700">
+                              <span className="text-gray-300 mr-1">—</span> {sp.title}
+                          </span>
+                      </label>
+                    ))}
+                  </React.Fragment>
                 ))}
             </div>
 
             {/* Config for selected programs */}
             <div className="space-y-4 mt-6">
                 {form.enrollments?.map((e: any) => {
-                    const prog = programs.find(p => p.id === e.program_id);
+                    const allProgramsFlat = programs.reduce((acc: any[], p) => {
+                        acc.push(p);
+                        if (p.sub_programs) acc.push(...p.sub_programs);
+                        return acc;
+                    }, []);
+                    
+                    const prog = allProgramsFlat.find(p => p.id === e.program_id);
                     if (!prog) return null;
                     return (
                         <div key={e.program_id} className="p-4 bg-white rounded-2xl border border-blue-100 shadow-sm space-y-4 animate-in fade-in slide-in-from-top-2">
@@ -830,7 +869,6 @@ const StudentAddEditModal: React.FC<Props> = ({
                 value={form.duration_unit}
                 onChange={(e) => handleChange("duration_unit", e.target.value)}
                 options={[
-                    { label: "Days", value: "days" },
                     { label: "Months", value: "months" },
                     { label: "Years", value: "years" },
                 ]}

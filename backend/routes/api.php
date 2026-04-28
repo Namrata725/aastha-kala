@@ -97,6 +97,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::apiResource('students', StudentController::class);
     Route::get('/student-management/enrollments', [StudentEnrollmentController::class, 'index']);
     Route::patch('/student-management/enrollments/{id}/status', [StudentEnrollmentController::class, 'updateStatus']);
+    Route::get('/student-fees/schedules', [StudentFeeController::class, 'getSchedules']);
     Route::apiResource('student-fees', StudentFeeController::class);
     Route::get('/students/{studentId}/fee-info', [StudentFeeController::class, 'studentFeeInfo']);
 });

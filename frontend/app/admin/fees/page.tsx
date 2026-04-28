@@ -48,6 +48,12 @@ const FeesPage = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<"all" | "paid" | "pending">("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "admission" | "program">("all");
+  const [shiftFilter, setShiftFilter] = useState("all");
+  const [programFilter, setProgramFilter] = useState("all");
+  const [monthYearFilter, setMonthYearFilter] = useState("");
+
+  const [programs, setPrograms] = useState<any[]>([]);
+  const [schedules, setSchedules] = useState<any[]>([]);
 
   const [pagination, setPagination] = useState({
     currentPage: 1, totalPages: 1, totalItems: 0, itemsPerPage: 10,
@@ -107,8 +113,31 @@ const FeesPage = () => {
     }
   };
 
+  const fetchPrograms = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/programs`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      const result = await res.json();
+      const list = result.data?.data || result.data || [];
+      setPrograms(Array.isArray(list) ? list : []);
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchSchedules = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/student-fees/schedules`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      const result = await res.json();
+      setSchedules(result.data || []);
+    } catch (e) { console.error(e); }
+  };
+
   useEffect(() => {
     fetchSettings();
+    fetchPrograms();
+    fetchSchedules();
   }, []);
 
   const columns = [
@@ -129,6 +158,14 @@ const FeesPage = () => {
       let url = `${process.env.NEXT_PUBLIC_API_URL}/admin/student-fees?page=${page}`;
       if (statusFilter !== "all") url += `&status=${statusFilter}`;
       if (typeFilter !== "all") url += `&fee_type=${typeFilter}`;
+      if (shiftFilter !== "all") url += `&shift=${shiftFilter}`;
+      if (programFilter !== "all") url += `&program_id=${programFilter}`;
+      if (monthYearFilter) {
+        const [y, m] = monthYearFilter.split("-");
+        const date = new Date(parseInt(y), parseInt(m) - 1);
+        const formatted = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+        url += `&month_year=${formatted}`;
+      }
       if (studentIdParam) url += `&student_id=${studentIdParam}`;
       if (searchTerm) url += `&search=${searchTerm}`;
 
@@ -160,7 +197,7 @@ const FeesPage = () => {
   useEffect(() => {
     setLoading(true);
     fetchFees();
-  }, [statusFilter, typeFilter, studentIdParam, searchTerm]);
+  }, [statusFilter, typeFilter, shiftFilter, programFilter, monthYearFilter, studentIdParam, searchTerm]);
 
   const handleDelete = async () => {
     if (!selectedFee) return;
@@ -248,7 +285,8 @@ const FeesPage = () => {
           <p className="text-xs text-text-muted font-medium mt-1">Manage student payments and billing records</p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+        <div className="flex flex-wrap items-center gap-3 w-full">
+          {/* Search */}
           <div className="relative w-full sm:w-64 group">
             <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" />
             <input
@@ -260,26 +298,89 @@ const FeesPage = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:flex-none">
-              <select
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value as any)}
-                className="w-full px-4 py-2 text-sm bg-background border border-border rounded-lg focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none cursor-pointer font-bold appearance-none"
-              >
-                <option value="all">All Status</option>
-                <option value="paid">Paid</option>
-                <option value="pending">Pending</option>
-              </select>
-            </div>
-            <button
-              onClick={() => { setFeeToEdit(null); setFeeModalOpen(true); }}
-              className="flex-1 sm:flex-none px-6 py-2 text-[11px] bg-primary text-white rounded-lg shadow-lg shadow-primary/20 hover:bg-primary-hover hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 transition-all font-black uppercase tracking-widest cursor-pointer whitespace-nowrap"
+          {/* Status */}
+          <div className="relative flex-1 sm:flex-none">
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value as any)}
+              className="w-full px-4 py-2 text-sm bg-background border border-border rounded-lg focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none cursor-pointer font-bold appearance-none min-w-[120px]"
             >
-              <Plus className="w-4 h-4" />
-              <span>Add New</span>
-            </button>
+              <option value="all">All Status</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending</option>
+            </select>
           </div>
+
+          {/* Shift Filter */}
+          <div className="relative flex-1 sm:flex-none">
+            <select
+              value={shiftFilter}
+              onChange={e => setShiftFilter(e.target.value)}
+              className="w-full sm:w-48 px-4 py-2 text-sm bg-background border border-border rounded-lg focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none cursor-pointer font-medium appearance-none"
+            >
+              <option value="all">All Schedules</option>
+              {schedules.map(s => (
+                <option key={s.id} value={s.id}>{s.title}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Program Filter */}
+          <div className="relative flex-1 sm:flex-none">
+            <select
+              value={programFilter}
+              onChange={e => setProgramFilter(e.target.value)}
+              className="w-full sm:w-48 px-4 py-2 text-sm bg-background border border-border rounded-lg focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none cursor-pointer font-medium appearance-none"
+            >
+              <option value="all">All Programs</option>
+              {programs.map(p => (
+                <React.Fragment key={p.id}>
+                  <option value={p.id} className="font-bold">{p.title}</option>
+                  {p.sub_programs?.map((sp: any) => (
+                    <option key={sp.id} value={sp.id}>&nbsp;&nbsp;— {sp.title}</option>
+                  ))}
+                </React.Fragment>
+              ))}
+            </select>
+          </div>
+
+          {/* Month/Year Filter */}
+          <div className="relative flex-1 sm:flex-none">
+            <div className="relative">
+              <Calendar className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              <input
+                type="month"
+                value={monthYearFilter}
+                onChange={e => setMonthYearFilter(e.target.value)}
+                className="w-full sm:w-44 pl-9 pr-4 py-2 text-sm bg-background border border-border rounded-lg focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-medium cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {/* Reset button */}
+          {(shiftFilter !== 'all' || programFilter !== 'all' || monthYearFilter !== '' || statusFilter !== 'all' || searchTerm !== '') && (
+            <button 
+              onClick={() => { 
+                setShiftFilter('all'); 
+                setProgramFilter('all'); 
+                setMonthYearFilter(''); 
+                setStatusFilter('all');
+                setSearchTerm('');
+              }}
+              className="text-[10px] font-black uppercase tracking-widest text-error hover:text-error/80 transition-colors ml-auto lg:ml-0"
+            >
+              Reset
+            </button>
+          )}
+
+          {/* Add New Button */}
+          <button
+            onClick={() => { setFeeToEdit(null); setFeeModalOpen(true); }}
+            className="px-6 py-2 text-[11px] bg-primary text-white rounded-lg shadow-lg shadow-primary/20 hover:bg-primary-hover hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 transition-all font-black uppercase tracking-widest cursor-pointer whitespace-nowrap ml-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New</span>
+          </button>
         </div>
       </header>
 

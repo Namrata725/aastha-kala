@@ -21,6 +21,7 @@ class StudentFeeController extends Controller
                 SUM(total_amount) as total_amount, 
                 SUM(total_amount) as net_amount, 
                 SUM(paid_amount) as paid_amount, 
+                (SUM(total_amount) - SUM(paid_amount)) as pending_amount,
                 SUM(COALESCE(admission_fee, 0) + COALESCE(program_fee, 0)) as gross_amount,
                 (SUM(COALESCE(admission_fee, 0) + COALESCE(program_fee, 0)) - SUM(total_amount)) as discount_amount,
                 GROUP_CONCAT(DISTINCT fee_type) as fee_types,
@@ -57,6 +58,50 @@ class StudentFeeController extends Controller
             });
         }
 
+        if ($request->filled('shift')) {
+            $scheduleId = $request->shift;
+            $query->whereHas('student.enrollments.booking', function ($q) use ($scheduleId) {
+                $q->where('schedule_id', $scheduleId)
+                  ->orWhereHas('schedules', function($sq) use ($scheduleId) {
+                      $sq->where('program_schedules.id', $scheduleId);
+                  });
+            });
+        }
+
+        if ($request->filled('instructor_id')) {
+            $instructorId = $request->instructor_id;
+            $query->where(function($q) use ($instructorId) {
+                // Check if the specific program for this fee record has the instructor
+                $q->whereHas('program.instructors', function($sq) use ($instructorId) {
+                    $sq->where('instructors.id', $instructorId);
+                })
+                // OR if it's a student-level fee (like admission) check if any of their programs has the instructor
+                ->orWhere(function($sq) use ($instructorId) {
+                    $sq->whereNull('program_id')
+                       ->whereHas('student.programs.instructors', function($ssq) use ($instructorId) {
+                           $ssq->where('instructors.id', $instructorId);
+                       });
+                });
+            });
+        }
+
+        if ($request->filled('program_id')) {
+            $programId = $request->program_id;
+            $query->where(function($q) use ($programId) {
+                $q->where('program_id', $programId)
+                  ->orWhere(function($sq) use ($programId) {
+                      $sq->whereNull('program_id')
+                         ->whereHas('student.programs', function($ssq) use ($programId) {
+                             $ssq->where('programs.id', $programId);
+                         });
+                  });
+            });
+        }
+
+        if ($request->filled('month_year')) {
+            $query->where('month_year', 'like', "%{$request->month_year}%");
+        }
+
         // For complex grouped queries with HAVING, paginate handles it better if we explicitly tell it to wrap
         $fees = $query->paginate(10);
 
@@ -70,6 +115,48 @@ class StudentFeeController extends Controller
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%");
             });
+        }
+
+        if ($request->filled('shift')) {
+            $scheduleId = $request->shift;
+            $baseStatsQuery->whereHas('student.enrollments.booking', function ($q) use ($scheduleId) {
+                $q->where('schedule_id', $scheduleId)
+                  ->orWhereHas('schedules', function($sq) use ($scheduleId) {
+                      $sq->where('program_schedules.id', $scheduleId);
+                  });
+            });
+        }
+
+        if ($request->filled('instructor_id')) {
+            $instructorId = $request->instructor_id;
+            $baseStatsQuery->where(function($q) use ($instructorId) {
+                $q->whereHas('program.instructors', function($sq) use ($instructorId) {
+                    $sq->where('instructors.id', $instructorId);
+                })
+                ->orWhere(function($sq) use ($instructorId) {
+                    $sq->whereNull('program_id')
+                       ->whereHas('student.programs.instructors', function($ssq) use ($instructorId) {
+                           $ssq->where('instructors.id', $instructorId);
+                       });
+                });
+            });
+        }
+
+        if ($request->filled('program_id')) {
+            $programId = $request->program_id;
+            $baseStatsQuery->where(function($q) use ($programId) {
+                $q->where('program_id', $programId)
+                  ->orWhere(function($sq) use ($programId) {
+                      $sq->whereNull('program_id')
+                         ->whereHas('student.programs', function($ssq) use ($programId) {
+                             $ssq->where('programs.id', $programId);
+                         });
+                  });
+            });
+        }
+
+        if ($request->filled('month_year')) {
+            $baseStatsQuery->where('month_year', 'like', "%{$request->month_year}%");
         }
 
         // Summary for dashboard
@@ -458,4 +545,28 @@ class StudentFeeController extends Controller
             'message' => 'Consolidated billing record deleted successfully'
         ]);
     }
+
+    public function getSchedules()
+    {
+        $schedules = \App\Models\ProgramSchedule::with(['instructor', 'program'])
+            ->get()
+            ->map(function($s) {
+                $startTime = substr($s->start_time, 0, 5);
+                $endTime = substr($s->end_time, 0, 5);
+                $instructorName = $s->instructor ? $s->instructor->name : 'N/A';
+                return [
+                    'id' => $s->id,
+                    'title' => "{$startTime} - {$endTime} ({$instructorName})",
+                ];
+            })
+            ->unique('title')
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $schedules
+        ]);
+    }
 }
+
+
