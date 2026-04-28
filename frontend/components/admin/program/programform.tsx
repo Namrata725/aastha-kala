@@ -107,7 +107,9 @@ export function ProgramForm({
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       const data = await res.json();
-      setInstructors(data.data?.data || data.data || []);
+      const list = data.data?.data || data.data || [];
+      // Ensure only instructors are shown (those with type 'instructor')
+      setInstructors(list.filter((inst: any) => inst.employee?.type === 'instructor'));
     } catch (error) {
       console.error("Failed to fetch instructors", error);
     }

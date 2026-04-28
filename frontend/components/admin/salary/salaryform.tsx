@@ -69,8 +69,9 @@ export function SalaryForm({
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       const data = await res.json();
-      // Filter employees who should get paid (optional, but good)
-      setEmployees(data.data || []);
+      // Only show active employees for salary processing
+      const allEmps = data.data || [];
+      setEmployees(allEmps.filter((emp: any) => emp.status == 1 || emp.status === true));
     } catch (error) {
       console.error("Failed to fetch employees", error);
     } finally {
@@ -83,6 +84,11 @@ export function SalaryForm({
     setErrors({});
     
     try {
+      if (Number(amount) <= 0) {
+        setErrors({ amount: ["Please enter a valid positive amount"] });
+        setIsLoading(false);
+        return;
+      }
       const payload = {
         employee_id: employeeId,
         amount,
@@ -181,8 +187,10 @@ export function SalaryForm({
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rs.</span>
               <Input
                 type="number"
+                min="0.01"
+                step="0.01"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => setAmount(Math.max(0, Number(e.target.value)).toString())}
                 className="pl-10 h-11"
                 placeholder="0.00"
               />

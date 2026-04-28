@@ -329,7 +329,11 @@ const InstructorModal: React.FC<Props> = ({
             icon={Phone}
             required
             value={form.phone}
-            onChange={(e) => handleChange("phone", e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9+\- ]/g, '');
+              const maxLength = val.startsWith('+') ? 15 : 10;
+              handleChange("phone", val.slice(0, maxLength));
+            }}
             disabled={loading}
             error={errors.phone}
           />

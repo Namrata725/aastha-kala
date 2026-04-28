@@ -75,6 +75,18 @@ export function EmployeeForm({
     setErrors({});
     
     try {
+      if (salaryBasis === 'salary' && Number(salaryAmount) < 0) {
+        setErrors({ salary_amount: ["Salary amount cannot be negative"] });
+        setIsLoading(false);
+        return;
+      }
+      
+      if (salaryBasis === 'percentage' && (Number(percentage) < 0 || Number(percentage) > 100)) {
+        setErrors({ percentage: ["Percentage must be between 0 and 100"] });
+        setIsLoading(false);
+        return;
+      }
+
       const formData = new FormData();
       if (initialData) formData.append('_method', 'PUT');
       
@@ -179,7 +191,12 @@ export function EmployeeForm({
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                   <Input
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9+\- ]/g, '');
+                      // Limit to 10 if no + (local), or 15 if + (international)
+                      const maxLength = val.startsWith('+') ? 15 : 10;
+                      setPhone(val.slice(0, maxLength));
+                    }}
                     placeholder="+977 98..."
                     className="pl-10 h-11"
                   />
@@ -294,8 +311,9 @@ export function EmployeeForm({
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">Rs.</span>
                   <Input
                     type="number"
+                    min="0"
                     value={salaryAmount}
-                    onChange={(e) => setSalaryAmount(e.target.value)}
+                    onChange={(e) => setSalaryAmount(Math.max(0, Number(e.target.value)).toString())}
                     className="pl-10 h-11"
                     placeholder="0.00"
                   />
@@ -310,8 +328,14 @@ export function EmployeeForm({
                 <div className="relative">
                   <Input
                     type="number"
+                    min="0"
+                    max="100"
                     value={percentage}
-                    onChange={(e) => setPercentage(e.target.value)}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      if (val > 100) setPercentage("100");
+                      else setPercentage(Math.max(0, val).toString());
+                    }}
                     className="h-11"
                     placeholder="e.g. 50"
                   />
