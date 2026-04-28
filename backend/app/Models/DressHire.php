@@ -13,6 +13,7 @@ class DressHire extends Model
         'title',
         'order',
         'images',
+        'phone'
     ];
 
     protected $casts = [

@@ -12,6 +12,7 @@ type Setting = {
 type DressHireItem = {
   id: number;
   title: string;
+  phone:string;
   images: string[];
 };
 

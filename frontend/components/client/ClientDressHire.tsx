@@ -2,10 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { Image as ImageIcon, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Phone } from "lucide-react";
+import { Scan } from "lucide-react";
 
 type DressHireItem = {
   id: number;
   title: string;
+  phone: string;
   images: string[];
 };
 
@@ -20,20 +23,20 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
   const [currentImages, setCurrentImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const openModal = (images: string[], index = 0) => {
-    setCurrentImages(images.length ? images : []);
+  const [currentDress, setCurrentDress] = useState<DressHireItem | null>(null);
+
+  const openModal = (dress: DressHireItem, index = 0) => {
+    setCurrentDress(dress);
+    setCurrentImages(dress.images?.length ? dress.images : []);
     setCurrentIndex(index);
     setModalOpen(true);
   };
 
   const closeModal = () => setModalOpen(false);
 
-  const prevImage = () =>
-    setCurrentIndex((prev) => Math.max(prev - 1, 0));
+  const prevImage = () => setCurrentIndex((prev) => Math.max(prev - 1, 0));
   const nextImage = () =>
-    setCurrentIndex((prev) =>
-      Math.min(prev + 1, currentImages.length - 1)
-    );
+    setCurrentIndex((prev) => Math.min(prev + 1, currentImages.length - 1));
 
   useEffect(() => {
     if (!modalOpen) return;
@@ -50,10 +53,13 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
 
   const getFullImageUrl = (path: string) => {
     if (!path) return "";
-    
+
     if (path.startsWith("http")) {
-      // Defensive check: If production returns localhost URL due to misconfigured APP_URL, fix it
-      if (typeof window !== "undefined" && !window.location.host.includes("localhost") && path.includes("localhost")) {
+      if (
+        typeof window !== "undefined" &&
+        !window.location.host.includes("localhost") &&
+        path.includes("localhost")
+      ) {
         const relativePath = path.split("/storage/")[1] || "";
         return `${IMAGE_URL}/${relativePath}`;
       }
@@ -73,25 +79,53 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
         {dresses.map((dress) => {
           const imageUrl = getImageUrl(dress.images);
+
           return (
             <div
               key={dress.id}
-              className="border border-primary overflow-hidden shadow hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
-              onClick={() => openModal(dress.images)}
+              className="overflow-hidden bg-white shadow hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer group "
+              onClick={() => openModal(dress)}
             >
-              <div className="h-70 w-full bg-gray-100 flex items-center justify-center overflow-hidden relative">
+              {/* image */}
+              <div className="h-70 w-full bg-primary/10 flex items-center justify-center overflow-hidden relative group p-4 ">
                 {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt={dress.title}
-                    className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-105"
-                  />
+                  <>
+                    <img
+                      src={imageUrl}
+                      alt={dress.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 rounded"
+                    />
+
+                    {/* scan icon */}
+                    <div className="absolute top-2 right-2 bg-black/40 backdrop-blur-md text-white p-1.5 rounded-md border border-white/20">
+                      <Scan className="w-4 h-4" />
+                    </div>
+
+                    {/* phone  */}
+                    {dress.phone && (
+                      <a
+                        href={`tel:${dress.phone}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute top-2 left-2 flex items-center gap-1 bg-primary/70 hover:bg-primary/80 text-white text-[10px] px-2 py-1 rounded-md backdrop-blur-md transition"
+                      >
+                        <Phone className="w-3 h-3" />
+                        {dress.phone}
+                      </a>
+                    )}
+                  </>
                 ) : (
-                  <ImageIcon className="w-12 h-12 text-gray-400" />
+                  <div className="flex items-center justify-center w-full h-full">
+                    <ImageIcon className="w-12 h-12 text-gray-400" />
+                  </div>
                 )}
               </div>
-              <div className="p-1 text-center bg-primary text-white">
-                <h3 className="text-lg font-semibold">{dress.title}</h3>
+
+              {/* content */}
+              <div className="p-3 text-center space-y-1 bg-primary">
+                {/* title */}
+                <h3 className="text-sm font-semibold text-white uppercase tracking-wide">
+                  {dress.title}
+                </h3>
               </div>
             </div>
           );
@@ -100,55 +134,85 @@ const ClientDressHire: React.FC<ClientDressHireProps> = ({ dresses }) => {
 
       {/* modal */}
       {modalOpen && (
-        <div className="fixed top-[68px] inset-x-0 bottom-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 transition-all duration-300">
-          <div className="w-full h-full flex items-center justify-center">
-             {/* Close Button */}
-            <button
-              className="absolute top-3 right-3 z-20 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-all"
-              onClick={closeModal}
-            >
-              <X size={18} />
-            </button>
+        <div className="fixed top-[68px] inset-x-0 bottom-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
+          {/* close button */}
+          <button
+            onClick={closeModal}
+            className="absolute top-4 right-4 z-30 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full backdrop-blur-md transition cursor-pointer"
+          >
+            <X size={18} />
+          </button>
 
+          <div className="relative w-full h-full flex flex-col items-center justify-center px-4">
+            {/* image*/}
             {currentImages.length > 0 ? (
-              <div className="relative w-full h-full flex items-center justify-center p-6">
-                {/* Prev Button */}
+              <div className="relative flex items-center justify-center w-full">
+                {/* prev */}
                 {currentIndex > 0 && (
                   <button
-                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-all"
                     onClick={prevImage}
+                    className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 
+                     bg-white/10 hover:bg-white/20 
+                     text-white p-3 rounded-full backdrop-blur-md transition"
                   >
-                    <ChevronLeft size={24} />
+                    <ChevronLeft size={22} />
                   </button>
                 )}
 
+                {/* image */}
                 <img
                   src={getFullImageUrl(currentImages[currentIndex])}
                   alt={`Image ${currentIndex + 1}`}
-                  className="max-h-[80vh] object-contain shadow-2xl rounded-sm"
+                  className="max-h-[75vh] max-w-[90vw] object-contain 
+                   rounded-lg shadow-2xl"
                 />
 
-                {/* Next Button */}
+                {/* next */}
                 {currentIndex < currentImages.length - 1 && (
                   <button
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-all"
                     onClick={nextImage}
+                    className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 
+                     bg-white/10 hover:bg-white/20 
+                     text-white p-3 rounded-full backdrop-blur-md transition"
                   >
-                    <ChevronRight size={24} />
+                    <ChevronRight size={22} />
                   </button>
-                )}
-
-                {/* Optional: Subtle Indicator if you want it (Gallery doesn't, but helpful) */}
-                {currentImages.length > 1 && (
-                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/40 text-[9px] font-black tracking-[0.3em] uppercase transition-opacity">
-                      {currentIndex + 1} / {currentImages.length}
-                   </div>
                 )}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center text-white/50">
-                <ImageIcon className="w-16 h-16 mb-4 opacity-10" />
-                <p className="text-xs uppercase tracking-widest font-bold">No images available</p>
+              <div className="text-white/60 flex flex-col items-center gap-2">
+                <ImageIcon className="w-12 h-12 opacity-30" />
+                <p className="text-xs uppercase tracking-widest">
+                  No images available
+                </p>
+              </div>
+            )}
+
+            {currentDress && (
+              <div className="w-full mt-4 flex justify-center">
+                <div className="bg-primary/70 text-white px-4 py-3 rounded-md flex items-center gap-6 w-full max-w-2xl">
+                  {/* title */}
+                  <h2 className="flex-1 min-w-0 text-sm md:text-base font-medium uppercase tracking-wide truncate">
+                    {currentDress.title}
+                  </h2>
+
+                  {/* phone */}
+                  {currentDress.phone && (
+                    <a
+                      href={`tel:${currentDress.phone}`}
+                      className="flex items-center gap-2 text-sm font-medium hover:opacity-80 transition whitespace-nowrap flex-shrink-0"
+                    >
+                      <Phone className="w-4 h-4" />
+                      {currentDress.phone}
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+            {/* Counter */}
+            {currentImages.length > 1 && (
+              <div className="absolute bottom-4 text-white/40 text-xs tracking-widest">
+                {currentIndex + 1} / {currentImages.length}
               </div>
             )}
           </div>
