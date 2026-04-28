@@ -299,6 +299,7 @@ class StudentFeeController extends Controller
             'remarks' => 'nullable|string',
             'selected_programs' => 'nullable|array',
             'program_payments' => 'nullable|array',
+            'program_fees' => 'nullable|array',
             'program_discounts' => 'nullable|array',
             'admission_fee' => 'nullable|numeric|min:0',
             'admission_discount' => 'nullable|numeric|min:0',
@@ -322,8 +323,13 @@ class StudentFeeController extends Controller
 
         // 1. Handle Admission-wise Records
         if ($request->fee_type === 'admission' || $request->fee_type === 'billing') {
-            $setting = \App\Models\Setting::first();
-            $admBase = $setting ? (float) $setting->admission_fee : (float) $request->input('admission_fee', 0);
+            $admBase = (float) $request->input('admission_fee', 0);
+            
+            // Fallback to setting only if request admission_fee is 0 or not provided
+            if ($admBase <= 0) {
+                $setting = \App\Models\Setting::first();
+                $admBase = $setting ? (float) $setting->admission_fee : 0;
+            }
             
             if ($admBase > 0) {
                 $admDisc = (float) $request->input('admission_discount', 0);
@@ -345,10 +351,10 @@ class StudentFeeController extends Controller
 
                 $billAdjustment = $admNet - (float)$existingBill;
                 $paidAdjustment = max(0, $admPaid - (float)$existingPaid);
-                $baseAdjustment = max(0, $admBase - (float)$existingBase);
+                $baseAdjustment = $admBase - (float)$existingBase;
                 $discAdjustment = $admDisc - (float)$existingDisc;
 
-                if ($paidAdjustment > 0 || abs($billAdjustment) > 0 || $baseAdjustment > 0 || abs($discAdjustment) > 0) {
+                if ($paidAdjustment > 0 || abs($billAdjustment) > 0 || abs($baseAdjustment) > 0 || abs($discAdjustment) > 0) {
                     StudentFee::create(
                         array_merge($baseData, [
                             'fee_type' => 'admission',
@@ -378,7 +384,7 @@ class StudentFeeController extends Controller
                 $prog = \App\Models\Program::find($progId);
                 if (!$prog) continue;
 
-                $progBase = (float) $prog->program_fee;
+                $progBase = isset($request->program_fees[$progId]) ? (float)$request->program_fees[$progId] : (float) $prog->program_fee;
                 $discInfo = $programDiscounts[$progId] ?? ['amount' => 0, 'type' => 'cash'];
                 $progDisc = (float) $discInfo['amount'];
                 $progDiscType = $discInfo['type'] ?? 'cash';
@@ -399,10 +405,10 @@ class StudentFeeController extends Controller
 
                 $billAdjustment = $progNet - (float)$existingBill;
                 $paidAdjustment = max(0, $progPaid - (float)$existingPaid);
-                $baseAdjustment = max(0, $progBase - (float)$existingBase);
+                $baseAdjustment = $progBase - (float)$existingBase;
                 $discAdjustment = $progDisc - (float)$existingDisc;
 
-                if ($paidAdjustment > 0 || abs($billAdjustment) > 0 || $baseAdjustment > 0 || abs($discAdjustment) > 0) {
+                if ($paidAdjustment > 0 || abs($billAdjustment) > 0 || abs($baseAdjustment) > 0 || abs($discAdjustment) > 0) {
                     StudentFee::create(
                         array_merge($baseData, [
                             'fee_type' => 'program',
