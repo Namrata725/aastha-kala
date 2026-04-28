@@ -14,6 +14,9 @@ class StudentFeeController extends Controller
     {
         // Select consolidated records grouped by student and month/period
         $query = StudentFee::with(['student'])
+        ->whereHas('student', function($q){
+            $q->where('status', ['active', 'graduated']);
+        })
             ->selectRaw('
                 MAX(student_fees.id) as id,
                 student_id, 
