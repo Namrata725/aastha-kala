@@ -2,9 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  Plus, CreditCard, Calendar, DollarSign,
-  TrendingUp, TrendingDown, BarChart3, Search,
-  Filter
+  Plus,
+  CreditCard,
+  Calendar,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
+  Search,
+  Filter,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import Table from "@/components/layout/Table";
@@ -17,7 +23,10 @@ import { Printer } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { ThermalBill } from "@/components/admin/ThermalBill";
 
-interface Student { id: number; name: string; }
+interface Student {
+  id: number;
+  name: string;
+}
 
 interface StudentFee {
   id: number;
@@ -46,18 +55,25 @@ const FeesPage = () => {
 
   const [fees, setFees] = useState<StudentFee[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<"all" | "paid" | "pending">("all");
-  const [typeFilter, setTypeFilter] = useState<"all" | "admission" | "program">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "paid" | "pending">(
+    "all",
+  );
+  const [typeFilter, setTypeFilter] = useState<"all" | "admission" | "program">(
+    "all",
+  );
 
   const [pagination, setPagination] = useState({
-    currentPage: 1, totalPages: 1, totalItems: 0, itemsPerPage: 10,
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
   });
 
   const [summary, setSummary] = useState({
     total_collected: 0,
     total_pending: 0,
     paid_count: 0,
-    pending_count: 0
+    pending_count: 0,
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -82,7 +98,7 @@ const FeesPage = () => {
   });
 
   const triggerPrint = (row: any) => {
-    const original = fees.find(f => f.id === row.id);
+    const original = fees.find((f) => f.id === row.id);
     setPrintingFee(original);
   };
 
@@ -95,9 +111,12 @@ const FeesPage = () => {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/settings`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/settings`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
+      );
       const data = await res.json();
       if (data.success) {
         setSettings(data.data.setting);
@@ -133,8 +152,11 @@ const FeesPage = () => {
       if (searchTerm) url += `&search=${searchTerm}`;
 
       const res = await fetch(url, {
-        headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
-        cache: "no-store"
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        cache: "no-store",
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message ?? "Failed to fetch fees");
@@ -169,7 +191,7 @@ const FeesPage = () => {
       const token = localStorage.getItem("token");
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/admin/student-fees/${selectedFee.id}`,
-        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
+        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
       );
       if (!res.ok) throw new Error("Failed to delete record");
       toast.success("Record deleted");
@@ -189,54 +211,86 @@ const FeesPage = () => {
     }
   };
 
-  const formattedData = React.useMemo(() => fees.map((fee, index) => ({
-    ...fee,
-    sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
-    student_name: (
-      <div className="flex flex-col">
-        <span className="font-semibold text-gray-800 text-sm">{fee.student?.name ?? "Unknown"}</span>
-        <span className="text-[10px] text-gray-400">ID #{fee.student_id}</span>
-      </div>
-    ),
-    fee_type: (
-      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${fee.fee_type === "admission"
-          ? "bg-secondary/10 text-secondary"
-          : "bg-info/10 text-info"
-        }`}>
-        {fee.fee_type === "admission" ? "Admission" : (fee.fee_type === "program" ? "Program" : "Billing")}
-      </span>
-    ),
-    month_year: (
-      <span className="text-xs text-gray-600 font-medium">{fee.month_year ?? "—"}</span>
-    ),
-    total_amount: (
-      <span className="text-sm font-bold text-gray-900">Rs. {Number(fee.gross_amount || fee.total_amount).toLocaleString()}</span>
-    ),
-    discount: (
-      <span className="text-sm font-medium text-blue-500">
-        {Number(fee.discount_amount || 0) > 0 
-          ? `Rs. ${Number(fee.discount_amount).toLocaleString()}` 
-          : "—"}
-      </span>
-    ),
-    paid_amount: (
-      <span className="text-sm font-bold text-success">Rs. {Number(fee.paid_amount).toLocaleString()}</span>
-    ),
-    remaining: (
-        <span className={`text-sm font-bold ${Number((fee.net_amount || fee.total_amount) - fee.paid_amount) > 0 ? "text-amber-600" : "text-gray-400"}`}>
-            Rs. {Math.max(0, Number((fee.net_amount || fee.total_amount) - fee.paid_amount)).toLocaleString()}
-        </span>
-    ),
-    status: (
-      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${fee.status === "paid"
-          ? "bg-success/10 text-success"
-          : "bg-warning/10 text-warning"
-        }`}>
-        <span className={`w-1.5 h-1.5 rounded-full ${fee.status === "paid" ? "bg-success" : "bg-warning"}`} />
-        {fee.status}
-      </span>
-    ),
-  })), [fees, pagination.currentPage, pagination.itemsPerPage]);
+  const formattedData = React.useMemo(
+    () =>
+      fees.map((fee, index) => ({
+        ...fee,
+        sn: (pagination.currentPage - 1) * pagination.itemsPerPage + index + 1,
+        student_name: (
+          <div className="flex flex-col">
+            <span className="font-semibold text-gray-800 text-sm">
+              {fee.student?.name ?? "Unknown"}
+            </span>
+            <span className="text-[10px] text-gray-400">
+              ID #{fee.student_id}
+            </span>
+          </div>
+        ),
+        fee_type: (
+          <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+              fee.fee_type === "admission"
+                ? "bg-secondary/10 text-secondary"
+                : "bg-info/10 text-info"
+            }`}
+          >
+            {fee.fee_type === "admission"
+              ? "Admission"
+              : fee.fee_type === "program"
+                ? "Program"
+                : "Billing"}
+          </span>
+        ),
+        month_year: (
+          <span className="text-xs text-gray-600 font-medium">
+            {fee.month_year ?? "—"}
+          </span>
+        ),
+        total_amount: (
+          <span className="text-sm font-bold text-gray-900">
+            Rs. {Number(fee.gross_amount || fee.total_amount).toLocaleString()}
+          </span>
+        ),
+        discount: (
+          <span className="text-sm font-medium text-blue-500">
+            {Number(fee.discount_amount || 0) > 0
+              ? `Rs. ${Number(fee.discount_amount).toLocaleString()}`
+              : "—"}
+          </span>
+        ),
+        paid_amount: (
+          <span className="text-sm font-bold text-success">
+            Rs. {Number(fee.paid_amount).toLocaleString()}
+          </span>
+        ),
+        remaining: (
+          <span
+            className={`text-sm font-bold ${Number((fee.net_amount || fee.total_amount) - fee.paid_amount) > 0 ? "text-amber-600" : "text-gray-400"}`}
+          >
+            Rs.{" "}
+            {Math.max(
+              0,
+              Number((fee.net_amount || fee.total_amount) - fee.paid_amount),
+            ).toLocaleString()}
+          </span>
+        ),
+        status: (
+          <span
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+              fee.status === "paid"
+                ? "bg-success/10 text-success"
+                : "bg-warning/10 text-warning"
+            }`}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${fee.status === "paid" ? "bg-success" : "bg-warning"}`}
+            />
+            {fee.status}
+          </span>
+        ),
+      })),
+    [fees, pagination.currentPage, pagination.itemsPerPage],
+  );
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -245,7 +299,9 @@ const FeesPage = () => {
           <h1 className="text-xl lg:text-2xl font-black text-text-primary tracking-tight">
             Fees & Billing
           </h1>
-          <p className="text-xs text-text-muted font-medium mt-1">Manage student payments and billing records</p>
+          <p className="text-xs text-text-muted font-medium mt-1">
+            Manage student payments and billing records
+          </p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
@@ -264,7 +320,7 @@ const FeesPage = () => {
             <div className="relative flex-1 sm:flex-none">
               <select
                 value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value as any)}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
                 className="w-full px-4 py-2 text-sm bg-background border border-border rounded-lg focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none cursor-pointer font-bold appearance-none"
               >
                 <option value="all">All Status</option>
@@ -273,7 +329,10 @@ const FeesPage = () => {
               </select>
             </div>
             <button
-              onClick={() => { setFeeToEdit(null); setFeeModalOpen(true); }}
+              onClick={() => {
+                setFeeToEdit(null);
+                setFeeModalOpen(true);
+              }}
               className="flex-1 sm:flex-none px-6 py-2 text-[11px] bg-primary text-white rounded-lg shadow-lg shadow-primary/20 hover:bg-primary-hover hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 transition-all font-black uppercase tracking-widest cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-4 h-4" />
@@ -286,25 +345,54 @@ const FeesPage = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Collected", value: summary.total_collected, icon: TrendingUp, color: "success", prefix: "Rs. " },
-          { label: "Total Pending", value: summary.total_pending, icon: TrendingDown, color: "warning", prefix: "Rs. " },
-          { label: "Paid Entries", value: summary.paid_count, icon: BarChart3, color: "success" },
-          { label: "Unpaid Entries", value: summary.pending_count, icon: CreditCard, color: "warning" },
+          {
+            label: "Total Collected",
+            value: summary.total_collected,
+            icon: TrendingUp,
+            color: "success",
+            prefix: "Rs. ",
+          },
+          {
+            label: "Total Pending",
+            value: summary.total_pending,
+            icon: TrendingDown,
+            color: "warning",
+            prefix: "Rs. ",
+          },
+          {
+            label: "Paid Entries",
+            value: summary.paid_count,
+            icon: BarChart3,
+            color: "success",
+          },
+          {
+            label: "Unpaid Entries",
+            value: summary.pending_count,
+            icon: CreditCard,
+            color: "warning",
+          },
         ].map((stat, i) => (
-          <div 
-            key={stat.label} 
+          <div
+            key={stat.label}
             className="bg-surface rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-all duration-300 animate-slide-up group"
             style={{ animationDelay: `${i * 100}ms` }}
           >
             <div className="flex items-center justify-between">
-              <div className={`w-10 h-10 rounded-lg bg-${stat.color === 'success' ? 'success' : 'warning'}/10 flex items-center justify-center transition-transform group-hover:scale-110`}>
-                <stat.icon className={`w-5 h-5 text-${stat.color === 'success' ? 'success' : 'warning'}`} />
+              <div
+                className={`w-10 h-10 rounded-lg bg-${stat.color === "success" ? "success" : "warning"}/10 flex items-center justify-center transition-transform group-hover:scale-110`}
+              >
+                <stat.icon
+                  className={`w-5 h-5 text-${stat.color === "success" ? "success" : "warning"}`}
+                />
               </div>
-              <span className="text-[9px] font-black text-text-muted uppercase tracking-widest">{stat.label}</span>
+              <span className="text-[9px] font-black text-text-muted uppercase tracking-widest">
+                {stat.label}
+              </span>
             </div>
             <div className="mt-3">
               <h3 className="text-xl font-black text-text-primary tracking-tight">
-                {stat.prefix}{stat.value.toLocaleString()}
+                {stat.prefix}
+                {stat.value.toLocaleString()}
               </h3>
             </div>
           </div>
@@ -325,16 +413,28 @@ const FeesPage = () => {
           data={formattedData}
           loading={loading}
           actions={["view", "edit"]}
-          onView={row => { const original = fees.find(f => f.id === row.id); setFeeToView(original); setViewModalOpen(true); }}
-          onEdit={row => { const original = fees.find(f => f.id === row.id); setFeeToEdit(original); setFeeModalOpen(true); }}
-          onDelete={row => { const original = fees.find(f => f.id === row.id); setSelectedFee(original || null); setDeleteModalOpen(true); }}
+          onView={(row) => {
+            const original = fees.find((f) => f.id === row.id);
+            setFeeToView(original);
+            setViewModalOpen(true);
+          }}
+          onEdit={(row) => {
+            const original = fees.find((f) => f.id === row.id);
+            setFeeToEdit(original);
+            setFeeModalOpen(true);
+          }}
+          onDelete={(row) => {
+            const original = fees.find((f) => f.id === row.id);
+            setSelectedFee(original || null);
+            setDeleteModalOpen(true);
+          }}
           customActions={[
             {
               icon: <Printer className="w-4 h-4" />,
               label: "Print Bill",
               onClick: triggerPrint,
               color: "text-purple-600",
-            }
+            },
           ]}
         />
 
@@ -344,7 +444,7 @@ const FeesPage = () => {
             totalPages={pagination.totalPages}
             totalItems={pagination.totalItems}
             itemsPerPage={pagination.itemsPerPage}
-            onPageChange={page => fetchFees(page)}
+            onPageChange={(page) => fetchFees(page)}
           />
         </div>
       </div>
@@ -354,7 +454,11 @@ const FeesPage = () => {
         fee={feeToEdit}
         onClose={() => setFeeModalOpen(false)}
         onSuccess={() => {
-          if (searchTerm === "" && statusFilter === "all" && typeFilter === "all") {
+          if (
+            searchTerm === "" &&
+            statusFilter === "all" &&
+            typeFilter === "all"
+          ) {
             fetchFees(pagination.currentPage);
           } else {
             setSearchTerm("");
@@ -379,8 +483,11 @@ const FeesPage = () => {
         loading={deleting}
         description={`Are you sure you want to delete the payment record for ${selectedFee?.student?.name ?? "this student"}? This cannot be undone.`}
       /> */}
-      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
-        <ThermalBill ref={printRef} fee={printingFee} settings={settings} />
+      <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+        <div ref={printRef} className="print-wrapper">
+          <ThermalBill fee={printingFee} settings={settings} />
+          <ThermalBill fee={printingFee} settings={settings} />
+        </div>
       </div>
     </div>
   );

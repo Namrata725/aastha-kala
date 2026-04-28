@@ -39,15 +39,15 @@ const InstructorSection = () => {
     fetchInstructors();
   }, []);
 
-  if (loading) {
-    return (
-      <section className="bg-white px-10 py-10">
-        <div className="max-w-7xl mx-auto text-center">
-          <p className="text-gray-500">Loading instructors...</p>
-        </div>
-      </section>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <section className="bg-white ms:px-4 md:px-10 py-10">
+  //       <div className="max-w-7xl mx-auto text-center">
+  //         <p className="text-gray-500">Loading instructors...</p>
+  //       </div>
+  //     </section>
+  //   );
+  // }
 
   return (
     <section className="bg-white ms:px-4 md:px-10 py-10">
