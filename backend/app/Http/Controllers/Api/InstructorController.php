@@ -13,7 +13,10 @@ class InstructorController extends Controller
     // GET /api/instructors
     public function index()
     {
-        $instructors = Instructor::with(['availabilities', 'programs'])
+        $instructors = Instructor::whereHas('employee', function($query) {
+                $query->where('type', 'instructor');
+            })
+            ->with(['availabilities', 'programs', 'employee'])
             ->latest()
             ->paginate(10);
 
@@ -321,7 +324,12 @@ public function update(Request $request, $id)
     // GET /api/admin/instructors-schedules
     public function allSchedules()
     {
-        $instructors = Instructor::with(['availabilities', 'fixed_classes.program', 'bookings.program', 'bookings.schedules', 'bookings.schedule'])->latest()->paginate(10);
+        $instructors = Instructor::whereHas('employee', function($query) {
+                $query->where('type', 'instructor');
+            })
+            ->with(['availabilities', 'fixed_classes.program', 'bookings.program', 'bookings.schedules', 'bookings.schedule'])
+            ->latest()
+            ->paginate(10);
 
         $instructors->getCollection()->transform(function($instructor) {
             return [
