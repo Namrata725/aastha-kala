@@ -17,6 +17,13 @@ interface Schedule {
   end_time: string;
 }
 
+interface SubProgram {
+  id?: number;
+  title: string;
+  program_fee: string;
+  schedules: Schedule[];
+}
+
 interface ProgramAddEditModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -41,6 +48,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
   const [speciality, setSpeciality] = useState<string[]>([""]);
   const [isActive, setIsActive] = useState(true);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [subPrograms, setSubPrograms] = useState<SubProgram[]>([]);
   const [programFee, setProgramFee] = useState("");
   const [errors, setErrors] = useState<Record<string, string[]>>({});
 
@@ -60,6 +68,17 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
           start_time: s.start_time?.substring(0, 5) || "",
           end_time: s.end_time?.substring(0, 5) || "",
         })) || []);
+        
+        setSubPrograms(program.sub_programs?.map((sp: any) => ({
+          ...sp,
+          program_fee: sp.program_fee?.toString() ?? "",
+          schedules: sp.schedules?.map((s: any) => ({
+            ...s,
+            instructor_id: s.instructor_id ?? "",
+            start_time: s.start_time?.substring(0, 5) || "",
+            end_time: s.end_time?.substring(0, 5) || "",
+          })) || [],
+        })) || []);
       } else {
         resetForm();
       }
@@ -75,6 +94,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
     setSpeciality([""]);
     setIsActive(true);
     setSchedules([]);
+    setSubPrograms([]);
     setProgramFee("");
     setErrors({});
   };
@@ -112,25 +132,47 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
     setConflicts({});
     newSchedules.forEach((s, newIndex) => {
       if (s.instructor_id && s.start_time && s.end_time) {
-        checkConflict(newIndex, s.instructor_id, s.start_time, s.end_time);
+        checkConflict(newIndex, s.instructor_id, s.start_time, s.end_time, "main");
       }
     });
   };
 
-  const [conflicts, setConflicts] = useState<{ [key: number]: string }>({});
+  const addSubProgram = () => {
+    setSubPrograms([
+      ...subPrograms,
+      { title: "", program_fee: "", schedules: [] },
+    ]);
+  };
 
-  const checkConflict = async (index: number, instructorId: string | number, start: string, end: string) => {
+  const removeSubProgram = (index: number) => {
+    setSubPrograms(subPrograms.filter((_, i) => i !== index));
+  };
+
+  const addSubSchedule = (subIndex: number) => {
+    const newSub = [...subPrograms];
+    newSub[subIndex].schedules.push({ start_time: "07:00", end_time: "08:00", instructor_id: "" });
+    setSubPrograms(newSub);
+  };
+
+  const removeSubSchedule = (subIndex: number, scheduleIndex: number) => {
+    const newSub = [...subPrograms];
+    newSub[subIndex].schedules = newSub[subIndex].schedules.filter((_, i) => i !== scheduleIndex);
+    setSubPrograms(newSub);
+  };
+
+  const [conflicts, setConflicts] = useState<{ [key: string]: string }>({});
+
+  const checkConflict = async (index: number | string, instructorId: string | number, start: string, end: string, type: "main" | "sub" = "main") => {
     if (loading) return;
+    const conflictKey = `${type}_${index}`;
     if (!instructorId || !start || !end) {
       setConflicts(prev => {
         const newConflicts = { ...prev };
-        delete newConflicts[index];
+        delete newConflicts[conflictKey];
         return newConflicts;
       });
       return;
     }
-
-
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/instructors/${instructorId}/check-conflict?start_time=${start}&end_time=${end}${program?.id ? `&exclude_program_id=${program.id}` : ""}`, {
@@ -138,11 +180,11 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
       });
       const data = await res.json();
       if (data.conflict) {
-        setConflicts(prev => ({ ...prev, [index]: data.message }));
+        setConflicts(prev => ({ ...prev, [conflictKey]: data.message }));
       } else {
         setConflicts(prev => {
           const newConflicts = { ...prev };
-          delete newConflicts[index];
+          delete newConflicts[conflictKey];
           return newConflicts;
         });
       }
@@ -195,6 +237,19 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
       formData.append(`schedules[${i}][start_time]`, s.start_time);
       formData.append(`schedules[${i}][end_time]`, s.end_time);
       if (s.instructor_id) formData.append(`schedules[${i}][instructor_id]`, s.instructor_id.toString());
+    });
+
+    subPrograms.forEach((sp, i) => {
+      if (sp.id) formData.append(`sub_programs[${i}][id]`, sp.id.toString());
+      formData.append(`sub_programs[${i}][title]`, sp.title);
+      formData.append(`sub_programs[${i}][program_fee]`, sp.program_fee);
+      
+      sp.schedules.forEach((s, j) => {
+        if (s.id) formData.append(`sub_programs[${i}][schedules][${j}][id]`, s.id.toString());
+        formData.append(`sub_programs[${i}][schedules][${j}][start_time]`, s.start_time);
+        formData.append(`sub_programs[${i}][schedules][${j}][end_time]`, s.end_time);
+        if (s.instructor_id) formData.append(`sub_programs[${i}][schedules][${j}][instructor_id]`, s.instructor_id.toString());
+      });
     });
 
     try {
@@ -413,7 +468,6 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
               </button>
 
             </div>
-
             <div className="space-y-4">
               {schedules.map((s, index) => (
                 <div key={index} id={`schedules_${index}`} className="grid grid-cols-1 sm:grid-cols-7 gap-4 p-5 bg-white/40 rounded-2xl border border-primary/20 group hover:border-primary/40 transition relative overflow-hidden shadow-sm">
@@ -427,7 +481,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                         const newS = [...schedules];
                         newS[index].start_time = e.target.value;
                         setSchedules(newS);
-                        checkConflict(index, newS[index].instructor_id, e.target.value, s.end_time);
+                        checkConflict(index, newS[index].instructor_id, e.target.value, s.end_time, "main");
                       }}
                       disabled={loading}
                       className="w-full bg-white/60 border border-primary/20 rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition font-bold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -444,7 +498,7 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                         const newS = [...schedules];
                         newS[index].end_time = e.target.value;
                         setSchedules(newS);
-                        checkConflict(index, newS[index].instructor_id, s.start_time, e.target.value);
+                        checkConflict(index, newS[index].instructor_id, s.start_time, e.target.value, "main");
                       }}
                       disabled={loading}
                       className="w-full bg-white/60 border border-primary/20 rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition font-bold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -461,16 +515,16 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                           const newS = [...schedules];
                           newS[index].instructor_id = e.target.value;
                           setSchedules(newS);
-                          checkConflict(index, e.target.value, s.start_time, s.end_time);
+                          checkConflict(index, e.target.value, s.start_time, s.end_time, "main");
                         }}
                         disabled={loading}
-                        className={`w-full bg-white/60 border rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition cursor-pointer appearance-none font-bold italic disabled:opacity-50 disabled:cursor-not-allowed ${conflicts[index] ? 'border-red-500/50' : 'border-primary/20'}`}
+                        className={`w-full bg-white/60 border rounded-lg px-3 py-2 text-xs text-primary focus:outline-none focus:border-primary transition cursor-pointer appearance-none font-bold italic disabled:opacity-50 disabled:cursor-not-allowed ${conflicts[`main_${index}`] ? 'border-red-500/50' : 'border-primary/20'}`}
                       >
 
                         <option value="">Select Instructor</option>
                         {instructors.map(inst => <option key={inst.id} value={inst.id}>{inst.name}</option>)}
                       </select>
-                      {conflicts[index] && <p className="text-[9px] text-red-500 mt-1 font-medium">{conflicts[index]}</p>}
+                      {conflicts[`main_${index}`] && <p className="text-[9px] text-red-500 mt-1 font-medium">{conflicts[`main_${index}`]}</p>}
                     </div>
                     <button type="button" onClick={loading ? undefined : () => removeSchedule(index)} disabled={loading} className="p-2 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition group-hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed">
                       <Trash2 className="w-5 h-5 px-1 cursor-pointer" />
@@ -485,6 +539,129 @@ const ProgramAddEditModal: React.FC<ProgramAddEditModalProps> = ({
                 </div>
               )}
             </div>
+
+          <div className="border-t border-primary/20 pt-8 mt-4">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex flex-col">
+                <h3 className="text-lg font-bold text-primary tracking-tight italic flex items-center gap-2">
+                  Sub Programs (Optional)
+                </h3>
+              </div>
+              <button type="button" onClick={loading ? undefined : addSubProgram} disabled={loading} className="flex items-center gap-2 text-[10px] bg-linear-to-r from-secondary to-primary text-white px-4 py-2 rounded-lg font-black uppercase hover:opacity-90 transition active:scale-95 shadow-xl shadow-primary/10 tracking-widest italic cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                <Plus className="w-4 h-4 " /> {loading ? '...' : 'Add Sub Program'}
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {subPrograms.map((sp, subIndex) => (
+                <div key={subIndex} className="p-6 bg-primary/5 rounded-3xl border border-primary/20 space-y-4">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <InputField
+                        label="Sub Program Title"
+                        value={sp.title}
+                        onChange={(e) => {
+                          const newSub = [...subPrograms];
+                          newSub[subIndex].title = e.target.value;
+                          setSubPrograms(newSub);
+                        }}
+                        disabled={loading}
+                        placeholder="e.g. Basic Vocal"
+                      />
+                      <InputField
+                        label="Sub Program Fee"
+                        type="number"
+                        value={sp.program_fee}
+                        onChange={(e) => {
+                          const newSub = [...subPrograms];
+                          newSub[subIndex].program_fee = e.target.value;
+                          setSubPrograms(newSub);
+                        }}
+                        disabled={loading}
+                        placeholder="e.g. 1500"
+                      />
+                    </div>
+                    <button type="button" onClick={() => removeSubProgram(subIndex)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition shrink-0 mt-6">
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="pl-6 border-l-2 border-primary/20 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-xs font-bold text-primary uppercase tracking-widest italic">Sub Program Schedules</h4>
+                      <button type="button" onClick={() => addSubSchedule(subIndex)} className="text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full font-black uppercase hover:bg-primary/20 transition italic">
+                        + Add Schedule
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-3">
+                      {sp.schedules.map((s, sIndex) => (
+                        <div key={sIndex} className="grid grid-cols-1 sm:grid-cols-7 gap-3 p-3 bg-white/40 rounded-xl border border-primary/10 group">
+                          <div className="sm:col-span-2">
+                            <input
+                              type="time"
+                              value={s.start_time}
+                              onChange={(e) => {
+                                const newSub = [...subPrograms];
+                                newSub[subIndex].schedules[sIndex].start_time = e.target.value;
+                                setSubPrograms(newSub);
+                                checkConflict(`${subIndex}_${sIndex}`, s.instructor_id, e.target.value, s.end_time, "sub");
+                              }}
+                              disabled={loading}
+                              className="w-full bg-white/60 border border-primary/10 rounded-lg px-2 py-1.5 text-xs text-primary focus:outline-none focus:border-primary transition font-bold"
+                            />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <input
+                              type="time"
+                              value={s.end_time}
+                              onChange={(e) => {
+                                const newSub = [...subPrograms];
+                                newSub[subIndex].schedules[sIndex].end_time = e.target.value;
+                                setSubPrograms(newSub);
+                                checkConflict(`${subIndex}_${sIndex}`, s.instructor_id, s.start_time, e.target.value, "sub");
+                              }}
+                              disabled={loading}
+                              className="w-full bg-white/60 border border-primary/10 rounded-lg px-2 py-1.5 text-xs text-primary focus:outline-none focus:border-primary transition font-bold"
+                            />
+                          </div>
+                          <div className="sm:col-span-3 flex items-center gap-2">
+                            <select
+                              value={s.instructor_id}
+                              onChange={(e) => {
+                                const newSub = [...subPrograms];
+                                newSub[subIndex].schedules[sIndex].instructor_id = e.target.value;
+                                setSubPrograms(newSub);
+                                checkConflict(`${subIndex}_${sIndex}`, e.target.value, s.start_time, s.end_time, "sub");
+                              }}
+                              disabled={loading}
+                              className={`flex-1 bg-white/60 border rounded-lg px-2 py-1.5 text-xs text-primary focus:outline-none focus:border-primary transition font-bold italic ${conflicts[`sub_${subIndex}_${sIndex}`] ? 'border-red-500/50' : 'border-primary/10'}`}
+                            >
+                              <option value="">Select Instructor</option>
+                              {instructors.map(inst => <option key={inst.id} value={inst.id}>{inst.name}</option>)}
+                            </select>
+                            <button type="button" onClick={() => removeSubSchedule(subIndex, sIndex)} className="p-1.5 text-red-400 hover:text-red-600 transition">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                          {conflicts[`sub_${subIndex}_${sIndex}`] && (
+                            <div className="sm:col-span-7">
+                              <p className="text-[9px] text-red-500 font-medium">{conflicts[`sub_${subIndex}_${sIndex}`]}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {subPrograms.length === 0 && (
+                <div className="text-center py-6 border-2 border-dashed border-primary/10 rounded-3xl bg-primary/5">
+                  <span className="text-[10px] font-bold text-primary/30 uppercase tracking-widest italic text-center">No sub-programs added. This is optional.</span>
+                </div>
+              )}
+            </div>
+          </div>
           </div>
 
           <div className="flex justify-end gap-4 pt-10 border-t border-primary/20 mt-6">

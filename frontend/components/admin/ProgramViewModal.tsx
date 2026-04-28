@@ -315,6 +315,72 @@ const ProgramViewModal: React.FC<ProgramViewModalProps> = ({
             </div>
           </div>
 
+          {/* Sub Programs Section */}
+          <div className="border-t border-primary/20 pt-8 mt-4">
+            <div className="flex items-center gap-2 mb-6">
+              <Activity className="w-4 h-4 text-primary/40" />
+              <h3 className="text-lg font-bold text-primary tracking-tight italic">
+                Sub Programs
+              </h3>
+              {program.sub_programs?.length > 0 && (
+                <span className="ml-2 bg-primary/10 text-primary text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest">
+                  {program.sub_programs.length} {program.sub_programs.length === 1 ? "Program" : "Programs"}
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-6">
+              {program.sub_programs?.map((sp: any, spIndex: number) => (
+                <div key={sp.id || spIndex} className="p-6 bg-primary/5 rounded-3xl border border-primary/20 space-y-4 shadow-sm">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-primary/10 pb-4">
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-black text-primary italic uppercase tracking-tight">{sp.title}</h4>
+                      <p className="text-[10px] text-primary/40 uppercase font-black tracking-widest">Sub Program {spIndex + 1}</p>
+                    </div>
+                    <div className="flex flex-col md:items-end">
+                      <span className="text-lg font-black text-primary tracking-tight">Rs.{Number(sp.program_fee).toLocaleString()}</span>
+                      <span className="text-[9px] text-primary/40 uppercase font-bold tracking-widest">Program Fee</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h5 className="text-[10px] font-black uppercase text-primary/40 tracking-widest italic mb-3">Schedules</h5>
+                    <div className="grid grid-cols-1 gap-2">
+                      {sp.schedules?.map((s: any, sIndex: number) => (
+                        <div key={s.id || sIndex} className="flex flex-wrap items-center gap-4 p-3 bg-white/40 rounded-xl border border-primary/5 hover:border-primary/10 transition">
+                          <div className="flex items-center gap-2 min-w-[140px]">
+                            <Clock className="w-3 h-3 text-primary/40" />
+                            <span className="text-[11px] font-bold text-primary/80 italic">
+                              {formatTime(s.start_time?.substring(0, 5))} — {formatTime(s.end_time?.substring(0, 5))}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <User className="w-3 h-3 text-secondary/40" />
+                            <span className="text-[11px] font-medium text-primary/60 italic">
+                              {s.instructor?.name || getInstructorName(s.instructor_id)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      {(!sp.schedules || sp.schedules.length === 0) && (
+                        <p className="text-[10px] text-primary/30 italic">No schedules defined for this sub-program.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {(!program.sub_programs || program.sub_programs.length === 0) && (
+                <div className="text-center py-6 border-2 border-dashed border-primary/10 rounded-3xl bg-primary/5">
+                  <Activity className="w-6 h-6 text-primary/10 mx-auto mb-2" />
+                  <span className="text-[10px] font-bold text-primary/20 uppercase tracking-widest italic block">
+                    No sub-programs available
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Footer */}
           <div className="flex justify-end pt-8 border-t border-primary/20 mt-6">
             <button

@@ -370,7 +370,20 @@ public function update(Request $request, $id)
             });
 
         if ($excludeProgramId) {
-            $isTeaching = $isTeaching->where('program_id', '!=', $excludeProgramId);
+            $program = \App\Models\Program::find($excludeProgramId);
+            if ($program) {
+                $idsToExclude = [$excludeProgramId];
+                if ($program->parent_id) $idsToExclude[] = $program->parent_id;
+                
+                // Also exclude all siblings and children
+                $rootId = $program->parent_id ?? $program->id;
+                $relatedIds = \App\Models\Program::where('id', $rootId)
+                    ->orWhere('parent_id', $rootId)
+                    ->pluck('id')
+                    ->toArray();
+                
+                $isTeaching = $isTeaching->whereNotIn('program_id', $relatedIds);
+            }
         }
 
         if ($isTeaching->exists()) {

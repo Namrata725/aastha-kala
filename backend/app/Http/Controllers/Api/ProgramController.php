@@ -16,7 +16,8 @@ class ProgramController extends Controller
     // GET /api/programs
     public function index()
     {
-        $programs = Program::with(['schedules.instructor', 'instructors'])
+        $programs = Program::with(['schedules.instructor', 'instructors', 'subPrograms.schedules.instructor'])
+            ->whereNull('parent_id')
             ->latest()
             ->paginate(10);
 
@@ -57,7 +58,45 @@ class ProgramController extends Controller
             'schedules.*.instructor_id' => 'nullable|exists:instructors,id',
             'schedules.*.start_time'    => 'required_with:schedules|date_format:H:i',
             'schedules.*.end_time'      => 'required_with:schedules|date_format:H:i',
+            'sub_programs'              => 'nullable|array',
+            'sub_programs.*.title'       => 'required_with:sub_programs|string|max:255',
+            'sub_programs.*.description' => 'nullable|string',
+            'sub_programs.*.program_fee' => 'nullable|numeric|min:0',
+            'sub_programs.*.schedules'   => 'nullable|array',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            $schedules = $request->input('schedules', []);
+            $subPrograms = $request->input('sub_programs', []);
+            $allSlots = [];
+            
+            if (empty($subPrograms)) {
+                foreach ($schedules as $index => $s) {
+                    if (!empty($s['instructor_id']) && !empty($s['start_time']) && !empty($s['end_time'])) {
+                        $allSlots[] = ['instructor_id' => $s['instructor_id'], 'start_time' => $s['start_time'], 'end_time' => $s['end_time'], 'key' => "schedules.{$index}.instructor_id"];
+                    }
+                }
+            }
+            
+            foreach ($subPrograms as $spIndex => $sp) {
+                $spSchedules = $sp['schedules'] ?? [];
+                foreach ($spSchedules as $sIndex => $s) {
+                    if (!empty($s['instructor_id']) && !empty($s['start_time']) && !empty($s['end_time'])) {
+                        $allSlots[] = ['instructor_id' => $s['instructor_id'], 'start_time' => $s['start_time'], 'end_time' => $s['end_time'], 'key' => "sub_programs.{$spIndex}.schedules.{$sIndex}.instructor_id"];
+                    }
+                }
+            }
+            foreach ($allSlots as $i => $slot1) {
+                foreach ($allSlots as $j => $slot2) {
+                    if ($i === $j) continue;
+                    if ($slot1['instructor_id'] == $slot2['instructor_id']) {
+                        if ($slot1['start_time'] < $slot2['end_time'] && $slot1['end_time'] > $slot2['start_time']) {
+                            $validator->errors()->add($slot1['key'], 'Instructor assigned to overlapping slot in this form.');
+                        }
+                    }
+                }
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
@@ -92,7 +131,29 @@ class ProgramController extends Controller
             }
         }
 
-        $program->load(['schedules.instructor', 'instructors']);
+        // Create sub-programs if provided
+        if ($request->has('sub_programs')) {
+            foreach ($request->sub_programs as $subData) {
+                $subProgram = $program->subPrograms()->create([
+                    'title'       => $subData['title'],
+                    'description' => $subData['description'] ?? null,
+                    'program_fee' => $subData['program_fee'] ?? 0,
+                    'is_active'   => true,
+                ]);
+
+                if (!empty($subData['schedules'])) {
+                    foreach ($subData['schedules'] as $sData) {
+                        $subProgram->schedules()->create([
+                            'instructor_id' => $sData['instructor_id'] ?? null,
+                            'start_time'    => $sData['start_time'],
+                            'end_time'      => $sData['end_time'],
+                        ]);
+                    }
+                }
+            }
+        }
+
+        $program->load(['schedules.instructor', 'instructors', 'subPrograms.schedules.instructor']);
 
         return response()->json([
             'success' => true,
@@ -104,7 +165,7 @@ class ProgramController extends Controller
     // GET /api/programs/{id}
     public function show($id)
     {
-        $program = Program::with(['schedules.instructor', 'instructors'])->find($id);
+        $program = Program::with(['schedules.instructor', 'instructors', 'subPrograms.schedules.instructor'])->find($id);
 
         if (!$program) {
             return response()->json([
@@ -146,7 +207,47 @@ class ProgramController extends Controller
             'schedules.*.instructor_id' => 'nullable|exists:instructors,id',
             'schedules.*.start_time'    => 'required_with:schedules|date_format:H:i',
             'schedules.*.end_time'      => 'required_with:schedules|date_format:H:i',
+            'sub_programs'              => 'nullable|array',
+            'sub_programs.*.title'       => 'required_with:sub_programs|string|max:255',
+            'sub_programs.*.description' => 'nullable|string',
+            'sub_programs.*.program_fee' => 'nullable|numeric|min:0',
+            'sub_programs.*.schedules'   => 'nullable|array',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            $schedules = $request->input('schedules', []);
+            $subPrograms = $request->input('sub_programs', []);
+            $allSlots = [];
+            
+            // Only collect main schedules if there are no sub-programs
+            // If sub-programs exist, main schedules are auto-calculated mirrors
+            if (empty($subPrograms)) {
+                foreach ($schedules as $index => $s) {
+                    if (!empty($s['instructor_id']) && !empty($s['start_time']) && !empty($s['end_time'])) {
+                        $allSlots[] = ['instructor_id' => $s['instructor_id'], 'start_time' => $s['start_time'], 'end_time' => $s['end_time'], 'key' => "schedules.{$index}.instructor_id"];
+                    }
+                }
+            }
+            
+            foreach ($subPrograms as $spIndex => $sp) {
+                $spSchedules = $sp['schedules'] ?? [];
+                foreach ($spSchedules as $sIndex => $s) {
+                    if (!empty($s['instructor_id']) && !empty($s['start_time']) && !empty($s['end_time'])) {
+                        $allSlots[] = ['instructor_id' => $s['instructor_id'], 'start_time' => $s['start_time'], 'end_time' => $s['end_time'], 'key' => "sub_programs.{$spIndex}.schedules.{$sIndex}.instructor_id"];
+                    }
+                }
+            }
+            foreach ($allSlots as $i => $slot1) {
+                foreach ($allSlots as $j => $slot2) {
+                    if ($i === $j) continue;
+                    if ($slot1['instructor_id'] == $slot2['instructor_id']) {
+                        if ($slot1['start_time'] < $slot2['end_time'] && $slot1['end_time'] > $slot2['start_time']) {
+                            $validator->errors()->add($slot1['key'], 'Instructor assigned to overlapping slot in this form.');
+                        }
+                    }
+                }
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
@@ -207,7 +308,69 @@ class ProgramController extends Controller
             }
         }
 
-        $program->load(['schedules.instructor', 'instructors']);
+        // Update sub-programs gracefully
+        if ($request->has('sub_programs')) {
+            $newSubPrograms = is_array($request->sub_programs) ? $request->sub_programs : [];
+            $existingSubIds = collect($newSubPrograms)->pluck('id')->filter()->toArray();
+
+            // Delete sub-programs that are no longer present
+            $program->subPrograms()->whereNotIn('id', $existingSubIds)->delete();
+
+            foreach ($newSubPrograms as $subData) {
+                if (!empty($subData['id'])) {
+                    $subProgram = $program->subPrograms()->where('id', $subData['id'])->first();
+                    if ($subProgram) {
+                        $subProgram->update([
+                            'title'       => $subData['title'],
+                            'description' => $subData['description'] ?? null,
+                            'program_fee' => $subData['program_fee'] ?? 0,
+                        ]);
+
+                        // Update sub-program schedules
+                        if (isset($subData['schedules'])) {
+                            $subSchedules = $subData['schedules'];
+                            $existingSubSchedulesIds = collect($subSchedules)->pluck('id')->filter()->toArray();
+                            $subProgram->schedules()->whereNotIn('id', $existingSubSchedulesIds)->delete();
+
+                            foreach ($subSchedules as $ssData) {
+                                if (!empty($ssData['id'])) {
+                                    $subProgram->schedules()->where('id', $ssData['id'])->update([
+                                        'instructor_id' => $ssData['instructor_id'] ?? null,
+                                        'start_time'    => $ssData['start_time'],
+                                        'end_time'      => $ssData['end_time'],
+                                    ]);
+                                } else {
+                                    $subProgram->schedules()->create([
+                                        'instructor_id' => $ssData['instructor_id'] ?? null,
+                                        'start_time'    => $ssData['start_time'],
+                                        'end_time'      => $ssData['end_time'],
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    $subProgram = $program->subPrograms()->create([
+                        'title'       => $subData['title'],
+                        'description' => $subData['description'] ?? null,
+                        'program_fee' => $subData['program_fee'] ?? 0,
+                        'is_active'   => true,
+                    ]);
+
+                    if (!empty($subData['schedules'])) {
+                        foreach ($subData['schedules'] as $ssData) {
+                            $subProgram->schedules()->create([
+                                'instructor_id' => $ssData['instructor_id'] ?? null,
+                                'start_time'    => $ssData['start_time'],
+                                'end_time'      => $ssData['end_time'],
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+
+        $program->load(['schedules.instructor', 'instructors', 'subPrograms.schedules.instructor']);
 
         return response()->json([
             'success' => true,
