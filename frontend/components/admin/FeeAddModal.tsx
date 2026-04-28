@@ -471,16 +471,15 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
       grandDue,
       totalDiscount,
     };
-  }, [
-    admBase,
-    admDisc,
-    admDiscType,
-    admPayingNow,
-    initialAdmPaid,
-    progEntries,
-    fee,
-    feeInfo,
-  ]);
+  }, [admBase, admDisc, admDiscType, admPayingNow, initialAdmPaid, progEntries, fee, feeInfo]);
+
+  // Total Gross (before discount) for checked items
+  const selectedGrossTotal = useMemo(() => {
+    let t = 0;
+    if (checkedIds.has("admission") && calculations.hasAdm) t += calculations.admBaseNum;
+    calculations.progData.forEach(p => { if (checkedIds.has(String(p.id))) t += p.base; });
+    return t;
+  }, [checkedIds, calculations]);
 
   // Total DUE (before this session) for checked items
   const selectedDueTotal = useMemo(() => {
@@ -645,9 +644,9 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
       if (calculations.hasProg) {
         payload.selected_programs = calculations.progData.map((p) => p.id);
         payload.program_payments = {};
-        calculations.progData.forEach((p) => {
-          payload.program_payments[p.id] = p.totalPaid;
-        });
+        calculations.progData.forEach(p => { payload.program_payments[p.id] = p.totalPaid; });
+        payload.program_fees = {};
+        calculations.progData.forEach(p => { payload.program_fees[p.id] = p.base; });
         payload.program_discounts = {};
         calculations.progData.forEach((p) => {
           payload.program_discounts[p.id] = {
@@ -1080,10 +1079,9 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
                                   </p>
                                 </div>
                               </td>
-                              <td className="px-3 py-3 text-right">
-                                <span className="text-[12px] text-gray-500 font-medium bg-gray-50 px-2 py-1 rounded-md">
-                                  {fmtS(p.base)}
-                                </span>
+                              <td className="px-3 py-3">
+                                <input type="number" min={0} value={p.base} onChange={e => setProgEntries(prev => prev.map(o => o.id === p.id ? { ...o, base: Number(clamp(e.target.value)) || 0 } : o))} onKeyDown={blockNeg}
+                                  className="w-full text-right bg-gray-50 border border-gray-100 rounded-lg px-2 py-1.5 text-[12px] outline-none focus:border-gray-300 font-medium" />
                               </td>
                               <td className="px-3 py-3">
                                 <div className="flex items-center justify-end gap-1.5">
@@ -1227,14 +1225,13 @@ const FeeAddModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, fee }) => {
                         </div>
                         <div className="w-px h-5 bg-gray-200" />
                         <div>
-                          <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest block mb-px">
-                            Due This Session
-                          </span>
-                          <span
-                            className={`text-[15px] font-extrabold ${selectedDueTotal > 0 ? "text-gray-900" : "text-emerald-600"}`}
-                          >
-                            {fmt(selectedDueTotal)}
-                          </span>
+                          <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest block mb-px">Gross Total</span>
+                          <span className="text-[15px] font-extrabold text-gray-500">{fmt(selectedGrossTotal)}</span>
+                        </div>
+                        <div className="w-px h-5 bg-gray-200" />
+                        <div>
+                          <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest block mb-px">Due This Session</span>
+                          <span className={`text-[15px] font-extrabold ${selectedDueTotal > 0 ? "text-gray-900" : "text-emerald-600"}`}>{fmt(selectedDueTotal)}</span>
                         </div>
                         {calculations.totalDiscount > 0 && (
                           <>
