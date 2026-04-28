@@ -77,7 +77,6 @@ export function ProgramForm({
   const [title, setTitle] = React.useState(initialData?.title || "");
   const [description, setDescription] = React.useState(initialData?.description || "");
   const [programFee, setProgramFee] = React.useState(initialData?.program_fee || "");
-  const [admissionFee, setAdmissionFee] = React.useState(initialData?.admission_fee || "");
   const [isActive, setIsActive] = React.useState(initialData?.is_active ?? true);
   const [speciality, setSpeciality] = React.useState<string[]>(initialData?.speciality || []);
   const [image, setImage] = React.useState<File | null>(null);
@@ -136,7 +135,6 @@ export function ProgramForm({
       formData.append('title', title);
       formData.append('description', description);
       formData.append('program_fee', programFee);
-      if (admissionFee) formData.append('admission_fee', admissionFee);
       formData.append('is_active', isActive ? '1' : '0');
       
       speciality.forEach((s, i) => formData.append(`speciality[${i}]`, s));
@@ -317,20 +315,6 @@ export function ProgramForm({
                 />
               </div>
               <ErrorMessage message={errors.program_fee?.[0]} />
-            </div>
-
-            <div>
-              <FieldLabel label="Admission Fee" />
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rs.</span>
-                <Input
-                  type="number"
-                  value={admissionFee}
-                  onChange={(e) => setAdmissionFee(e.target.value)}
-                  className="pl-8 h-11 text-base"
-                  placeholder="0"
-                />
-              </div>
             </div>
 
             <div>

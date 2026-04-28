@@ -18,6 +18,8 @@ use App\Http\Controllers\Api\DressHireController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\StudentFeeController;
 use App\Http\Controllers\Api\StudentEnrollmentController;
+use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\SalaryPaymentController;
 
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -100,6 +102,10 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/student-fees/schedules', [StudentFeeController::class, 'getSchedules']);
     Route::apiResource('student-fees', StudentFeeController::class);
     Route::get('/students/{studentId}/fee-info', [StudentFeeController::class, 'studentFeeInfo']);
+
+    Route::apiResource('employees', EmployeeController::class);
+    Route::get('/all-employees', [EmployeeController::class, 'all']);
+    Route::apiResource('salary-payments', SalaryPaymentController::class);
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

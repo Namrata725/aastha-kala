@@ -10,6 +10,7 @@ class Instructor extends Model
     use HasFactory;
 
     protected $fillable = [
+        'employee_id',
         'name',
         'title',
         'about',
@@ -19,6 +20,11 @@ class Instructor extends Model
         'phone',
         'image',
     ];
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
 
     public function programs()
     {
