@@ -162,9 +162,12 @@ class StudentFeeController extends Controller
         // Summary for dashboard
         $totalCollected = (float) $baseStatsQuery->sum('paid_amount');
         $totalBilled = (float) $baseStatsQuery->sum('total_amount');
+        $totalGross = (float) $baseStatsQuery->sum(\DB::raw('COALESCE(admission_fee, 0) + COALESCE(program_fee, 0)'));
         
         $totals = [
             'total_collected' => $totalCollected,
+            'total_billed' => $totalBilled,
+            'total_gross' => $totalGross,
             'total_pending' => max(0, $totalBilled - $totalCollected),
             'paid_count' => (int) StudentFee::select('student_id', 'month_year')
                 ->groupBy('student_id', 'month_year')
@@ -296,8 +299,21 @@ class StudentFeeController extends Controller
             $matchedTitles = [];
 
             foreach ($matchingPrograms as $p) {
-                $fee = (float) ($p->program_fee ?? 0);
+                $baseFee = (float) ($p->program_fee ?? 0);
                 $adm = (float) ($p->admission_fee ?? 0);
+
+                // Calculate duration multiplier based on student's enrollment duration
+                $multiplier = 1;
+                if ($student->duration_value && $student->duration_unit) {
+                    $val = (float) $student->duration_value;
+                    if ($student->duration_unit === 'months') {
+                        $multiplier = $val;
+                    } elseif ($student->duration_unit === 'years') {
+                        $multiplier = $val * 12;
+                    }
+                }
+                
+                $fee = $baseFee * $multiplier;
 
                 // Find existing payment for THIS specific program in THIS month
                 $existing = $monthRecords->where('program_id', $p->id)->first();
@@ -331,27 +347,30 @@ class StudentFeeController extends Controller
                           ?? $monthRecords->where('fee_type', 'admission')->where('admission_fee', '>', 0)->first()
                           ?? $monthRecords->where('fee_type', 'admission')->first();
         
+        // Build the final program fees structure
+        $finalBreakdown = [];
+        if (!empty($breakdown)) {
+            foreach ($breakdown as $b) {
+                // IMPORTANT: We use $b['program_fee'] which is the LATEST duration-based calculation
+                // This ensures that if a student's duration is changed, the bill reflects it immediately.
+                $finalBreakdown[] = [
+                    'id' => $b['id'],
+                    'title' => $b['title'],
+                    'program_fee' => $b['program_fee'],
+                    'paid_amount' => $b['paid_amount'],
+                    'discount' => $b['discount'],
+                    'discount_type' => $b['discount_type'],
+                    'status' => $b['status']
+                ];
+            }
+        }
+
         $programFees = [
             'admission_fee' => $admissionAmount,
-            'program_fee' => $monthRecords->where('fee_type', 'program')->sum('program_fee'),
-            'paid_amount' => $monthRecords->where('fee_type', 'program')->sum('paid_amount'),
-            'discount' => $monthRecords->where('fee_type', 'program')->sum('program_discount'),
-            'programs_breakdown' => $monthRecords->where('fee_type', 'program')->groupBy('program_id')->map(function($group) {
-                $primary = $group->where('program_discount', '>', 0)->first() 
-                          ?? $group->where('program_fee', '>', 0)->first() 
-                          ?? $group->first();
-                $totalFee = $group->sum('program_fee');
-                $totalPaid = $group->sum('paid_amount');
-                return [
-                    'id' => $primary->program_id,
-                    'title' => $primary->program?->title ?? 'Program #'.$primary->program_id,
-                    'program_fee' => $totalFee,
-                    'paid_amount' => $totalPaid,
-                    'discount' => $group->sum('program_discount'),
-                    'discount_type' => $primary->program_discount_type ?? 'cash',
-                    'status' => ($totalFee - $totalPaid) <= 0 ? 'paid' : 'pending'
-                ];
-            })->values()
+            'program_fee' => collect($finalBreakdown)->sum('program_fee'),
+            'paid_amount' => collect($finalBreakdown)->sum('paid_amount'),
+            'discount' => collect($finalBreakdown)->sum('discount'),
+            'programs_breakdown' => $finalBreakdown
         ];
 
         return response()->json([
@@ -370,6 +389,8 @@ class StudentFeeController extends Controller
                 'admission_discount_type' => $admissionRecord ? $admissionRecord->admission_discount_type : 'cash',
                 'global_admission_fee' => $globalAdmissionFee,
                 'program_fees' => $programFees,
+                'breakdown' => $breakdown ?? [],
+                'unmatched' => $unmatched ?? [],
                 'period_record' => $monthRecords->first(),
                 'payments' => $monthRecords->sortByDesc('created_at')->values(),
             ]
@@ -471,7 +492,23 @@ class StudentFeeController extends Controller
                 $prog = \App\Models\Program::find($progId);
                 if (!$prog) continue;
 
-                $progBase = isset($request->program_fees[$progId]) ? (float)$request->program_fees[$progId] : (float) $prog->program_fee;
+                // Calculate base fee, accounting for duration if falling back to program default
+                if (isset($request->program_fees[$progId])) {
+                    $progBase = (float)$request->program_fees[$progId];
+                } else {
+                    $baseFee = (float) $prog->program_fee;
+                    $multiplier = 1;
+                    $student = \App\Models\Student::find($studentId);
+                    if ($student && $student->duration_value && $student->duration_unit) {
+                        $val = (float) $student->duration_value;
+                        if ($student->duration_unit === 'months') {
+                            $multiplier = $val;
+                        } elseif ($student->duration_unit === 'years') {
+                            $multiplier = $val * 12;
+                        }
+                    }
+                    $progBase = $baseFee * $multiplier;
+                }
                 $discInfo = $programDiscounts[$progId] ?? ['amount' => 0, 'type' => 'cash'];
                 $progDisc = (float) $discInfo['amount'];
                 $progDiscType = $discInfo['type'] ?? 'cash';

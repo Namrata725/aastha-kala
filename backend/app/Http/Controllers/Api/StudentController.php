@@ -289,13 +289,28 @@ class StudentController extends Controller
             }
 
             // 4. Handle Fees
-            $feeExists = \App\Models\StudentFee::where('student_id', $student->id)
+            $baseFee = (float) ($prog->program_fee ?? 0);
+            
+            // Calculate duration multiplier based on student's enrollment duration
+            $multiplier = 1;
+            if ($student->duration_value && $student->duration_unit) {
+                $val = (float) $student->duration_value;
+                if ($student->duration_unit === 'months') {
+                    $multiplier = $val;
+                } elseif ($student->duration_unit === 'years') {
+                    $multiplier = $val * 12;
+                }
+            }
+            
+            $feeAmount = $baseFee * $multiplier;
+
+            $existingBase = \App\Models\StudentFee::where('student_id', $student->id)
                 ->where('program_id', $pId)
                 ->where('month_year', $currentMonth)
-                ->exists();
+                ->sum('program_fee');
 
-            if (!$feeExists) {
-                $feeAmount = (float) ($prog->program_fee ?? 0);
+            if ($existingBase <= 0) {
+                // No fee yet, create it
                 \App\Models\StudentFee::create([
                     'student_id' => $student->id,
                     'program_id' => $pId,
@@ -308,6 +323,22 @@ class StudentController extends Controller
                     'month_year' => $currentMonth,
                     'payment_method' => 'Cash',
                     'remarks' => 'Auto-generated for program enrollment',
+                ]);
+            } elseif (abs($feeAmount - $existingBase) > 0.01) {
+                // Base fee changed (e.g. duration edited), create adjustment record
+                $diff = $feeAmount - $existingBase;
+                \App\Models\StudentFee::create([
+                    'student_id' => $student->id,
+                    'program_id' => $pId,
+                    'fee_type' => 'program',
+                    'total_amount' => $diff,
+                    'paid_amount' => 0,
+                    'pending_amount' => $diff,
+                    'status' => $diff > 0 ? 'pending' : 'paid',
+                    'program_fee' => $diff,
+                    'month_year' => $currentMonth,
+                    'payment_method' => 'Cash',
+                    'remarks' => 'Auto-adjustment due to duration change',
                 ]);
             }
         }
