@@ -1,3 +1,6 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ZktAdmsController;
 
 Route::get('/', function () {
