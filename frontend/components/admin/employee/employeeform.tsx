@@ -186,6 +186,20 @@ export function EmployeeForm({
               </div>
 
               <div>
+                <FieldLabel label="Device User ID (ZKTeco)" />
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                  <Input
+                    value={deviceUserId}
+                    onChange={(e) => setDeviceUserId(e.target.value)}
+                    placeholder="Machine ID (e.g. 101)"
+                    className="pl-10 h-11"
+                  />
+                </div>
+                <ErrorMessage message={errors.device_user_id?.[0]} />
+              </div>
+
+              <div>
                 <FieldLabel label="Phone Number" />
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />

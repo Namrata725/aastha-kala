@@ -46,6 +46,7 @@ const menuItems = [
   { name: "Contact Us", icon: Mail, href: "/admin/contact" },
   { name: "Students", icon: Users, href: "/admin/students" },
   { name: "Fees & Billing", icon: CreditCard, href: "/admin/fees" },
+  { name: "Attendance", icon: Calendar, href: "/admin/attendance" },
   { name: "Settings", icon: Settings, href: "/admin/settings" },
 ];
 

@@ -20,6 +20,12 @@ use App\Http\Controllers\Api\StudentFeeController;
 use App\Http\Controllers\Api\StudentEnrollmentController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\SalaryPaymentController;
+use App\Http\Controllers\Api\ZktAdmsController;
+
+// ZKTeco ADMS Cloud Routes
+Route::get('/iclock/cdata', [ZktAdmsController::class, 'handshake']);
+Route::post('/iclock/cdata', [ZktAdmsController::class, 'receiveData']);
+Route::get('/iclock/getrequest', [ZktAdmsController::class, 'getRequest']);
 
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -106,6 +112,15 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::apiResource('employees', EmployeeController::class);
     Route::get('/all-employees', [EmployeeController::class, 'all']);
     Route::apiResource('salary-payments', SalaryPaymentController::class);
+
+    // Shifts & Attendance
+    Route::apiResource('shifts', \App\Http\Controllers\Api\ShiftController::class);
+    Route::post('/shifts/assign', [\App\Http\Controllers\Api\ShiftController::class, 'assignShifts']);
+    Route::get('/shifts/employee/{employee_id}', [\App\Http\Controllers\Api\ShiftController::class, 'getEmployeeShifts']);
+    Route::get('/attendance', [\App\Http\Controllers\Api\AttendanceController::class, 'index']);
+    Route::post('/attendance/process', [\App\Http\Controllers\Api\AttendanceController::class, 'processLogs']);
+    Route::get('/attendance/fetch-logs', [\App\Http\Controllers\Api\AttendanceController::class, 'fetchFromDevice']);
+    Route::get('/attendance/summary', [\App\Http\Controllers\Api\AttendanceController::class, 'getSummary']);
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

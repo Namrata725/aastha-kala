@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-
 class EmployeeController extends Controller
 {
     public function index()
@@ -82,6 +81,12 @@ class EmployeeController extends Controller
             }
 
             DB::commit();
+
+            // Register to ZKT device
+            if (!empty($employee->device_user_id)) {
+                $zktService = app(\App\Services\ZktDeviceService::class);
+                $zktService->setUserInDevice($employee->id, $employee->device_user_id, $employee->name);
+            }
 
             return response()->json([
                 'success' => true,
@@ -199,6 +204,12 @@ class EmployeeController extends Controller
 
             DB::commit();
 
+            // Update to ZKT device
+            if (!empty($employee->device_user_id)) {
+                $zktService = app(\App\Services\ZktDeviceService::class);
+                $zktService->setUserInDevice($employee->id, $employee->device_user_id, $employee->name);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Employee updated successfully',
@@ -246,5 +257,33 @@ class EmployeeController extends Controller
             'success' => true,
             'data' => $employees
         ]);
+    }
+
+    public function deleteFromDevice($id)
+    {
+        $employee = Employee::find($id);
+
+        if (!$employee) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Employee not found'
+            ], 404);
+        }
+
+        try {
+            $zktService = app(\App\Services\ZktDeviceService::class);
+            $zktService->removeUserFromDevice($employee->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Employee deleted from device successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete from device: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

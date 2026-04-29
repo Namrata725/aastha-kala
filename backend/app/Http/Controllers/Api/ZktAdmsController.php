@@ -1,0 +1,100 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Models\AttendanceLog;
+use Carbon\Carbon;
+
+class ZktAdmsController extends Controller
+{
+    /**
+     * Handshake and Registry (GET /iclock/cdata)
+     * The device calls this to check if it can talk to the server.
+     */
+    public function handshake(Request $request)
+    {
+        Log::info('ZKT ADMS Handshake from SN: ' . $request->query('SN'));
+        
+        // Return configuration parameters the device expects
+        return "GET OPTION FROM: " . $request->query('SN') . "\r\n" .
+               "RegistryCode=None\r\n" .
+               "ServerVersion=3.1.1\r\n" .
+               "ServerName=AasthaKalaCloud\r\n" .
+               "PushVersion=3.0.1\r\n" .
+               "ErrorDelay=60\r\n" .
+               "Delay=30\r\n" .
+               "TransTimes=00:00;14:00\r\n" .
+               "TransInterval=1\r\n" .
+               "TransFlag=1111111111\r\n" .
+               "TimeZone=5.75\r\n" . // Nepal Time (+5:45)
+               "Realtime=1\r\n" .
+               "Encrypt=0";
+    }
+
+    /**
+     * Receive Data (POST /iclock/cdata)
+     * This is where the logs are sent.
+     */
+    public function receiveData(Request $request)
+    {
+        $sn = $request->query('SN');
+        $table = $request->query('table');
+        $content = $request->getContent();
+
+        Log::info("ADMS Data Received from $sn (Table: $table)");
+
+        if ($table === 'ATTLOG') {
+            $this->parseAttendanceLogs($content);
+        }
+
+        // Must return OK for device to clear its buffer
+        return "OK";
+    }
+
+    /**
+     * Heartbeat (GET /iclock/getrequest)
+     * Device asks for pending commands.
+     */
+    public function getRequest(Request $request)
+    {
+        return "OK";
+    }
+
+    /**
+     * Parse the raw ZKT data stream
+     */
+    private function parseAttendanceLogs($data)
+    {
+        $lines = explode("\n", $data);
+        $processedCount = 0;
+
+        foreach ($lines as $line) {
+            if (empty(trim($line))) continue;
+
+            // Log format: USERID	TIMESTAMP	STATE	VERIFY_TYPE	...
+            // Example: 101	2026-04-29 10:05:22	0	1	0	0
+            $parts = preg_split('/\s+/', trim($line));
+            
+            if (count($parts) >= 3) {
+                $deviceUserId = $parts[0];
+                $timestamp = $parts[1] . ' ' . $parts[2];
+
+                try {
+                    // Save to raw logs table
+                    AttendanceLog::updateOrCreate([
+                        'user_id' => $deviceUserId,
+                        'timestamp' => $timestamp,
+                    ]);
+                    $processedCount++;
+                } catch (\Exception $e) {
+                    Log::error("Failed to parse ADMS log line: " . $line . " Error: " . $e->getMessage());
+                }
+            }
+        }
+        
+        Log::info("ADMS Processed $processedCount logs.");
+    }
+}
