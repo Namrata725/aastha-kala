@@ -85,8 +85,11 @@ class EmployeeController extends Controller
             // Register to ZKT device
             // Automatically queue registration for ZKT device via ADMS
             if (!empty($employee->device_user_id)) {
+                // Remove spaces from name for device compatibility if necessary, 
+                // or ensure proper spacing. Most ZKT devices prefer no spaces in raw ADMS commands.
+                $deviceName = str_replace(' ', '_', $employee->name); 
                 \App\Models\DeviceCommand::create([
-                    'command' => "DATA USER PIN={$employee->device_user_id} Name={$employee->name} Pri=0 Password= Group=1 Card=0"
+                    'command' => "DATA USER PIN={$employee->device_user_id}\tName={$deviceName}\tPri=0\tPassword=\tGroup=1\tCard=0"
                 ]);
             }
 
