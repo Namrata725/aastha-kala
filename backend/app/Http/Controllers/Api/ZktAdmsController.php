@@ -16,20 +16,24 @@ class ZktAdmsController extends Controller
      */
     public function handshake(Request $request)
     {
-        Log::info('ZKT ADMS Handshake from SN: ' . $request->query('SN'));
+        $sn = $request->query('SN');
+        Log::info('ZKT ADMS Handshake from SN: ' . $sn);
         
         // Return configuration parameters the device expects
-        return "GET OPTION FROM: " . $request->query('SN') . "\r\n" .
+        return "GET OPTION FROM: $sn\r\n" .
+               "Stamp=9999\r\n" .
+               "OpStamp=9999\r\n" .
+               "PhotoStamp=9999\r\n" .
                "RegistryCode=None\r\n" .
                "ServerVersion=3.1.1\r\n" .
-               "ServerName=AasthaKalaCloud\r\n" .
+               "ServerName=ADMS\r\n" .
                "PushVersion=3.0.1\r\n" .
                "ErrorDelay=60\r\n" .
                "Delay=30\r\n" .
                "TransTimes=00:00;14:00\r\n" .
                "TransInterval=1\r\n" .
                "TransFlag=1111111111\r\n" .
-               "TimeZone=5.75\r\n" . // Nepal Time (+5:45)
+               "TimeZone=5.75\r\n" .
                "Realtime=1\r\n" .
                "Encrypt=0";
     }
