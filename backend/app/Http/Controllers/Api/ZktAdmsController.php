@@ -41,10 +41,11 @@ class ZktAdmsController extends Controller
     public function receiveData(Request $request)
     {
         $sn = $request->query('SN');
-        $table = $request->query('table');
+        $table = strtoupper($request->query('table'));
         $content = $request->getContent();
 
         Log::info("ADMS Data Received from $sn (Table: $table)");
+        Log::debug("ADMS Raw Content: " . substr($content, 0, 500));
 
         if ($table === 'ATTLOG') {
             $this->parseAttendanceLogs($content);
@@ -75,7 +76,6 @@ class ZktAdmsController extends Controller
             if (empty(trim($line))) continue;
 
             // Log format: USERID	TIMESTAMP	STATE	VERIFY_TYPE	...
-            // Example: 101	2026-04-29 10:05:22	0	1	0	0
             $parts = preg_split('/\s+/', trim($line));
             
             if (count($parts) >= 3) {
@@ -83,10 +83,16 @@ class ZktAdmsController extends Controller
                 $timestamp = $parts[1] . ' ' . $parts[2];
 
                 try {
-                    // Save to raw logs table
+                    // Find employee by device_user_id to link them
+                    $employee = \App\Models\Employee::where('device_user_id', $deviceUserId)->first();
+
+                    // Save to raw logs table using correct column name 'device_user_id'
                     AttendanceLog::updateOrCreate([
-                        'user_id' => $deviceUserId,
+                        'device_user_id' => $deviceUserId,
                         'timestamp' => $timestamp,
+                    ], [
+                        'employee_id' => $employee ? $employee->id : null,
+                        'status' => $parts[3] ?? null,
                     ]);
                     $processedCount++;
                 } catch (\Exception $e) {
