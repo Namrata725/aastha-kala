@@ -69,30 +69,31 @@ class ZktAdmsController extends Controller
      */
     private function parseAttendanceLogs($data)
     {
-        $lines = explode("\n", $data);
+        // Support both Windows (\r\n) and Linux (\n) line endings
+        $lines = preg_split('/\r\n|\r|\n/', $data);
         $processedCount = 0;
 
         foreach ($lines as $line) {
-            if (empty(trim($line))) continue;
+            $line = trim($line);
+            if (empty($line)) continue;
 
-            // Log format: USERID	TIMESTAMP	STATE	VERIFY_TYPE	...
-            $parts = preg_split('/\s+/', trim($line));
+            // Log format can be Tab or Space separated: USERID TIMESTAMP_DATE TIMESTAMP_TIME STATE ...
+            $parts = preg_split('/\s+/', $line);
             
+            // We need at least UserID, Date, and Time
             if (count($parts) >= 3) {
                 $deviceUserId = $parts[0];
                 $timestamp = $parts[1] . ' ' . $parts[2];
 
                 try {
-                    // Find employee by device_user_id to link them
                     $employee = \App\Models\Employee::where('device_user_id', $deviceUserId)->first();
 
-                    // Save to raw logs table using correct column name 'device_user_id'
                     AttendanceLog::updateOrCreate([
                         'device_user_id' => $deviceUserId,
                         'timestamp' => $timestamp,
                     ], [
                         'employee_id' => $employee ? $employee->id : null,
-                        'status' => $parts[3] ?? null,
+                        'status' => $parts[3] ?? '0',
                     ]);
                     $processedCount++;
                 } catch (\Exception $e) {
