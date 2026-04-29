@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
             guests: '/api/login',
             users: '/'
         );
+
+        $middleware->validateCsrfTokens(except: [
+            '/iclock/cdata',
+            '/iclock/getrequest',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

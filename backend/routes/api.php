@@ -20,13 +20,6 @@ use App\Http\Controllers\Api\StudentFeeController;
 use App\Http\Controllers\Api\StudentEnrollmentController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\SalaryPaymentController;
-use App\Http\Controllers\Api\ZktAdmsController;
-
-// ZKTeco ADMS Cloud Routes
-Route::get('/iclock/cdata', [ZktAdmsController::class, 'handshake']);
-Route::post('/iclock/cdata', [ZktAdmsController::class, 'receiveData']);
-Route::get('/iclock/getrequest', [ZktAdmsController::class, 'getRequest']);
-
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login'])->name('login');
