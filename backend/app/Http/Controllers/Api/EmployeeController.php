@@ -83,10 +83,14 @@ class EmployeeController extends Controller
             DB::commit();
 
             // Register to ZKT device
+            /* 
+            // In Cloud/ADMS mode, the server cannot connect directly to the device.
+            // Users should be registered on the device manually.
             if (!empty($employee->device_user_id)) {
                 $zktService = app(\App\Services\ZktDeviceService::class);
                 $zktService->setUserInDevice($employee->id, $employee->device_user_id, $employee->name);
             }
+            */
 
             return response()->json([
                 'success' => true,
@@ -205,10 +209,12 @@ class EmployeeController extends Controller
             DB::commit();
 
             // Update to ZKT device
+            /* 
             if (!empty($employee->device_user_id)) {
                 $zktService = app(\App\Services\ZktDeviceService::class);
                 $zktService->setUserInDevice($employee->id, $employee->device_user_id, $employee->name);
             }
+            */
 
             return response()->json([
                 'success' => true,
@@ -271,12 +277,15 @@ class EmployeeController extends Controller
         }
 
         try {
+            /* 
             $zktService = app(\App\Services\ZktDeviceService::class);
             $zktService->removeUserFromDevice($employee->id);
-
+            */
+            
+            $employee->delete();
             return response()->json([
                 'success' => true,
-                'message' => 'Employee deleted from device successfully'
+                'message' => 'Employee deleted successfully'
             ]);
 
         } catch (\Exception $e) {

@@ -12,35 +12,11 @@ class AttendanceController extends Controller
      */
     public function fetchFromDevice()
     {
-        $zktService = app(\App\Services\ZktDeviceService::class);
-        $logs = $zktService->getAttendanceLogs();
-
-        if (empty($logs)) {
-            return response()->json(['message' => "No new logs found or device unreachable."], 200);
-        }
-
-        $inserted = 0;
-        foreach ($logs as $logData) {
-            // ZKTeco returns: [ 'id' => '101', 'timestamp' => '2023-01-01 10:00:00', 'state' => 1 ]
-            $deviceUserId = (string)$logData['id'];
-            
-            // Find employee by device_user_id
-            $employee = \App\Models\Employee::where('device_user_id', $deviceUserId)->first();
-
-            $log = \App\Models\AttendanceLog::firstOrCreate([
-                'device_user_id' => $deviceUserId,
-                'timestamp' => \Carbon\Carbon::parse($logData['timestamp']),
-            ], [
-                'employee_id' => $employee ? $employee->id : null,
-                'status' => isset($logData['state']) ? (string)$logData['state'] : null,
-            ]);
-            
-            if ($log->wasRecentlyCreated) {
-                $inserted++;
-            }
-        }
-
-        return response()->json(['message' => "$inserted new logs fetched from device successfully"]);
+        // In Cloud (ADMS) mode, the device pushes logs automatically.
+        // We no longer need to connect to it directly via sockets.
+        return response()->json([
+            'message' => "System is in Cloud Mode. Logs are received automatically from the device. There is no need to fetch manually."
+        ]);
     }
 
     /**
