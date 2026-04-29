@@ -45,8 +45,19 @@ class ZktAdmsController extends Controller
     public function receiveData(Request $request)
     {
         $sn = $request->query('SN');
-        $table = strtoupper($request->query('table'));
+        $table = strtoupper($request->query('table') ?? '');
         $content = $request->getContent();
+
+        // Handle Command Acknowledgment
+        // Device sends back something like: ID=123&Return=0
+        if (strpos($content, 'ID=') !== false) {
+            preg_match('/ID=(\d+)/', $content, $matches);
+            if (isset($matches[1])) {
+                \App\Models\DeviceCommand::where('id', $matches[1])->update(['status' => 'completed']);
+                Log::info("ADMS Command {$matches[1]} completed by SN: $sn");
+                return "OK";
+            }
+        }
 
         Log::info("ADMS Data Received from $sn (Table: $table)");
         Log::debug("ADMS Raw Content: " . substr($content, 0, 500));
@@ -65,6 +76,27 @@ class ZktAdmsController extends Controller
      */
     public function getRequest(Request $request)
     {
+        $sn = $request->query('SN');
+        
+        // Fetch oldest pending command
+        $command = \App\Models\DeviceCommand::where('status', 'pending')
+            ->where(function($q) use ($sn) {
+                $q->whereNull('sn')->orWhere('sn', $sn);
+            })
+            ->orderBy('id', 'asc')
+            ->first();
+
+        if ($command) {
+            $command->update([
+                'status' => 'sent',
+                'sn' => $sn,
+                'sent_at' => now()
+            ]);
+
+            // ADMS Command Format: C:ID:COMMAND_STRING
+            return "C:{$command->id}:{$command->command}";
+        }
+
         return "OK";
     }
 

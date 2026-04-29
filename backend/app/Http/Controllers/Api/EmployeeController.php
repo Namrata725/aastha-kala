@@ -83,14 +83,12 @@ class EmployeeController extends Controller
             DB::commit();
 
             // Register to ZKT device
-            /* 
-            // In Cloud/ADMS mode, the server cannot connect directly to the device.
-            // Users should be registered on the device manually.
+            // Automatically queue registration for ZKT device via ADMS
             if (!empty($employee->device_user_id)) {
-                $zktService = app(\App\Services\ZktDeviceService::class);
-                $zktService->setUserInDevice($employee->id, $employee->device_user_id, $employee->name);
+                \App\Models\DeviceCommand::create([
+                    'command' => "DATA USER PIN={$employee->device_user_id} Name={$employee->name} Pri=0 Password= Group=1 Card=0"
+                ]);
             }
-            */
 
             return response()->json([
                 'success' => true,
