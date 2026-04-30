@@ -201,7 +201,7 @@ class BookingController extends Controller
             ], 422);
         }
 
-        $booking = Booking::create($request->all());
+        $booking = Booking::create($validator->validated());
 
         if ($request->has('schedule_ids')) {
             $booking->schedules()->sync($request->schedule_ids);
@@ -277,7 +277,7 @@ class BookingController extends Controller
             ], 422);
         }
 
-        $booking->update($request->all());
+        $booking->update($validator->validated());
 
         if ($request->has('schedule_ids')) {
             $booking->schedules()->sync($request->schedule_ids);

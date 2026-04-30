@@ -86,13 +86,9 @@ const AboutPage = async () => {
 
   return (
     <div className="bg-white font-poppins">
-      <Heading className="text-[#27A0CF]"
+      <Heading 
         title="About Us"
-        subtitle={
-          <span className="text-black">
-            Discover our story, mission, and the passion behind Aastha Kala Kendra.
-          </span>
-        }
+        subtitle="Discover our story, mission, and the passion behind Aastha Kala Kendra."
       />
 
       {/* ── ABOUT INTRO ── */}

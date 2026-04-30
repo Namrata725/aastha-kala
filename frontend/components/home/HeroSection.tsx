@@ -16,25 +16,33 @@ const fetchHero = async (): Promise<HeroMedia[]> => {
     });
     const data = await res.json();
     
-    // Normalize data (backend might return { data: [...] } or just [...])
-    const items = Array.isArray(data) ? data : data?.data || [];
+    // Support multiple response formats: data.data.data (paginated), data.data (standard), or data (direct array)
+    const rawData = data?.data?.data || data?.data || data || [];
+    const items = Array.isArray(rawData) ? rawData : [];
     
     const media: HeroMedia[] = [];
 
     items.forEach((item: any) => {
       if (item.type === "images" && item.images) {
         item.images.forEach((img: string) => {
+          if (!img) return;
           let cleanPath = img;
+          
+          // Extract relative path even if it's an absolute URL from DB
           if (img.startsWith("http")) {
             try {
-              const parsed = new URL(img);
-              cleanPath = parsed.pathname;
+              const urlObj = new URL(img);
+              cleanPath = urlObj.pathname;
             } catch {}
           }
+
           const base = IMAGE_URL || "http://localhost:8000/storage/";
           const finalBase = base.endsWith("/") ? base.slice(0, -1) : base;
-          const normalizedPath = cleanPath.replace("/storage", "");
-          const imgPath = normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`;
+          
+          // Ensure we don't double up /storage
+          const relativePath = cleanPath.replace(/^\/storage/, "").replace(/^storage/, "");
+          const imgPath = relativePath.startsWith("/") ? relativePath : `/${relativePath}`;
+          
           media.push({
             url: `${finalBase}${imgPath}`,
             type: "image",
@@ -67,8 +75,6 @@ const HeroSection = async () => {
         <HeroSlider heroMedia={heroMedia} fill />
       </div>
 
-      {/* ── Gradient Overlay (Blend into white) ───────────────── */}
-      <div className="absolute inset-x-0 bottom-0 h-32 md:h-48 bg-linear-to-b from-transparent to-white pointer-events-none z-20" />
     </section>
   );
 };

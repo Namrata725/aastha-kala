@@ -5,52 +5,41 @@ interface StatsSectionProps {
 }
 
 const StatsSection: React.FC<StatsSectionProps> = ({ settings }) => {
-  if (!settings) return null;
-
   const stats = [
-    { label: "Years Experience", value: settings?.years_of_experience + "+  " },
-    { label: "Awards & Recognization", value: settings?.awards + "+" },
+    { label: "Years Experience", value: (settings?.years_of_experience || "10") + "+" },
+    { label: "Awards & Recognition", value: (settings?.awards || "15") + "+" },
     {
       label: "Expert Instructors",
-      value: settings?.number_of_instructors + "+",
+      value: (settings?.number_of_instructors || "25") + "+",
     },
-    { label: "Students Trained", value: settings?.number_of_students + "+" },
-    { label: "Success Rate", value: settings?.success_rate + "%" },
-  ].filter((stat) => stat.value); // Only show stats with values
-
-  if (stats.length === 0) return null;
+    { label: "Students Trained", value: (settings?.number_of_students || "500") + "+" },
+    { label: "Success Rate", value: (settings?.success_rate || "99") + "%" },
+  ];
   return (
-    <section className="relative w-full z-30 h-4 md:h-14">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 md:-translate-y-1/2 -translate-y-9/10 w-full max-w-6xl px-2 sm:px-6 md:px-8">
-        <div className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-primary to-secondary -z-10 pointer-events-none" />
-          <div
-            className="w-full py-6 md:py-8 px-2 sm:px-6 md:px-10"
-            style={{
-              background: "linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)",
-              borderRadius: "10px",
-              boxShadow:
-                "0 20px 50px -12px rgba(var(--primary-rgb), 0.5), 0 10px 20px -5px rgba(var(--secondary-rgb), 0.3)",
-            }}
-          >
-          {/* Subtle accent light inside */}
-          <div className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-primary to-secondary  pointer-events-none" />
+    <section className="relative w-full z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div
+          className="relative w-full -mt-16 md:-mt-24 py-10 md:py-16 px-6 md:px-12 rounded-[2rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(39,160,207,0.4)]"
+          style={{
+            background: "linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)",
+          }}
+        >
+          {/* Subtle background patterns/accents could go here */}
+          <div className="absolute inset-0 bg-white/5 pointer-events-none" />
 
-          <div className="flex flex-row items-start justify-between relative z-10 gap-1 md:gap-4">
+          <div className="flex flex-wrap items-center justify-around relative z-10 gap-8 md:gap-4">
             {stats.map((stat, index) => (
-              <div key={index} className="flex-1 flex flex-col items-center text-center gap-1 md:gap-2">
+              <div key={index} className="flex flex-col items-center text-center gap-2 min-w-[120px]">
                 <span
-                  className="font-extrabold leading-none text-white"
-                  style={{ fontSize: "clamp(1.25rem, 3.5vw, 2.5rem)" }}
+                  className="font-extrabold leading-none text-white drop-shadow-sm"
+                  style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
                 >
                   {stat.value}
                 </span>
                 <p
-                  className="font-medium leading-tight text-white "
+                  className="font-bold leading-tight text-white uppercase tracking-widest opacity-90"
                   style={{
-                    fontSize: "clamp(0.55rem, 1vw, 0.75rem)",
-                    letterSpacing: "0.02em",
-                    maxWidth: "100px",
-                    color: "#fff",
+                    fontSize: "clamp(0.7rem, 1.2vw, 0.85rem)",
                   }}
                 >
                   {stat.label}

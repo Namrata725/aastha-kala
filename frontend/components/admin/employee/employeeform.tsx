@@ -120,9 +120,15 @@ export function EmployeeForm({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        if (errorData.errors) setErrors(errorData.errors);
-        throw new Error(errorData.message || 'Operation failed');
+        let errorMessage = 'Operation failed';
+        try {
+          const errorData = await response.json();
+          if (errorData.errors) setErrors(errorData.errors);
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          errorMessage = `Server error: ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
 
       toast.success(`Employee ${initialData ? 'updated' : 'created'} successfully`);

@@ -56,8 +56,29 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ heroMedia, fill = false }) => {
         </div>
       ))}
 
-      {/* Subtle theme-color vignette at very bottom to blend into stats */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-brand-deep to-transparent z-20 pointer-events-none" />
+      {/* Navigation Arrows */}
+      {heroMedia.length > 1 && (
+        <>
+          <button
+            onClick={() => setCurrentIndex((prev) => (prev - 1 + heroMedia.length) % heroMedia.length)}
+            className="absolute left-6 top-1/2 -translate-y-1/2 z-40 p-4 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-sm transition-all duration-300 group cursor-pointer"
+            aria-label="Previous slide"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-6 h-6 transition-transform group-hover:-translate-x-0.5">
+              <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setCurrentIndex((prev) => (prev + 1) % heroMedia.length)}
+            className="absolute right-6 top-1/2 -translate-y-1/2 z-40 p-4 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-sm transition-all duration-300 group cursor-pointer"
+            aria-label="Next slide"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-6 h-6 transition-transform group-hover:translate-x-0.5">
+              <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </>
+      )}
 
       {/* Pagination indicators - Styled as modern dash/dots */}
       {heroMedia.length > 1 && (
@@ -69,7 +90,7 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ heroMedia, fill = false }) => {
               className={`transition-all duration-500 rounded-full cursor-pointer h-1.5 ${
                 idx === currentIndex
                   ? "w-8 bg-primary shadow-[0_0_10px_rgba(39,160,207,0.5)]"
-                  : "w-2 bg-brand-deep/30 hover:bg-brand-deep/50"
+                  : "w-2 bg-white/30 hover:bg-white/50"
               }`}
               title={`Slide ${idx + 1}`}
             />

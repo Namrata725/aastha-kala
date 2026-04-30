@@ -225,7 +225,7 @@ const EmployeesPage = () => {
               { value: 'staff', label: 'Staff' },
               { value: 'instructor', label: 'Instructor' }
             ]}
-            className="w-48"
+            className="w-full sm:w-48"
           />
         </div>
 

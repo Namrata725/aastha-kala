@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\StudentFeeController;
 use App\Http\Controllers\Api\StudentEnrollmentController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\SalaryPaymentController;
+use App\Http\Controllers\Api\ExpenseController;
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login'])->name('login');
@@ -114,6 +115,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/attendance/process', [\App\Http\Controllers\Api\AttendanceController::class, 'processLogs']);
     Route::get('/attendance/fetch-logs', [\App\Http\Controllers\Api\AttendanceController::class, 'fetchFromDevice']);
     Route::get('/attendance/summary', [\App\Http\Controllers\Api\AttendanceController::class, 'getSummary']);
+    Route::apiResource('expenses', ExpenseController::class);
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

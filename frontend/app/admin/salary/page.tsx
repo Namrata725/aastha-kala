@@ -104,6 +104,13 @@ const SalaryManagementPage = () => {
     setFormModalOpen(true);
   }, []);
 
+  const handleView = useCallback((payment: SalaryPayment) => {
+    setEditingPayment(payment);
+    setIsViewMode(true);
+    setFormModalOpen(true);
+  }, []);
+
+
   const handleDeleteClick = useCallback((payment: SalaryPayment) => {
     setSelectedPayment(payment);
     setDeleteModalOpen(true);
@@ -164,7 +171,7 @@ const SalaryManagementPage = () => {
             <p className="text-3xl font-bold text-gray-900 mt-1">{pagination.totalItems}</p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
-            <p className="text-sm text-gray-500">Total Amount Paid</p>
+            <p className="text-sm text-gray-500">Amount on This Page</p>
             <p className="text-3xl font-bold text-green-600 mt-1">
               Rs. {payments.reduce((acc, p) => acc + Number(p.amount), 0).toLocaleString()}
             </p>
@@ -281,11 +288,20 @@ const SalaryManagementPage = () => {
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <button
+                              onClick={() => handleView(payment)}
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                              title="View Details"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
                               onClick={() => handleEdit(payment)}
                               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                              title="Edit Payment"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
+
                             <button
                               onClick={() => handleDeleteClick(payment)}
                               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"

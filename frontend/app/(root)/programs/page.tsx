@@ -1,29 +1,22 @@
 export const dynamic = "force-dynamic";
-import Heading from "@/components/global/Heading";
+
 import ClientPrograms from "@/components/client/ClientPrograms";
+import Heading from "@/components/global/Heading";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const fetchSettings = async () => {
-  try {
-    const res = await fetch(`${API_URL}/settings`, { cache: "no-store" });
-    if (!res.ok) throw new Error("Failed to fetch settings");
-    const data = await res.json();
-    return data?.data?.setting || null;
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-};
-
 const fetchPrograms = async () => {
+  if (!API_URL) {
+    console.error("API_URL is not configured");
+    return [];
+  }
   try {
     const res = await fetch(`${API_URL}/programs`, { cache: "no-store" });
     if (!res.ok) throw new Error("Failed to fetch programs");
     const data = await res.json();
-    return data?.data?.data || data?.data || [];
+    return data?.data || [];
   } catch (error) {
-    console.error(error);
+    console.error("Fetch Programs Error:", error);
     return [];
   }
 };
@@ -35,24 +28,18 @@ export const metadata = {
 };
 
 const ProgramsPage = async () => {
-  const [settings, programs] = await Promise.all([
-    fetchSettings(),
-    fetchPrograms(),
-  ]);
+  const programs = await fetchPrograms();
 
   return (
-    <section>
-      <Heading className="text-[#27A0CF]"
+    <section className="min-h-screen">
+      <Heading 
         title="Our Programs"
-        subtitle={
-          <span className="text-black">
-            At Aasha Kala Kendra, our programs are designed to nurture talent,
-            build confidence, and develop artistic excellence. 
-          </span>
-        }
+        subtitle="Explore our performing arts programs designed to nurture talent and build confidence through professional guidance."
       />
 
-      <ClientPrograms programs={programs} />
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <ClientPrograms programs={programs} />
+      </div>
     </section>
   );
 };
