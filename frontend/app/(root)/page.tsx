@@ -58,9 +58,9 @@ const Page = async () => {
 
       <StatsSection settings={settings} />
 
-      {settings && (
+      {/* {settings && (
         <AboutHomeSection settings={settings} gallery={aboutHomeGallery?.[0]} />
-      )}
+      )} */}
 
       <Suspense fallback={<SectionPlaceholder />}>
         <HomeProgramSection />
