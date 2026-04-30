@@ -12,6 +12,8 @@ class SalaryPaymentController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', SalaryPayment::class);
+
         $query = SalaryPayment::with('employee');
 
         if ($request->has('employee_id')) {
@@ -36,13 +38,15 @@ class SalaryPaymentController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', SalaryPayment::class);
+
         $validator = Validator::make($request->all(), [
             'employee_id' => 'required|exists:employees,id',
             'amount' => 'required|numeric|min:0',
             'payment_date' => 'required|date',
-            'month' => 'required|integer|min:1|max:12',
-            'year' => 'required|integer|min:2020|max:2100',
-            'payment_type' => 'required|in:salary,pre-pay,bonus',
+            'month' => 'required|integer|between:1,12',
+            'year' => 'required|integer',
+            'payment_type' => 'required|string',
             'remarks' => 'nullable|string',
         ]);
 
@@ -54,50 +58,36 @@ class SalaryPaymentController extends Controller
             ], 422);
         }
 
-        $payment = SalaryPayment::create($request->all());
+        $payment = SalaryPayment::create($validator->validated());
 
         return response()->json([
             'success' => true,
-            'message' => 'Payment recorded successfully',
-            'data' => $payment->load('employee')
+            'message' => 'Salary payment recorded successfully',
+            'data' => $payment
         ], 201);
     }
 
-    public function show($id)
+    public function show(SalaryPayment $salaryPayment)
     {
-        $payment = SalaryPayment::with('employee')->find($id);
-
-        if (!$payment) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment not found'
-            ], 404);
-        }
+        $this->authorize('view', $salaryPayment);
 
         return response()->json([
             'success' => true,
-            'data' => $payment
+            'data' => $salaryPayment->load('employee')
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, SalaryPayment $salaryPayment)
     {
-        $payment = SalaryPayment::find($id);
-
-        if (!$payment) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment not found'
-            ], 404);
-        }
+        $this->authorize('update', $salaryPayment);
 
         $validator = Validator::make($request->all(), [
             'employee_id' => 'required|exists:employees,id',
             'amount' => 'required|numeric|min:0',
             'payment_date' => 'required|date',
-            'month' => 'required|integer|min:1|max:12',
-            'year' => 'required|integer|min:2020|max:2100',
-            'payment_type' => 'required|in:salary,pre-pay,bonus',
+            'month' => 'required|integer|between:1,12',
+            'year' => 'required|integer',
+            'payment_type' => 'required|string',
             'remarks' => 'nullable|string',
         ]);
 
@@ -109,31 +99,24 @@ class SalaryPaymentController extends Controller
             ], 422);
         }
 
-        $payment->update($request->all());
+        $salaryPayment->update($validator->validated());
 
         return response()->json([
             'success' => true,
-            'message' => 'Payment updated successfully',
-            'data' => $payment->load('employee')
+            'message' => 'Salary payment updated successfully',
+            'data' => $salaryPayment
         ]);
     }
 
-    public function destroy($id)
+    public function destroy(SalaryPayment $salaryPayment)
     {
-        $payment = SalaryPayment::find($id);
+        $this->authorize('delete', $salaryPayment);
 
-        if (!$payment) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment not found'
-            ], 404);
-        }
-
-        $payment->delete();
+        $salaryPayment->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Payment deleted successfully'
+            'message' => 'Salary payment deleted successfully'
         ]);
     }
 }

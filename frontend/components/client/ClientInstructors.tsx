@@ -41,8 +41,8 @@ const ClientInstructors = ({ instructors }: Props) => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-10 max-w-7xl">
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 gap-x-4 md:gap-x-8 justify-items-center">
+    <div className="max-w-7xl mx-auto py-10 px-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10 items-stretch">
         {instructors.map((instructor) => (
           <InstructorsCard 
             key={instructor.id} 

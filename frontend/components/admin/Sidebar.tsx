@@ -16,6 +16,7 @@ import {
   CreditCard,
   ChevronLeft,
   ChevronRight,
+  Banknote,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -31,7 +32,8 @@ const menuItems = [
   { name: "Dashboard", icon: Home, href: "/admin" },
   { name: "Employees", icon: Users, href: "/admin/employees" },
   { name: "Salary Management", icon: CreditCard, href: "/admin/salary" },
-  { name: "Instructor", icon: User, href: "/admin/instructor" },
+  { name: "Inhouse Expenses", icon: Banknote, href: "/admin/expenses" },
+  
   {
     name: "Instructor Schedule",
     icon: Calendar,

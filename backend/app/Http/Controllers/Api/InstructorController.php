@@ -254,10 +254,18 @@ public function update(Request $request, $id)
         // 1. Fixed classes
         if ($instructor->fixed_classes) {
             foreach ($instructor->fixed_classes as $class) {
+                $program = $class->program;
+                
+                // If this is a parent program and it has sub-programs, skip its "global" schedule
+                if ($program && $program->parent_id === null && $program->subPrograms->isNotEmpty()) {
+                    continue;
+                }
+
                 $classes[] = [
                     'start_time'    => $class->start_time instanceof \DateTimeInterface ? $class->start_time->format('H:i') : substr($class->start_time, 0, 5),
                     'end_time'      => $class->end_time instanceof \DateTimeInterface ? $class->end_time->format('H:i') : substr($class->end_time, 0, 5),
-                    'program_title' => $class->program ? $class->program->title : 'Unknown',
+                    'program_title' => $program ? $program->title : 'Unknown',
+                    'parent_program_title' => ($program && $program->parent) ? $program->parent->title : null,
                 ];
             }
         }
@@ -267,15 +275,23 @@ public function update(Request $request, $id)
             foreach ($instructor->bookings as $booking) {
                 if ($booking->status !== 'accepted') continue;
 
-                $title = 'Booking: ' . ($booking->program ? $booking->program->title : 'Custom');
+                $program = $booking->program;
+                $title = 'Booking: ' . ($program ? $program->title : 'Custom');
+                $parentTitle = ($program && $program->parent) ? $program->parent->title : null;
 
                 if ($booking->type === 'regular') {
+                    // If this is a parent program and it has sub-programs, skip its "global" schedule
+                    if ($program && $program->parent_id === null && $program->subPrograms->isNotEmpty()) {
+                        continue;
+                    }
+
                     $schedules = $booking->schedules && $booking->schedules->isNotEmpty() ? $booking->schedules : collect([$booking->schedule])->filter();
                     foreach ($schedules as $s) {
                         $classes[] = [
                             'start_time'    => $s->start_time instanceof \DateTimeInterface ? $s->start_time->format('H:i') : substr($s->start_time, 0, 5),
                             'end_time'      => $s->end_time instanceof \DateTimeInterface ? $s->end_time->format('H:i') : substr($s->end_time, 0, 5),
                             'program_title' => $title,
+                            'parent_program_title' => $parentTitle,
                         ];
                     }
                 } else {
@@ -284,6 +300,7 @@ public function update(Request $request, $id)
                             'start_time'    => $booking->custom_start_time instanceof \DateTimeInterface ? $booking->custom_start_time->format('H:i') : substr($booking->custom_start_time, 0, 5),
                             'end_time'      => $booking->custom_end_time instanceof \DateTimeInterface ? $booking->custom_end_time->format('H:i') : substr($booking->custom_end_time, 0, 5),
                             'program_title' => $title . ' (Custom)',
+                            'parent_program_title' => $parentTitle,
                         ];
                     }
                 }
@@ -291,14 +308,14 @@ public function update(Request $request, $id)
         }
 
         return collect($classes)->unique(function ($item) {
-            return $item['start_time'] . '-' . $item['end_time'] . '-' . $item['program_title'];
+            return $item['start_time'] . '-' . $item['end_time'] . '-' . $item['program_title'] . '-' . ($item['parent_program_title'] ?? '');
         })->values();
     }
 
     // GET /api/admin/instructors/{id}/schedule
     public function fullSchedule($id)
     {
-        $instructor = Instructor::with(['availabilities', 'fixed_classes.program', 'bookings.program', 'bookings.schedules', 'bookings.schedule'])->find($id);
+        $instructor = Instructor::with(['availabilities', 'fixed_classes.program.subPrograms', 'fixed_classes.program.parent', 'bookings.program.subPrograms', 'bookings.program.parent', 'bookings.schedules', 'bookings.schedule'])->find($id);
 
         if (!$instructor) {
             return response()->json([
@@ -327,7 +344,7 @@ public function update(Request $request, $id)
         $instructors = Instructor::whereHas('employee', function($query) {
                 $query->where('type', 'instructor');
             })
-            ->with(['availabilities', 'fixed_classes.program', 'bookings.program', 'bookings.schedules', 'bookings.schedule'])
+            ->with(['availabilities', 'fixed_classes.program.subPrograms', 'fixed_classes.program.parent', 'bookings.program.subPrograms', 'bookings.program.parent', 'bookings.schedules', 'bookings.schedule'])
             ->latest()
             ->paginate(10);
 

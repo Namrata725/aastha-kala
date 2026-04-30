@@ -47,6 +47,8 @@ export function CustomSelect({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         className={cn(
           "flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50",
           isOpen && "border-blue-500 ring-2 ring-blue-500/20"
@@ -64,7 +66,10 @@ export function CustomSelect({
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white p-1 shadow-xl animate-in fade-in zoom-in-95 duration-100">
+        <div 
+          role="listbox"
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white p-1 shadow-xl animate-in fade-in zoom-in-95 duration-100"
+        >
           {options.length === 0 ? (
             <div className="px-2 py-4 text-center text-sm text-gray-500 italic">
               No options available
@@ -75,9 +80,18 @@ export function CustomSelect({
               return (
                 <div
                   key={option.value}
+                  role="option"
+                  aria-selected={isSelected}
+                  tabIndex={0}
                   onClick={() => {
                     onChange(option.value.toString());
                     setIsOpen(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      onChange(option.value.toString());
+                      setIsOpen(false);
+                    }
                   }}
                   className={cn(
                     "relative flex w-full cursor-pointer select-none items-center rounded-md py-2.5 pl-3 pr-9 text-sm outline-none transition-colors hover:bg-blue-50 hover:text-blue-700",

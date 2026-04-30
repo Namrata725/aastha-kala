@@ -19,30 +19,58 @@ const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL;
 const fetchHeroMedia = async (): Promise<HeroMedia[]> => {
   try {
     const res = await fetch(`${API_URL}/galleries/position/slider-home`, {
-      next: { revalidate: 3600 },
+      cache: "no-store",
     });
     
     if (!res.ok) return [];
     
-    const json = await res.json();
-    const items = Array.isArray(json) ? json : (json?.data || []);
+    const data = await res.json();
+    
+    // Support multiple response formats: data.data.data (paginated), data.data (standard), or data (direct array)
+    const rawData = data?.data?.data || data?.data || data || [];
+    const items = Array.isArray(rawData) ? rawData : [];
+    
+    // Attempt to filter by "banner" category with multiple fallback property checks
+    const bannerItems = items.filter((item: any) => {
+      const categoryName = (
+        item.category?.name || 
+        item.category?.title || 
+        item.category_name || 
+        (typeof item.category === "string" ? item.category : "")
+      )?.toLowerCase();
+      
+      return categoryName === "banner";
+    });
+
+    // If banner category items exist, use them; otherwise, use all slider-home items
+    const finalItems = bannerItems.length > 0 ? bannerItems : items;
     
     const media: HeroMedia[] = [];
 
-    items.forEach((item: any) => {
+    finalItems.forEach((item: any) => {
       if (item.type === "images" && item.images) {
         item.images.forEach((img: string) => {
           let cleanPath = img;
+          
+          // Extract relative path even if it's an absolute URL from DB
           if (img.startsWith("http")) {
             try {
-              const parsed = new URL(img);
-              cleanPath = parsed.pathname;
+              const urlObj = new URL(img);
+              cleanPath = urlObj.pathname;
             } catch {}
           }
-          const base = IMAGE_URL || "http://localhost:8000/storage/";
+
+          const base = IMAGE_URL;
+          if (!base) {
+            console.warn("NEXT_PUBLIC_IMAGE_URL is not configured");
+            return; // or continue to skip this image
+          }
           const finalBase = base.endsWith("/") ? base.slice(0, -1) : base;
-          const normalizedPath = cleanPath.replace("/storage", "");
-          const imgPath = normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`;
+          
+          // Ensure we don't double up /storage
+          const relativePath = cleanPath.replace(/^\/storage/, "").replace(/^storage/, "");
+          const imgPath = relativePath.startsWith("/") ? relativePath : `/${relativePath}`;
+          
           media.push({
             url: `${finalBase}${imgPath}`,
             type: "image",

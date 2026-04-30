@@ -10,7 +10,15 @@ import {
   MapPin,
   Calendar,
   Lock,
+  UserCircle2,
+  MessageSquare,
+  Layers,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { CustomSelect } from "@/components/ui/custom-select";
+import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
 interface Schedule {
@@ -24,9 +32,9 @@ interface Program {
   id: number;
   title: string;
   description?: string;
-  image?: string;
+  image?: string | null;
   speciality?: string[];
-  is_active: boolean;
+  is_active?: boolean;
   schedules?: Schedule[];
 }
 
@@ -38,6 +46,15 @@ const formatTime12h = (time24: string) => {
   return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
 };
 
+function FieldLabel({ label, required }: { label: string; required?: boolean }) {
+  return (
+    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
+  );
+}
+
 interface BookingModalProps {
   program: Program;
   onClose: () => void;
@@ -48,13 +65,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
   const [success, setSuccess] = useState(false);
   const [bookingType, setBookingType] = useState<"regular" | "customization">("regular");
 
-  // Lock body scroll when modal is open
   React.useEffect(() => {
-    const originalStyle = window.getComputedStyle(document.body).overflow;
+    const orig = window.getComputedStyle(document.body).overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalStyle;
-    };
+    return () => { document.body.style.overflow = orig; };
   }, []);
 
   const [form, setForm] = useState({
@@ -77,8 +91,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Basic end > start guard
     if (
       bookingType === "customization" &&
       form.custom_start_time &&
@@ -88,7 +100,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
       toast.error("End time must be after start time.");
       return;
     }
-
     setLoading(true);
     try {
       const payload: any = {
@@ -104,20 +115,17 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
         address: form.current_address,
         message: form.message,
       };
-
       if (bookingType === "regular") {
         payload.schedule_ids = form.schedule_ids;
       } else {
         payload.custom_start_time = form.custom_start_time;
         payload.custom_end_time = form.custom_end_time;
       }
-
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(payload),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Booking failed");
       setSuccess(true);
@@ -128,273 +136,340 @@ const BookingModal: React.FC<BookingModalProps> = ({ program, onClose }) => {
     }
   };
 
-  const inputCls =
-    "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition placeholder:text-gray-400";
-  const labelCls = "block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5";
+  const inputCls = "h-11 text-sm w-full border border-gray-300 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white";
 
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all animate-in fade-in zoom-in duration-300 flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="flex-shrink-0 bg-white border-b border-gray-100 px-8 py-5 flex justify-between items-center rounded-t-3xl">
-          <div>
-            <p className="text-xs font-bold text-primary uppercase tracking-widest">Book Your Class</p>
-            <h2 className="text-xl font-bold text-primary mt-0.5">{program.title}</h2>
+      {/* Modal */}
+      <div
+        className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl shadow-2xl flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* ── Header ── */}
+        <div className="px-8 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white sticky top-0 rounded-t-2xl z-10">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Book Your Class</h2>
+              <p className="text-sm text-gray-500 mt-0.5">{program.title}</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition mt-0.5"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         {success ? (
-          <div className="flex flex-col items-center justify-center py-16 px-8 text-center space-y-5 overflow-y-auto flex-1">
-            <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center">
+          /* ── Success ── */
+          <div className="flex flex-col items-center justify-center py-16 px-8 text-center gap-5">
+            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
               <CheckCircle2 className="w-10 h-10 text-green-500" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">Booking Received!</h3>
-            <p className="text-gray-500 max-w-sm text-sm leading-relaxed">
-              Thank you, <strong>{form.name}</strong>! Your request for{" "}
-              <strong>{program.title}</strong> has been submitted. We'll confirm your slot shortly.
-            </p>
-            <button
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900">Booking Received!</h3>
+              <p className="text-gray-500 max-w-sm text-sm leading-relaxed mt-2">
+                Thank you, <strong>{form.name}</strong>! Your request for{" "}
+                <strong>{program.title}</strong> has been submitted. We'll confirm your slot shortly.
+              </p>
+            </div>
+            <Button
               onClick={onClose}
-              className="mt-4 px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl hover:opacity-90 transition"
+              className="mt-2 px-8 h-11 bg-primary hover:bg-primary/90 text-white font-semibold"
             >
               Done
-            </button>
+            </Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="px-8 py-7 space-y-6 overflow-y-auto flex-1">
-            {/* Booking Type Toggle */}
-            <div>
-              <p className={labelCls}>Class Type</p>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { value: "regular", label: "Fixed Schedule", icon: <Calendar className="w-4 h-4" /> },
-                  { value: "customization", label: "Private Class", icon: <Lock className="w-4 h-4" /> },
-                ].map(({ value, label, icon }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setBookingType(value as any)}
-                    className={`flex items-center gap-2.5 justify-center p-3.5 rounded-xl border-2 font-semibold text-sm transition ${
-                      bookingType === value
-                        ? "border-primary bg-primary/5 text-primary"
-                        : "border-gray-100 text-gray-500 hover:border-gray-300"
-                    }`}
-                  >
-                    {icon} {label}
-                  </button>
-                ))}
-              </div>
-            </div>
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1">
+            <div className="p-8 space-y-8">
 
-            {/* Personal Info */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label className={labelCls}>Full Name *</label>
-                <input required className={inputCls} placeholder="Your full name" value={form.name} onChange={(e) => set("name", e.target.value)} />
+              {/* ── Class Type ── */}
+              <div className="space-y-3">
+                <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <Layers className="w-5 h-5 text-blue-600" />
+                  Class Type
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { value: "regular", label: "Fixed Schedule", icon: <Calendar className="w-4 h-4" /> },
+                    { value: "customization", label: "Private Class", icon: <Lock className="w-4 h-4" /> },
+                  ].map(({ value, label, icon }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setBookingType(value as any)}
+                      className={cn(
+                        "flex items-center gap-2.5 justify-center p-3 rounded-lg border-2 font-medium text-sm transition",
+                        bookingType === value
+                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          : "border-gray-200 text-gray-600 hover:border-gray-300 bg-white"
+                      )}
+                    >
+                      {icon} {label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div>
-                <label className={labelCls}>Phone Number *</label>
-                <input required type="tel" className={inputCls} placeholder="98XXXXXXXX" value={form.phone} onChange={(e) => set("phone", e.target.value)} />
-              </div>
-              <div className="sm:col-span-2">
-                <label className={labelCls}>Email Address</label>
-                <input type="email" className={inputCls} placeholder="you@email.com" value={form.email} onChange={(e) => set("email", e.target.value)} />
-              </div>
-            </div>
 
-            {/* Mode */}
-            <div>
-              <p className={labelCls}>Class Mode</p>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { value: "physical", label: "Physical", icon: <Users className="w-4 h-4" /> },
-                  { value: "online", label: "Online", icon: <Monitor className="w-4 h-4" /> },
-                ].map(({ value, label, icon }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => set("class_mode", value)}
-                    className={`flex items-center gap-2.5 justify-center p-3.5 rounded-xl border-2 font-semibold text-sm transition ${
-                      form.class_mode === value
-                        ? "border-secondary bg-secondary/5 text-secondary"
-                        : "border-gray-100 text-gray-500 hover:border-gray-300"
-                    }`}
-                  >
-                    {icon} {label}
-                  </button>
-                ))}
+              {/* ── Personal Info ── */}
+              <div className="space-y-4">
+                <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <UserCircle2 className="w-5 h-5 text-blue-600" />
+                  Personal Information
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel label="Full Name" required />
+                    <Input
+                      required
+                      className="h-11 text-base"
+                      placeholder="Your full name"
+                      value={form.name}
+                      onChange={(e) => set("name", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <FieldLabel label="Phone Number" required />
+                    <Input
+                      required
+                      type="tel"
+                      className="h-11 text-base"
+                      placeholder="98XXXXXXXX"
+                      value={form.phone}
+                      onChange={(e) => set("phone", e.target.value)}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <FieldLabel label="Email Address" />
+                    <Input
+                      type="email"
+                      className="h-11 text-base"
+                      placeholder="you@email.com"
+                      value={form.email}
+                      onChange={(e) => set("email", e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
 
-            {/* Booking Date */}
-            <div>
-              <label className={labelCls}>Preferred Start Date *</label>
-              <input
-                required
-                type="date"
-                min={new Date().toISOString().split("T")[0]}
-                className={inputCls}
-                value={form.booking_date}
-                onChange={(e) => set("booking_date", e.target.value)}
-              />
-            </div>
+              {/* ── Class Mode ── */}
+              <div className="space-y-3">
+                <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <Monitor className="w-5 h-5 text-blue-600" />
+                  Class Mode
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { value: "physical", label: "Physical", icon: <Users className="w-4 h-4" /> },
+                    { value: "online", label: "Online", icon: <Monitor className="w-4 h-4" /> },
+                  ].map(({ value, label, icon }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => set("class_mode", value)}
+                      className={cn(
+                        "flex items-center gap-2.5 justify-center p-3 rounded-lg border-2 font-medium text-sm transition",
+                        form.class_mode === value
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-gray-200 text-gray-600 hover:border-gray-300 bg-white"
+                      )}
+                    >
+                      {icon} {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-            {/* Schedule or Custom Time */}
-            {bookingType === "regular" ? (
-              <div>
-                {program.schedules && program.schedules.length > 0 ? (
-                  <div className="space-y-2">
-                    <p className={labelCls}>Select Schedule(s)</p>
-                    {program.schedules.map((s) => (
-                      <label
-                        key={s.id}
-                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition ${
-                          form.schedule_ids.includes(String(s.id))
-                            ? "border-primary bg-primary/5"
-                            : "border-gray-100 hover:border-gray-200"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          value={s.id}
-                          checked={form.schedule_ids.includes(String(s.id))}
-                          onChange={(e) => {
-                            const val = String(s.id);
-                            const current = [...form.schedule_ids];
-                            if (e.target.checked) {
-                              setForm({ ...form, schedule_ids: [...current, val] });
-                            } else {
-                              setForm({ ...form, schedule_ids: current.filter((id) => id !== val) });
-                            }
-                          }}
-                          className="accent-primary w-4 h-4 rounded"
-                        />
-                        <div className="flex-1">
-                          <p className="text-sm text-primary font-bold flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-secondary" />
-                            {formatTime12h(s.start_time)} – {formatTime12h(s.end_time)}
-                          </p>
-                          {s.instructor && (
-                            <p className="text-xs text-gray-400 mt-1 italic pl-6">
-                              Lead Instructor: {s.instructor.name}
-                            </p>
-                          )}
-                        </div>
-                      </label>
-                    ))}
+              {/* ── Schedule ── */}
+              <div className="space-y-3">
+                <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-blue-600" />
+                  Schedule
+                </h3>
+
+                {/* Preferred start date */}
+                <div>
+                  <FieldLabel label="Preferred Start Date" required />
+                  <Input
+                    required
+                    type="date"
+                    min={new Date().toLocaleDateString('en-CA')}
+                    className="h-11 text-base"
+                    value={form.booking_date}
+                    onChange={(e) => set("booking_date", e.target.value)}
+                  />
+                </div>
+
+                {bookingType === "regular" ? (
+                  <div>
+                    {program.schedules && program.schedules.length > 0 ? (
+                      <div className="space-y-2">
+                        <FieldLabel label="Select Time Slot(s)" />
+                        {program.schedules.map((s) => (
+                          <label
+                            key={s.id}
+                            className={cn(
+                              "flex items-center gap-4 p-3.5 rounded-lg border-2 cursor-pointer transition",
+                              form.schedule_ids.includes(String(s.id))
+                                ? "border-blue-500 bg-blue-50"
+                                : "border-gray-200 hover:border-gray-300 bg-white"
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={form.schedule_ids.includes(String(s.id))}
+                              onChange={(e) => {
+                                const val = String(s.id);
+                                const current = [...form.schedule_ids];
+                                setForm({
+                                  ...form,
+                                  schedule_ids: e.target.checked
+                                    ? [...current, val]
+                                    : current.filter((id) => id !== val),
+                                });
+                              }}
+                              className="accent-blue-600 w-4 h-4"
+                            />
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-blue-500" />
+                                {formatTime12h(s.start_time)} – {formatTime12h(s.end_time)}
+                              </p>
+                              {s.instructor && (
+                                <p className="text-xs text-gray-400 mt-0.5 pl-6">
+                                  Instructor: {s.instructor.name}
+                                </p>
+                              )}
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+                        No fixed schedules available for this program yet.
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-sm text-yellow-700 text-center">
-                    No fixed schedules available for this program yet.
+                  /* Custom time */
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <FieldLabel label="From" required />
+                        <Input
+                          required
+                          type="time"
+                          className="h-11 text-base"
+                          value={form.custom_start_time}
+                          onChange={(e) => set("custom_start_time", e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <FieldLabel label="To" required />
+                        <Input
+                          required
+                          type="time"
+                          className="h-11 text-base"
+                          value={form.custom_end_time}
+                          onChange={(e) => set("custom_end_time", e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      Our team will contact you to finalize the schedule.
+                    </p>
+
+                    {/* Duration */}
+                    <div>
+                      <FieldLabel label="Program Duration" required />
+                      <div className="grid grid-cols-2 gap-4">
+                        <CustomSelect
+                          value={form.duration_unit}
+                          onChange={(v) => set("duration_unit", v)}
+                          placeholder="Select Unit"
+                          options={[
+                            { value: "months", label: "Months" },
+                            { value: "years", label: "Years" },
+                          ]}
+                        />
+                        <Input
+                          required
+                          type="number"
+                          min="1"
+                          className={cn("h-11 text-base", !form.duration_unit && "opacity-50")}
+                          disabled={!form.duration_unit}
+                          placeholder={!form.duration_unit ? "Choose unit first" : "e.g. 3"}
+                          value={form.duration_value}
+                          onChange={(e) => set("duration_value", e.target.value)}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
-            ) : (
-              <div>
-                <label className={labelCls}>Preferred Time *</label>
-                <p className="text-xs text-gray-400 mb-3">
-                  Enter your preferred time slot. Our admin will contact you to confirm and finalize the schedule.
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">From</p>
-                    <input
-                      required
-                      type="time"
-                      className={inputCls}
-                      value={form.custom_start_time}
-                      onChange={(e) => set("custom_start_time", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">To</p>
-                    <input
-                      required
-                      type="time"
-                      className={inputCls}
-                      value={form.custom_end_time}
-                      onChange={(e) => set("custom_end_time", e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {/* Program Duration */}
-            {bookingType === "customization" && (
-              <div>
-                <label className={labelCls}>How long do you plan to take this program? *</label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Unit</p>
-                    <select className={inputCls} value={form.duration_unit} onChange={(e) => set("duration_unit", e.target.value)}>
-                      <option value="" disabled>Select Unit</option>
-                      <option value="days">Days</option>
-                      <option value="months">Months</option>
-                      <option value="years">Years</option>
-                    </select>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Duration</p>
-                    <input
-                      required
-                      type="number"
-                      min="1"
-                      className={`${inputCls} ${!form.duration_unit ? "opacity-50 cursor-not-allowed bg-gray-50" : ""}`}
-                      disabled={!form.duration_unit}
-                      placeholder={!form.duration_unit ? "Choose Unit first" : "Enter duration"}
-                      value={form.duration_value}
-                      onChange={(e) => set("duration_value", e.target.value)}
-                    />
-                  </div>
-                </div>
+              {/* ── Address ── */}
+              <div className="space-y-3">
+                <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-blue-600" />
+                  Address{form.class_mode === "physical" ? "" : " (Optional)"}
+                </h3>
+                <Input
+                  type="text"
+                  required={form.class_mode === "physical"}
+                  className="h-11 text-base"
+                  placeholder="City / Street / Tole"
+                  value={form.current_address}
+                  onChange={(e) => set("current_address", e.target.value)}
+                />
               </div>
-            )}
 
-            {/* Current Address */}
-            <div>
-              <label className={labelCls}>
-                <MapPin className="w-3 h-3 inline mr-1 mb-0.5" />
-                Current Address {form.class_mode === "physical" ? "*" : "(optional)"}
-              </label>
-              <input
-                type="text"
-                required={form.class_mode === "physical"}
-                className={inputCls}
-                placeholder="City / Street / Tole"
-                value={form.current_address}
-                onChange={(e) => set("current_address", e.target.value)}
-              />
+              {/* ── Message ── */}
+              <div className="space-y-3">
+                <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-blue-600" />
+                  Additional Message
+                </h3>
+                <textarea
+                  rows={3}
+                  className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white resize-none placeholder:text-gray-400"
+                  placeholder="Any special requests or questions..."
+                  value={form.message}
+                  onChange={(e) => set("message", e.target.value)}
+                />
+              </div>
             </div>
 
-            {/* Message */}
-            <div>
-              <label className={labelCls}>Additional Message</label>
-              <textarea
-                rows={3}
-                className={inputCls + " resize-none"}
-                placeholder="Any special requests or questions..."
-                value={form.message}
-                onChange={(e) => set("message", e.target.value)}
-              />
+            {/* ── Footer ── */}
+            <div className="px-8 py-5 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 sticky bottom-0 rounded-b-2xl">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="px-6 h-11 text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="px-8 h-11 bg-primary hover:bg-primary/90 text-white font-semibold cursor-pointer"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner size="sm" />
+                    Submitting...
+                  </span>
+                ) : (
+                  "Confirm Booking"
+                )}
+              </Button>
             </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl hover:opacity-90 transition text-sm tracking-wide disabled:opacity-50"
-            >
-              {loading ? "Submitting..." : "Confirm Booking Request"}
-            </button>
           </form>
         )}
       </div>

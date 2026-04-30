@@ -78,8 +78,8 @@ const GalleryPage = async () => {
   return (
     <section>
       <Heading
-        title=""
-        subtitle=""
+        title="Our Gallery"
+        subtitle="Explore the vibrant moments of artistic expression, performances, and student life at Aastha Kala Kendra."
       />
 
       <ClientGallery gallery={gallery} categories={categories} />

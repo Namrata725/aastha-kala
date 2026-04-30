@@ -6,8 +6,9 @@ import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
-import ProgramPopupModal from "../layout/ProgramPopupModal";
 import BookingModal from "../layout/BookingModal";
+
+import HomeFlipCard from "./HomeFlipCard";
 
 interface Schedule {
   id: number;
@@ -24,6 +25,8 @@ interface Program {
   speciality?: string[];
   is_active: boolean;
   schedules?: Schedule[];
+  program_fee?: number | string;
+  sub_programs?: any[];
 }
 
 interface ClientProgramSliderProps {
@@ -32,51 +35,15 @@ interface ClientProgramSliderProps {
 }
 
 const ClientProgramSlider: React.FC<ClientProgramSliderProps> = ({ programs, viewType = "slider" }) => {
-  const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const [bookingProgram, setBookingProgram] = useState<Program | null>(null);
 
   const renderCard = (program: Program, index: number) => {
-    const isOdd = index % 2 !== 0;
     return (
-      <div
+      <HomeFlipCard 
         key={program.id}
-        onClick={() => setSelectedProgram(program)}
-        className="group relative overflow-hidden h-[250px] md:h-[550px] transition-transform duration-500 hover:-translate-y-2 cursor-pointer"
-      >
-        {/* Background Image */}
-        <img
-          src={program.image || "/images/program-fallback.png"}
-          alt={program.title}
-          className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-110"
-        />
-
-        {/* Enhanced Gradient Overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-${isOdd ? "b" : "t"} from-black/80 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300`} />
-
-        {/* Content - Alternating Position */}
-        <div className={`absolute ${isOdd ? "top-3 md:top-6" : "bottom-3 md:bottom-6"} left-3 md:left-6 right-3 md:right-6 flex flex-col gap-2 md:gap-4`}>
-          {/* Program Title */}
-          <h3 className="text-white text-xs md:text-xl font-black uppercase tracking-wider leading-tight drop-shadow-lg transform transition-transform duration-300 group-hover:translate-x-1">
-            {program.title}
-          </h3>
-
-          <div className="flex items-center justify-center">
-             {/* Join Button */}
-             <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setBookingProgram(program);
-                }}
-                className="shrink-0 w-8 h-8 md:w-12 md:h-12 rounded-full bg-cyan-400 hover:bg-cyan-300 active:scale-95 transition-all duration-300 flex items-center justify-center shadow-xl hover:rotate-12"
-                aria-label={`Join ${program.title}`}
-              >
-                <span className="text-white text-[7px] md:text-[10px] font-black uppercase tracking-wider text-center leading-none">
-                  JOIN<br/>NOW
-                </span>
-              </button>
-          </div>
-        </div>
-      </div>
+        program={program as any}
+        onBook={() => setBookingProgram(program)}
+      />
     );
   };
 
@@ -137,21 +104,9 @@ const ClientProgramSlider: React.FC<ClientProgramSliderProps> = ({ programs, vie
         </>
       )}
 
-      {/* Modals */}
-      {selectedProgram && (
-        <ProgramPopupModal 
-          program={selectedProgram}
-          onClose={() => setSelectedProgram(null)}
-          onBook={() => {
-            setBookingProgram(selectedProgram);
-            setSelectedProgram(null);
-          }}
-        />
-      )}
-
       {bookingProgram && (
         <BookingModal 
-          program={bookingProgram}
+          program={bookingProgram as any}
           onClose={() => setBookingProgram(null)}
         />
       )}

@@ -26,34 +26,36 @@ const HomeInstructor = async () => {
   if (instructors.length === 0) return null;
 
   const limitedInstructors = instructors.slice(0, 4);
-
   const hasMoreThanFour = instructors.length > 4;
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-6 md:space-y-12">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-[#27A0CF] tracking-wide font-poppins mb-2">
-          Meet Our Instructors
-        </h1>
-        <h4 className=" font-semibold text-secondary tracking-wider">
-          <span>
-            Learn from industry professionals and award-winning artists
-            dedicated to your success.
-          </span>
-        </h4>
-      </div>
-      <ClientInstructors instructors={limitedInstructors} />
-
-      {hasMoreThanFour && (
-        <div className="text-center">
-          <Link
-            href="/instructors"
-            className="px-6 py-3 bg-linear-to-r from-primary to-secondary text-white rounded-lg  text-justify"
-          >
-            See More
-          </Link>
+    <section className="bg-[#fcfcfd] py-20 px-6 overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center space-y-4 mb-16 md:mb-24 relative">
+          <div className="absolute left-1/2 -top-12 -translate-x-1/2 w-64 h-64 bg-primary/5 rounded-full blur-[100px]" />
+          
+          <span className="text-primary font-black uppercase tracking-[0.4em] text-[10px] block mb-2">Expert Mentors</span>
+          <h2 className="text-4xl md:text-6xl font-black text-[#001f54] tracking-tight font-poppins relative z-10 leading-tight">
+            Meet Our <span className="text-primary">Instructors</span>
+          </h2>
+          <p className="text-gray-500 text-base md:text-lg max-w-2xl mx-auto font-medium relative z-10 leading-relaxed italic">
+            "Learn from industry professionals and award-winning artists dedicated to your success."
+          </p>
         </div>
-      )}
+
+        <ClientInstructors instructors={limitedInstructors} />
+
+        {hasMoreThanFour && (
+          <div className="text-center mt-16">
+            <Link
+              href="/instructors"
+              className="inline-flex items-center gap-3 px-10 py-4 bg-[#001f54] text-white font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-primary transition-all duration-300 shadow-xl hover:-translate-y-1 active:scale-95"
+            >
+              See All Instructors
+            </Link>
+          </div>
+        )}
+      </div>
     </section>
   );
 };
